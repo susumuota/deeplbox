@@ -1,37 +1,12 @@
-// -*- coding: utf-8 -*-
-
-// Copyright 2021 Susumu OTA
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-
-// Manifest V3 for Chrome Extensions (MV3)
-//
-// https://developer.chrome.com/docs/extensions/mv3/manifest/
-// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/
-// https://developer.chrome.com/docs/extensions/mv3/background_pages/
-// https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
-
 {
   "manifest_version": 3,
 
   "name": "DeepLKey: DeepL Keyboard Shortcut",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Open DeepL page by keyboard shortcut and context menu",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/",
 
-  // https://developer.chrome.com/docs/extensions/mv3/background_pages/#manifest
   "background": {
     "service_worker": "background.js"
   },
@@ -50,12 +25,10 @@
     "tabs",
     "commands",
     "contextMenus",
-    // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
     "scripting",
     "storage"
   ],
 
-  // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#host-permissions
   "host_permissions": [
     "http://*/*",
     "https://*/*"
