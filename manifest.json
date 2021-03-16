@@ -26,7 +26,7 @@
   "manifest_version": 3,
 
   "name": "DeepLKey: DeepL Keyboard Shortcut",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Open DeepL page by keyboard shortcut and context menu",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/",
