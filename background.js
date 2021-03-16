@@ -16,7 +16,12 @@
 
 
 // Manifest V3 for Chrome Extensions (MV3)
+//
 // https://developer.chrome.com/docs/extensions/mv3/intro/
+// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/
+// https://developer.chrome.com/docs/extensions/mv3/manifest/
+// https://developer.chrome.com/docs/extensions/mv3/background_pages/
+// https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
 
 
 'use strict';
