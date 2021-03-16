@@ -21,21 +21,22 @@
 
 'use strict';
 
-const DEFAULT_CONFIG = Object.freeze({
+const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
+  // https://www.deepl.com/docs-api/translating-text/
   sourceLang: 'en',
   targetLang: 'ja',
   urlBase: 'https://www.deepl.com/translator',
   alwaysCreate: false,
-  isWindow: true,
-  tabCreateConfig: {
+  useWindow: true,
+  tabCreateParam: {
     // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
-    active: true
+    active: false
   },
-  tabUpdateConfig: {
+  tabUpdateParam: {
     // https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
-    active: true
+    active: false
   },
-  windowCreateConfig: {
+  windowCreateParam: {
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
     width: 1080,
     height: 1080,
@@ -43,65 +44,52 @@ const DEFAULT_CONFIG = Object.freeze({
     left: 0,
     focused: true
   },
-  windowUpdateConfig: {
+  windowUpdateParam: {
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
     focused: true
-  }
+  },
+  // DON'T touch tabId. tabId used like a global variable, not config
+  tabId: chrome.tabs.TAB_ID_NONE
 });
 
-function getConfigValue(config, key) {
-  return key in config ? config[key] : DEFAULT_CONFIG[key];
-}
-
 // create or update tab and window
+// window.open does not seem to work in MV3
 // this function is similar to window.open
-// window.open(url, null) does not seem to work in MV3
-function openTab(url) {
-  function create() {
-    chrome.storage.local.get(['isWindow', 'tabCreateConfig', 'windowCreateConfig'], (config) => {
-      const tabCreateConfig = getConfigValue(config, 'tabCreateConfig');
-      chrome.tabs.create({...tabCreateConfig, url: url}, (tab) => {
+const openTab = (url) => {
+  const create = () => {
+    chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
+      chrome.tabs.create({...config.tabCreateParam, url: url}, (tab) => {
         console.debug('chrome.tabs.create: tab == ', tab);
-        chrome.storage.local.set({tabId: tab.id});
-        const isWindow = getConfigValue(config, 'isWindow');
-        if (isWindow) {
-          const windowCreateConfig = getConfigValue(config, 'windowCreateConfig');
-          chrome.windows.create({...windowCreateConfig, tabId: tab.id}, (window) => {
-            chrome.storage.local.set({windowId: window.id});
+        console.assert(tab.id != chrome.tabs.TAB_ID_NONE);
+        chrome.storage.local.set({tabId: tab.id}); // save tabId
+        if (config.useWindow) {
+          chrome.windows.create({...config.windowCreateParam, tabId: tab.id}, (window) => {
             console.debug('chrome.windows.create: window == ', window);
           });
         }
       });
     });
   }
-  function update() {
-    chrome.storage.local.get(['tabId', 'windowId', 'isWindow', 'tabUpdateConfig', 'windowUpdateConfig'], (config) => {
-      console.assert(config.tabId != undefined);
+  const update = () => {
+    chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
       console.assert(config.tabId != chrome.tabs.TAB_ID_NONE);
-      const tabUpdateConfig = getConfigValue(config, 'tabUpdateConfig');
-      chrome.tabs.update(config.tabId, {...tabUpdateConfig, url: url}, (tab) => {
+      chrome.tabs.update(config.tabId, {...config.tabUpdateParam, url: url}, (tab) => {
         console.debug('chrome.tabs.update: tab == ', tab);
-        chrome.storage.local.set({tabId: tab.id});
-        const isWindow = getConfigValue(config, 'isWindow');
-        if (isWindow) {
-          console.assert(config.windowId != undefined)
-          console.assert(config.windowId != chrome.windows.WINDOW_ID_NONE)
-          const windowUpdateConfig = getConfigValue(config, 'windowUpdateConfig');
-          chrome.windows.update(config.windowId, windowUpdateConfig, (window) => {
+        console.assert(config.tabId == tab.id);
+        if (config.useWindow) {
+          chrome.windows.update(tab.windowId, config.windowUpdateParam, (window) => {
             console.debug('chrome.windows.update: window == ', window);
-            chrome.storage.local.set({windowId: window.id});
+            console.assert(window.id == tab.windowId);
           });
         }
       });
     });
   }
-  chrome.storage.local.get(['tabId', 'alwaysCreate'], (config) => {
+  chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
     console.debug('chrome.storage.local.get: config == ', config);
-    const tabId = config.tabId || chrome.tabs.TAB_ID_NONE;
-    const alwaysCreate = getConfigValue(config, 'alwaysCreate');
-    if (!alwaysCreate && tabId != chrome.tabs.TAB_ID_NONE) {
+    if (!config.alwaysCreate && config.tabId != chrome.tabs.TAB_ID_NONE) {
       // try to reuse tab, but user may close tab
-      chrome.tabs.get(tabId).then(update).catch(create);
+      chrome.tabs.get(config.tabId).then(update).catch(create);
     } else {
       // first time. there is no tab
       create();
@@ -110,33 +98,30 @@ function openTab(url) {
 }
 
 // open DeepL tab
-function openDeepL(text) {
-  chrome.storage.local.get(['sourceLang', 'targetLang', 'urlBase'], (config) => {
-    // https://www.deepl.com/docs-api/translating-text/
-    const sl = getConfigValue(config, 'sourceLang');
-    const tl = getConfigValue(config, 'targetLang');
-    const urlBase = getConfigValue(config, 'urlBase');
-    const encoded = encodeURIComponent(text);
-    openTab(`${urlBase}#${sl}/${tl}/${encoded}`);
+const openDeepL = (text) => {
+  chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
+    openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(text)}`);
   });
 }
 
 // setConfig({targetLang: 'ja'})
-function setConfig(config) {
+const setConfig = (config) => {
   chrome.storage.local.set(config);
 }
 
-function getConfig(callback) {
-  chrome.storage.local.get(Object.keys(DEFAULT_CONFIG), callback);
+// getConfig(console.log)
+const getConfig = (callback) => {
+  chrome.storage.local.get(DEFAULT_CONFIG, callback);
 }
+
 // clearConfig()
-function clearConfig() {
+const clearConfig = () => {
   chrome.storage.local.clear();
 }
 
 // get selection text
 // TODO: sometimes window.getSelection() returns empty (e.g. Kaggle Notebook)
-function getSelection(tab, callback) {
+const getSelection = (tab, callback) => {
   // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
   chrome.scripting.executeScript({
     target: {tabId: tab.id},
@@ -155,8 +140,7 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ['selection']
   });
   chrome.storage.local.set({
-    tabId: chrome.tabs.TAB_ID_NONE,
-    windowId: chrome.windows.WINDOW_ID_NONE
+    tabId: chrome.tabs.TAB_ID_NONE // must reset. saved tabId should be invalid
   });
 });
 
