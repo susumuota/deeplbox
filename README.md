@@ -7,7 +7,7 @@ A Google Chrome extension to open DeepL translation page by keyboard shortcut an
 ## Install
 
 - Open Terminal and type `git clone https://github.com/susumuota/deeplkey.git`
-- Open Chrome's extensions setting page [chrome://extensions/](chrome://extensions/)
+- Open Chrome's extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese)
 - Specify `/path/to/deeplkey`.
@@ -22,7 +22,7 @@ A Google Chrome extension to open DeepL translation page by keyboard shortcut an
 
 ### Change keyboard shortcuts
 
-- Open extensions setting page [chrome://extensions/](chrome://extensions/)
+- Open extensions setting page `chrome://extensions`
 - Open menu by clicking [Hamburger button](https://en.wikipedia.org/wiki/Hamburger_button)(triple bar icon) on the left of `Extensions`
 - Click `Keyboard shortcuts`
 - Click the pencil icon on the right of `Open DeepL`
@@ -34,7 +34,7 @@ You can change translation source language, target language and DeepL base URL (
 
 Note: in most cases, DeepL automatically detects source language.
 
-- Open extensions setting page [chrome://extensions/](chrome://extensions/)
+- Open extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Service Worker` at `DeepLKey: DeepL Keyboard Shortcut`
 - DevTools console will appear
