@@ -30,7 +30,7 @@ A Google Chrome extension to open DeepL translation page by keyboard shortcut an
 
 ### Change translation language
 
-You can change translation source language, target language and DeepL base URL (to change UI language). Available languages are listed [here](https://www.deepl.com/docs-api/translating-text/).
+You can change translation source language, target language, etc. Available languages are listed [here](https://www.deepl.com/docs-api/translating-text/).
 
 Note: in most cases, DeepL automatically detects source language.
 
@@ -50,14 +50,13 @@ Note: in most cases, DeepL automatically detects source language.
 
 ```javascript
 > setConfig({'targetLang': 'de'}) // change target language to German
-> setConfig({'isWindow': true}) // open new window instead of tab
 ```
 
 - `getConfig` gets current settings and call callback function
 
 ```javascript
 > getConfig(console.log)
-{ targetLang: "de", "isWindow": true }
+{ sourceLang: 'en', targetLang: 'de', ... }
 ```
 
 - `clearConfig` clears all of the settings
