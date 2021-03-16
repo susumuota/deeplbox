@@ -1,4 +1,4 @@
-# DeepLKey: DeepL Keyboard Shortcut
+# DeepLKey: DeepL Keyboard Shortcut Chrome Extension
 
 A Google Chrome extension to open DeepL translation page by keyboard shortcut and context menu.
 
