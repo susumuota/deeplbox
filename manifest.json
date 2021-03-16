@@ -2,10 +2,17 @@
   "manifest_version": 3,
 
   "name": "DeepLKey: DeepL Keyboard Shortcut",
-  "version": "1.0.2",
-  "description": "Open DeepL page by keyboard shortcut and context menu",
+  "version": "1.0.3",
+  "description": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "author": "Susumu OTA",
-  "homepage_url": "https://github.com/susumuota/",
+  "homepage_url": "https://github.com/susumuota/deeplkey",
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
 
   "background": {
     "service_worker": "background.js"
