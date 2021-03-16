@@ -28,25 +28,25 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   urlBase: 'https://www.deepl.com/translator',
   alwaysCreate: false,
   useWindow: true,
-  tabCreateParam: {
+  tabCreateParams: {
     // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
     active: false
   },
-  tabUpdateParam: {
+  tabUpdateParams: {
     // https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
     active: false
   },
-  windowCreateParam: {
+  windowCreateParams: {
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
     width: 1080,
     height: 1080,
     top: 0,
     left: 0,
-    focused: true
+    focused: false
   },
-  windowUpdateParam: {
+  windowUpdateParams: {
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
-    focused: true
+    focused: false
   },
   // DON'T touch tabId. tabId used like a global variable, not config
   tabId: chrome.tabs.TAB_ID_NONE
@@ -58,12 +58,12 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
 const openTab = (url) => {
   const create = () => {
     chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
-      chrome.tabs.create({...config.tabCreateParam, url: url}, (tab) => {
+      chrome.tabs.create({...config.tabCreateParams, url: url}, (tab) => {
         console.debug('chrome.tabs.create: tab == ', tab);
         console.assert(tab.id != chrome.tabs.TAB_ID_NONE);
         chrome.storage.local.set({tabId: tab.id}); // save tabId
         if (config.useWindow) {
-          chrome.windows.create({...config.windowCreateParam, tabId: tab.id}, (window) => {
+          chrome.windows.create({...config.windowCreateParams, tabId: tab.id}, (window) => {
             console.debug('chrome.windows.create: window == ', window);
           });
         }
@@ -73,11 +73,11 @@ const openTab = (url) => {
   const update = () => {
     chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
       console.assert(config.tabId != chrome.tabs.TAB_ID_NONE);
-      chrome.tabs.update(config.tabId, {...config.tabUpdateParam, url: url}, (tab) => {
+      chrome.tabs.update(config.tabId, {...config.tabUpdateParams, url: url}, (tab) => {
         console.debug('chrome.tabs.update: tab == ', tab);
         console.assert(config.tabId == tab.id);
         if (config.useWindow) {
-          chrome.windows.update(tab.windowId, config.windowUpdateParam, (window) => {
+          chrome.windows.update(tab.windowId, config.windowUpdateParams, (window) => {
             console.debug('chrome.windows.update: window == ', window);
             console.assert(window.id == tab.windowId);
           });
