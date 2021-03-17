@@ -10,17 +10,18 @@ A Google Chrome extension to open DeepL translator page and send selected text b
 
 ## Install
 
-- Open Terminal and type `git clone https://github.com/susumuota/deeplkey.git`
+- Download zip file from [here](https://github.com/susumuota/deeplkey/archive/main.zip) and extract it
+  - Or open Terminal and type `git clone https://github.com/susumuota/deeplkey.git`
 - Open Chrome's extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese)
-- Specify `/path/to/deeplkey`.
+- Specify the extracted folder `/path/to/deeplkey`
 
 ## Usage
 
 - Select text by mouse or keyboard
 - Press `Command-b` (macOS) or `Control-b` (other OS)
-- Or right click to open context menu and choose `DeepL Translate`
+  - Or right click to open context menu and choose `DeepL Translate`
 
 ## Settings
 
