@@ -57,10 +57,10 @@ Note: in most cases, DeepL automatically detects source language.
 > setConfig({'targetLang': 'de'}) // change target language to German
 ```
 
-- `getConfig` gets current settings and call callback function
+- `getConfig` gets current settings
 
 ```javascript
-> getConfig(console.log)
+> await getConfig()
 { sourceLang: 'en', targetLang: 'de', ... }
 ```
 
@@ -72,7 +72,7 @@ Note: in most cases, DeepL automatically detects source language.
 
 ## Limitations
 
-- In certain pages (e.g. Kaggle notebooks), keyboard shortcut cannot get selected text because `window.getSelection()` returns empty. In that case, try context menu instead.
+- In certain pages (e.g. Kaggle Notebooks), keyboard shortcut cannot get selected text because `window.getSelection()` returns empty. In that case, try context menu instead.
 - When you use context menu, Chrome removes newlines from selected text because `info.selectionText` removes newlines. See [Linebreaks/newlines missing from chrome.contextMenus selectionText](https://bugs.chromium.org/p/chromium/issues/detail?id=116429)
 
 ## TODO

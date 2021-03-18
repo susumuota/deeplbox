@@ -57,66 +57,17 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   tabId: chrome.tabs.TAB_ID_NONE
 });
 
-// create or update tab and window
-// window.open does not seem to work in MV3
-// this function is similar to window.open
-const openTab = (url) => {
-  const create = () => {
-    chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
-      chrome.tabs.create({...config.tabCreateParams, url: url}, (tab) => {
-        console.debug('chrome.tabs.create: tab == ', tab);
-        console.assert(tab.id != chrome.tabs.TAB_ID_NONE);
-        chrome.storage.local.set({tabId: tab.id}); // save tabId
-        if (config.useWindow) {
-          chrome.windows.create({...config.windowCreateParams, tabId: tab.id}, (window) => {
-            console.debug('chrome.windows.create: window == ', window);
-          });
-        }
-      });
-    });
-  }
-  const update = () => {
-    chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
-      console.assert(config.tabId != chrome.tabs.TAB_ID_NONE);
-      chrome.tabs.update(config.tabId, {...config.tabUpdateParams, url: url}, (tab) => {
-        console.debug('chrome.tabs.update: tab == ', tab);
-        console.assert(config.tabId == tab.id);
-        if (config.useWindow) {
-          chrome.windows.update(tab.windowId, config.windowUpdateParams, (window) => {
-            console.debug('chrome.windows.update: window == ', window);
-            console.assert(window.id == tab.windowId);
-          });
-        }
-      });
-    });
-  }
-  chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
-    console.debug('chrome.storage.local.get: config == ', config);
-    if (!config.alwaysCreate && config.tabId != chrome.tabs.TAB_ID_NONE) {
-      // try to reuse tab, but user may close tab
-      chrome.tabs.get(config.tabId).then(update).catch(create);
-    } else {
-      // first time. there is no tab
-      create();
-    }
-  });
-}
-
-// open DeepL tab
-const openDeepL = (text) => {
-  chrome.storage.local.get(DEFAULT_CONFIG, (config) => {
-    openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(text)}`);
-  });
-}
-
 // setConfig({targetLang: 'ja'})
 const setConfig = (config) => {
   chrome.storage.local.set(config);
 }
 
-// getConfig(console.log)
-const getConfig = (callback) => {
-  chrome.storage.local.get(DEFAULT_CONFIG, callback);
+// getConfig().then(console.log)
+// const config = await getConfig()
+const getConfig = () => {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(DEFAULT_CONFIG, resolve);
+  });
 }
 
 // clearConfig()
@@ -124,15 +75,56 @@ const clearConfig = () => {
   chrome.storage.local.clear();
 }
 
-// get selection text
-// TODO: sometimes window.getSelection() returns empty (e.g. Kaggle Notebook)
-const getSelection = (tab, callback) => {
+// create or update tab and window
+// window.open does not seem to work in MV3
+// this function is similar to window.open
+const openTab = async (url) => {
+  const config = await getConfig();
+  const create = async () => {
+    const tab = await chrome.tabs.create({...config.tabCreateParams, url: url});
+    chrome.storage.local.set({tabId: tab.id}); // save tabId
+    if (config.useWindow) {
+      chrome.windows.create({...config.windowCreateParams, tabId: tab.id});
+    }
+    return tab;
+  }
+  const update = async () => {
+    console.assert(config.tabId != chrome.tabs.TAB_ID_NONE);
+    const tab = await chrome.tabs.update(config.tabId, {...config.tabUpdateParams, url: url});
+    if (config.useWindow) {
+      chrome.windows.update(tab.windowId, config.windowUpdateParams);
+    }
+    return tab;
+  }
+  console.debug('chrome.storage.local.get: config == ', config);
+  if (!config.alwaysCreate && config.tabId != chrome.tabs.TAB_ID_NONE) {
+    // try to reuse tab, but user may close tab
+    return chrome.tabs.get(config.tabId).then(update).catch(create);
+  } else {
+    // first time. there is no tab
+    return create();
+  }
+}
+
+// open DeepL tab
+const openDeepL = async (text) => {
+  const config = await getConfig();
+  return openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(text)}`);
+}
+
+const getSelection = (tab) => {
   // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
-  chrome.scripting.executeScript({
-    target: {tabId: tab.id},
-    function: () => window.getSelection().toString()
-  }, (results) => {
-    callback(results[0].result);
+  return new Promise((resolve, reject) => {
+    chrome.scripting.executeScript({
+      target: {tabId: tab.id},
+      function: () => window.getSelection().toString()
+    }, (results) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError.message);
+      } else {
+        resolve(results[0].result);
+      }
+    });
   });
 }
 
@@ -147,22 +139,23 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
     tabId: chrome.tabs.TAB_ID_NONE // must reset. saved tabId should be invalid
   });
+  return true;
 });
 
 // context menu event
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId == 'deepl-menu') {
-    getSelection(tab, (text) => {
-      openDeepL(text || info.selectionText || 'Could not get selection text.');
-    });
+    const text = await getSelection(tab);
+    const deepLTab = await openDeepL(text || info.selectionText || 'Could not get selection text.');
   }
+  return true;
 });
 
 // keyboard shortcut event
-chrome.commands.onCommand.addListener((command, tab) => {
+chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command == 'deepl-open') {
-    getSelection(tab, (text) => {
-      openDeepL(text || 'Could not get selection text. Try context menu by right click.');
-    });
+    const text = await getSelection(tab);
+    const deepLTab = await openDeepL(text || 'Could not get selection text. Try context menu by right click.');
   }
+  return true;
 });
