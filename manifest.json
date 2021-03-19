@@ -18,6 +18,10 @@
     "service_worker": "background.js"
   },
 
+  "content_scripts": [
+    {"matches": ["https://www.deepl.com/*"], "js": ["content.js"]}
+  ],
+
   "commands": {
     "deepl-open": {
       "suggested_key": {

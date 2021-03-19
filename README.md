@@ -28,7 +28,7 @@ A Google Chrome extension to open DeepL translator page and send selected text b
 ### Change keyboard shortcuts
 
 - Open extensions setting page `chrome://extensions`
-- Open menu by clicking [Hamburger button](https://en.wikipedia.org/wiki/Hamburger_button)(triple bar icon) on the left of `Extensions`
+- Open menu by clicking [Hamburger button](https://en.wikipedia.org/wiki/Hamburger_button) (triple bar icon) on the left of `Extensions`
 - Click `Keyboard shortcuts`
 - Click the pencil icon on the right of `Open DeepL`
 - Input key stroke. Default is `Command-b` (macOS) or `Control-b` (other OS).
@@ -78,7 +78,6 @@ Note: in most cases, DeepL automatically detects source language.
 ## TODO
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
-- Modify style sheet for translator page
 - UI for settings
 - Chrome Web Store?
 
