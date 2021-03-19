@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "DeepLKey: DeepL Keyboard Shortcut",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplkey",
