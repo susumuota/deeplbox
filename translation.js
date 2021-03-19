@@ -17,12 +17,25 @@
 
 'use strict';
 
+const insertText = (id, text) => {
+  const div = document.querySelector(id);
+  if (!div) return;
+  div.textContent = ''; // comment out if you want to keep previous text
+  const p = document.createElement('p');
+  for (const s of text.split('\n')) {
+    const span = document.createElement('span');
+    span.textContent = s;
+    p.insertAdjacentElement('beforeend', span);
+    p.insertAdjacentElement('beforeend', document.createElement('br'));
+  }
+  div.insertAdjacentElement('beforeend', p);
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.message == 'showTranslation') {
-    document.querySelector('#translation').textContent = request.translation;
-    sendResponse({
-      message: 'translation.js: showTranslation: done'
-    });
+  if (request.message == 'setTranslation') {
+    insertText('#translation', request.translation);
+    insertText('#source', request.source);
+    sendResponse({message: 'translation.js: setTranslation: done'});
   }
   return true;
 });
