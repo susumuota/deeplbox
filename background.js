@@ -32,7 +32,7 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   targetLang: 'ja',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
   useTranslationTab: true, // show translation tab
-  useWindow: false, // use window instead of tab
+  useWindow: true, // use window instead of tab
   alwaysCreate: false, // always open a new tab (or window)
   tabCreateParams: { // parameters to create tab
     // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
@@ -48,6 +48,7 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
     height: 1080,
     top: 0,
     left: 0,
+    type: 'popup', // 'normal'
     focused: false
   },
   windowUpdateParams: { // parameters to update window
@@ -154,7 +155,7 @@ const sleep = (msec) => {
   return new Promise(resolve => setTimeout(resolve, msec));
 }
 
-// fetch translation from contents.js
+// fetch translation from content.js
 const fetchTranslation = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tab.id, {message: 'getTranslation'}, (response) => {
@@ -163,7 +164,7 @@ const fetchTranslation = (tab) => {
       } else if (response && 'message' in response && response.message) {
         resolve(response.message);
       } else {
-        reject('empty message');
+        reject('background.js: getTranslation: got empty message from content.js');
       }
     });
   });
@@ -207,7 +208,7 @@ const sendTranslation = (tab, source, translation) => {
       } else if (response && 'message' in response && response.message) {
         resolve(response.message);
       } else {
-        reject('empty message');
+        reject('background.js: setTranslation: got empty message from translation.js');
       }
     });
   });
@@ -233,7 +234,8 @@ const showResult = async (source, translation) => {
   const config = await getConfig();
   if (config.useTranslationTab) {
     const translationTab = await openTranslationTab();
-    await sleep(config.msec); // TODO: need this line but why?
+    // TODO: needs to wait for preparing tab. add event listener?
+    await sleep(config.msec);
     try {
       return await sendTranslationRetry(translationTab, source, translation, config.retry, config.msec);
     } catch (err) {
@@ -241,9 +243,15 @@ const showResult = async (source, translation) => {
       return err;
     }
   } else {
-    return 'background.js: show: done'
+    return 'background.js: showResult: done'
   }
 };
+
+// Chrome removes newlines from selected text
+// just a tiny hack to make it better
+const fixSelectionText = (text) => {
+  return text.replace(/([\.\?\!])\s+/g, '$1\n\n');
+}
 
 // initialize extension event
 // https://developer.chrome.com/docs/extensions/mv3/background_pages/#listeners
@@ -263,7 +271,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
     const selection = await getSelection(tab);
-    const source = selection || info.selectionText || 'Could not get selection text.'
+    const source = selection || fixSelectionText(info.selectionText) || 'Could not get selection text.'
     const translation = await translate(source);
     await showResult(source, translation);
   }

@@ -19,7 +19,7 @@
 
 const insertText = (id, text) => {
   const div = document.querySelector(id);
-  if (!div) return;
+  if (!div) return; // user may delete div in translation.html
   div.textContent = ''; // comment out if you want to keep previous text
   const p = document.createElement('p');
   for (const s of text.split('\n')) {
