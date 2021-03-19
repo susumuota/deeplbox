@@ -17,11 +17,20 @@
 
 'use strict';
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.message == 'getTranslation') {
-    sendResponse({
-      message: document.querySelector('textarea.lmt__target_textarea').value
+const source = document.querySelector('#source-dummydiv');
+const target = document.querySelector('#target-dummydiv');
+
+// https://developer.mozilla.org/ja/docs/Web/API/MutationObserver
+const observer = new MutationObserver((mutations, obs) => {
+  if (target.textContent && target.textContent.trim()) {
+    chrome.runtime.sendMessage({
+      message: 'setTranslation',
+      source: source.textContent.trim(),
+      translation: target.textContent.trim()
+    }, (response) => {
+      console.debug(response);
     });
   }
-  return true;
 });
+
+observer.observe(target, { childList: true });

@@ -55,8 +55,6 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
     focused: false
   },
-  retry: 20, // how many retries to sendMessage
-  msec: 1000, // sleep msec
   // DON'T touch tabId(s). they are used like a global variable, not config
   deepLTabId: chrome.tabs.TAB_ID_NONE,
   translationTabId: chrome.tabs.TAB_ID_NONE
@@ -108,13 +106,13 @@ const openTab = async (url, tabId) => {
     try {
       const tab = await chrome.tabs.get(tabId); // ensure tab already exists
       console.assert(tab.id === tabId);
-      return await updateTab(url, tabId);
+      return updateTab(url, tabId);
     } catch (err) {
       console.debug(err);
-      return await createTab(url);
+      return createTab(url);
     }
   } else {
-    return await createTab(url);
+    return createTab(url);
   }
 }
 
@@ -150,103 +148,6 @@ const getSelection = (tab) => {
   });
 }
 
-// await sleep(msec)
-const sleep = (msec) => {
-  return new Promise(resolve => setTimeout(resolve, msec));
-}
-
-// fetch translation from content.js
-const fetchTranslation = (tab) => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tab.id, {message: 'getTranslation'}, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else if (response && 'message' in response && response.message) {
-        resolve(response.message);
-      } else {
-        reject('background.js: getTranslation: got empty message from content.js');
-      }
-    });
-  });
-}
-
-// retry version of fetchTranslation
-// https://dev.to/ycmjason/javascript-fetch-retry-upon-failure-3p6g
-const fetchTranslationRetry = async (tab, n, msec) => {
-  try {
-    return await fetchTranslation(tab);
-  } catch (err) {
-    console.debug(err);
-    if (n <= 1) throw err;
-    await sleep(msec);
-    return await fetchTranslationRetry(tab, n - 1, msec);
-  }
-};
-
-// translate text
-const translate = async (sourceText) => {
-  const config = await getConfig();
-  const deepLTab = await openDeepLTab(sourceText);
-  try {
-    return await fetchTranslationRetry(deepLTab, config.retry, config.msec);
-  } catch (err) {
-    console.debug(err);
-    return err;
-  }
-};
-
-// send source and translation to translation.js
-const sendTranslation = (tab, source, translation) => {
-  return new Promise(async (resolve, reject) => {
-    chrome.tabs.sendMessage(tab.id, {
-      message: 'setTranslation',
-      source: source,
-      translation: translation
-    }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else if (response && 'message' in response && response.message) {
-        resolve(response.message);
-      } else {
-        reject('background.js: setTranslation: got empty message from translation.js');
-      }
-    });
-  });
-}
-
-// retry version of sendTranslation
-// https://dev.to/ycmjason/javascript-fetch-retry-upon-failure-3p6g
-const sendTranslationRetry = async (tab, source, translation, n, msec) => {
-  try {
-    return await sendTranslation(tab, source, translation);
-  } catch (err) {
-    console.debug(err);
-    if (n <= 1) throw err;
-    await sleep(msec);
-    return await sendTranslationRetry(tab, source, translation, n - 1, msec);
-  }
-};
-
-// show source and translation
-const showResult = async (source, translation) => {
-  console.log(translation);
-  console.log(source);
-  const config = await getConfig();
-  if (config.useTranslationTab) {
-    const translationTab = await openTranslationTab();
-    // TODO: needs to wait for preparing tab. add event listener?
-    await sleep(config.msec);
-    try {
-      return await sendTranslationRetry(translationTab, source, translation, config.retry, config.msec);
-    } catch (err) {
-      console.debug(err);
-      return err;
-    }
-  } else {
-    return 'background.js: showResult: done'
-  }
-};
-
 // Chrome removes newlines from selected text
 // just a tiny hack to make it better
 const fixSelectionText = (text) => {
@@ -270,10 +171,13 @@ chrome.runtime.onInstalled.addListener(() => {
 // context menu event
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
+    const config = await getConfig();
     const selection = await getSelection(tab);
     const source = selection || fixSelectionText(info.selectionText) || 'Could not get selection text.'
-    const translation = await translate(source);
-    await showResult(source, translation);
+    const deepLTab = await openDeepLTab(source.trim());
+    if (config.useTranslationTab) {
+      const translationTab = await openTranslationTab();
+    }
   }
   return true;
 });
@@ -281,10 +185,23 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
+    const config = await getConfig();
     const selection = await getSelection(tab);
     const source = selection || 'Could not get selection text. Try context menu by right click.';
-    const translation = await translate(source);
-    await showResult(source, translation);
+    const deepLTab = await openDeepLTab(source.trim());
+    if (config.useTranslationTab) {
+      const translationTab = await openTranslationTab();
+    }
+  }
+  return true;
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.message === 'setTranslation') {
+    if (request.translation && request.translation.trim()) {
+      console.log(request.translation);
+      sendResponse({ message: 'background.js: setTranslation: done' });
+    }
   }
   return true;
 });

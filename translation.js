@@ -32,10 +32,12 @@ const insertText = (id, text) => {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.message == 'setTranslation') {
-    insertText('#translation', request.translation);
-    insertText('#source', request.source);
-    sendResponse({message: 'translation.js: setTranslation: done'});
+  if (request.message === 'setTranslation') {
+    if (request.translation && request.translation.trim()) {
+      insertText('#translation', request.translation);
+      insertText('#source', request.source);
+      sendResponse({ message: 'translation.js: setTranslation: done' });
+    }
   }
   return true;
 });
