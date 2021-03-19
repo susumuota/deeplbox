@@ -31,9 +31,9 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   sourceLang: 'en',
   targetLang: 'ja',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
-  alwaysCreate: false, // always open a new tab (or window)
-  useWindow: false, // use window instead of tab
   useTranslationTab: true, // show translation tab
+  useWindow: false, // use window instead of tab
+  alwaysCreate: false, // always open a new tab (or window)
   tabCreateParams: { // parameters to create tab
     // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
     active: false
@@ -44,17 +44,17 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   },
   windowCreateParams: { // parameters to create window
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
-    // width: 1080,
-    // height: 1080,
-    // top: 0,
-    // left: 0,
+    width: 1080,
+    height: 1080,
+    top: 0,
+    left: 0,
     focused: false
   },
   windowUpdateParams: { // parameters to update window
     // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
     focused: false
   },
-  retry: 10, // how many times to retry to sendMessage
+  retry: 20, // how many retries to sendMessage
   msec: 1000, // sleep msec
   // DON'T touch tabId(s). they are used like a global variable, not config
   deepLTabId: chrome.tabs.TAB_ID_NONE,
@@ -66,8 +66,7 @@ const setConfig = (config) => {
   chrome.storage.local.set(config);
 }
 
-// getConfig().then(console.log)
-// const config = await getConfig()
+// await getConfig()
 const getConfig = () => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(DEFAULT_CONFIG, resolve);
@@ -102,23 +101,26 @@ const updateTab = async (url, tabId) => {
 // create or update tab (and window)
 // window.open does not seem to work in MV3
 // this function is similar to window.open
-const openTab = async (url, tabId, isUpdate) => {
+const openTab = async (url, tabId) => {
   const config = await getConfig();
   if (!config.alwaysCreate && tabId != chrome.tabs.TAB_ID_NONE) {
-    // try to reuse tab, but user may close tab
-    return chrome.tabs.get(tabId)
-      .then((tab) => isUpdate ? updateTab(url, tabId) : tab)
-      .catch((err) => createTab(url));
+    try {
+      const tab = await chrome.tabs.get(tabId); // ensure tab already exists
+      console.assert(tab.id === tabId);
+      return await updateTab(url, tabId);
+    } catch (err) {
+      console.debug(err);
+      return await createTab(url);
+    }
   } else {
-    // first time. there is no tab
-    return createTab(url);
+    return await createTab(url);
   }
 }
 
 // open DeepL tab
-const openDeepLTab = async (text) => {
+const openDeepLTab = async (sourceText) => {
   const config = await getConfig();
-  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(text)}`, config.deepLTabId, true);
+  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(sourceText)}`, config.deepLTabId);
   setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
   return tab;
 }
@@ -126,7 +128,7 @@ const openDeepLTab = async (text) => {
 // open translation tab
 const openTranslationTab = async () => {
   const config = await getConfig();
-  const tab = await openTab('translation.html', config.translationTabId, false);
+  const tab = await openTab('translation.html', config.translationTabId);
   setConfig({translationTabId: tab.id}); // remember tab and reuse next time
   return tab;
 }
@@ -147,13 +149,13 @@ const getSelection = (tab) => {
   });
 }
 
-// await sleep(msec);
+// await sleep(msec)
 const sleep = (msec) => {
   return new Promise(resolve => setTimeout(resolve, msec));
 }
 
-// get translation from contents.js
-const getTranslation = (tab) => {
+// fetch translation from contents.js
+const fetchTranslation = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tab.id, {message: 'getTranslation'}, (response) => {
       if (chrome.runtime.lastError) {
@@ -167,32 +169,37 @@ const getTranslation = (tab) => {
   });
 }
 
+// retry version of fetchTranslation
 // https://dev.to/ycmjason/javascript-fetch-retry-upon-failure-3p6g
-const getTranslationRetry = async (tab, n, msec) => {
+const fetchTranslationRetry = async (tab, n, msec) => {
   try {
-    return await getTranslation(tab);
+    return await fetchTranslation(tab);
   } catch (err) {
+    console.debug(err);
     if (n <= 1) throw err;
     await sleep(msec);
-    return await getTranslationRetry(tab, n - 1, msec);
+    return await fetchTranslationRetry(tab, n - 1, msec);
   }
 };
 
-const translate = async (text) => {
+// translate text
+const translate = async (sourceText) => {
   const config = await getConfig();
-  const deepLTab = await openDeepLTab(text);
+  const deepLTab = await openDeepLTab(sourceText);
   try {
-    return await getTranslationRetry(deepLTab, config.retry, config.msec);
+    return await fetchTranslationRetry(deepLTab, config.retry, config.msec);
   } catch (err) {
+    console.debug(err);
     return err;
   }
 };
 
-// send translation to translation.html
-const showTranslation = (tab, translation) => {
-  return new Promise((resolve, reject) => {
+// send source and translation to translation.js
+const sendTranslation = (tab, source, translation) => {
+  return new Promise(async (resolve, reject) => {
     chrome.tabs.sendMessage(tab.id, {
-      message: 'showTranslation',
+      message: 'setTranslation',
+      source: source,
       translation: translation
     }, (response) => {
       if (chrome.runtime.lastError) {
@@ -206,25 +213,31 @@ const showTranslation = (tab, translation) => {
   });
 }
 
+// retry version of sendTranslation
 // https://dev.to/ycmjason/javascript-fetch-retry-upon-failure-3p6g
-const showTranslationRetry = async (tab, translation, n, msec) => {
+const sendTranslationRetry = async (tab, source, translation, n, msec) => {
   try {
-    return await showTranslation(tab, translation);
+    return await sendTranslation(tab, source, translation);
   } catch (err) {
+    console.debug(err);
     if (n <= 1) throw err;
     await sleep(msec);
-    return await showTranslationRetry(tab, translation, n - 1, msec);
+    return await sendTranslationRetry(tab, source, translation, n - 1, msec);
   }
 };
 
-const show = async (translation) => {
+// show source and translation
+const showResult = async (source, translation) => {
   console.log(translation);
+  console.log(source);
   const config = await getConfig();
   if (config.useTranslationTab) {
     const translationTab = await openTranslationTab();
+    await sleep(config.msec); // TODO: need this line but why?
     try {
-      return await showTranslationRetry(translationTab, translation, config.retry, config.msec);
+      return await sendTranslationRetry(translationTab, source, translation, config.retry, config.msec);
     } catch (err) {
+      console.debug(err);
       return err;
     }
   } else {
@@ -232,7 +245,7 @@ const show = async (translation) => {
   }
 };
 
-// initialize the extension
+// initialize extension event
 // https://developer.chrome.com/docs/extensions/mv3/background_pages/#listeners
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -249,9 +262,10 @@ chrome.runtime.onInstalled.addListener(() => {
 // context menu event
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
-    const text = await getSelection(tab);
-    const translation = await translate(text || info.selectionText || 'Could not get selection text.');
-    const result = await show(translation);
+    const selection = await getSelection(tab);
+    const source = selection || info.selectionText || 'Could not get selection text.'
+    const translation = await translate(source);
+    await showResult(source, translation);
   }
   return true;
 });
@@ -259,9 +273,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
-    const text = await getSelection(tab);
-    const translation = await translate(text || 'Could not get selection text. Try context menu by right click.');
-    const result = await show(translation);
+    const selection = await getSelection(tab);
+    const source = selection || 'Could not get selection text. Try context menu by right click.';
+    const translation = await translate(source);
+    await showResult(source, translation);
   }
   return true;
 });
