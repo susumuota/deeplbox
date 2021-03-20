@@ -195,7 +195,6 @@ chrome.runtime.onInstalled.addListener(() => {
 // context menu event
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
-    const config = await getConfig();
     const selection = await getSelection(tab);
     const source = selection || fixSelectionText(info.selectionText) || 'Could not get selection text.'
     const deepLTab = await openDeepLTab(source.trim());
@@ -208,7 +207,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
-    const config = await getConfig();
     const selection = await getSelection(tab);
     const source = selection || 'Could not get selection text. Try context menu by right click.';
     const deepLTab = await openDeepLTab(source.trim());
