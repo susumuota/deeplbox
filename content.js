@@ -21,7 +21,7 @@ const source = document.querySelector('#source-dummydiv');
 const target = document.querySelector('#target-dummydiv');
 
 // send message to background.js and translation.js
-// https://developer.mozilla.org/ja/docs/Web/API/MutationObserver
+// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
 const observer = new MutationObserver((mutations, obs) => {
   if (target.textContent && target.textContent.trim()) {
     chrome.runtime.sendMessage({
