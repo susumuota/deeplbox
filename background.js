@@ -27,7 +27,13 @@
 'use strict';
 
 // default config
-// edit here or call setConfig on DevTools console
+// edit DEFAULT_CONFIG and reload extension
+// or call setConfig on DevTools console like the following
+//
+// const config = deepCopy(DEFAULT_CONFIG)
+// config.translationTabParams.createWindow.type = "normal" // for example
+// setConfig(config)
+// await getConfig()
 const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   // DeepL settings
   //
@@ -83,6 +89,11 @@ const getConfig = () => {
 // clearConfig()
 const clearConfig = () => {
   chrome.storage.local.clear();
+}
+
+// deep copy object
+const deepCopy = (obj) => {
+  return JSON.parse(JSON.stringify(obj));
 }
 
 // create or update tab (and window)
@@ -145,6 +156,7 @@ const openTranslationTab = async () => {
   return tab;
 }
 
+// get selection text
 const getSelection = (tab) => {
   // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
   return new Promise((resolve, reject) => {
