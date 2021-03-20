@@ -1,4 +1,6 @@
 body {
-  background-color: black;
+  background-color: #121212; /* typical dark mode color */
   color: darkgray;
+  font-size: large;
+  margin: 25px 25px 25px 25px;
 }

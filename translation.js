@@ -17,8 +17,9 @@
 
 'use strict';
 
-const insertText = (id, text) => {
-  const div = document.querySelector(id);
+// insert text to selector position
+const insertText = (selector, text) => {
+  const div = document.querySelector(selector);
   if (!div) return; // user may delete div in translation.html
   div.textContent = ''; // comment out if you want to keep previous text
   const p = document.createElement('p');
@@ -31,6 +32,7 @@ const insertText = (id, text) => {
   div.insertAdjacentElement('beforeend', p);
 }
 
+// receive message from content.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     if (request.translation && request.translation.trim()) {

@@ -26,36 +26,44 @@
 
 'use strict';
 
+// default config
+// edit here or call setConfig on DevTools console
 const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
+  // DeepL settings
+  //
   // https://www.deepl.com/docs-api/translating-text/
   sourceLang: 'en',
   targetLang: 'ja',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
-  useTranslationTab: true, // show translation tab
-  useWindow: true, // use window instead of tab
-  alwaysCreate: false, // always open a new tab (or window)
-  tabCreateParams: { // parameters to create tab
-    // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
-    active: false
+
+  // create/update tab/window methods parameters
+  // if you specify null, that method won't call
+  // see these pages for parameters details
+  //
+  // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
+  // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
+  // https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
+  // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
+  // DeepL tab settings
+  deepLTabParams: {
+    createTab: { active: false }, // MUST NOT be null
+    createWindow: null,           // could be not null
+    updateTab: { active: false }, // MUST NOT be null
+    updateWindow: null,           // could be not null
   },
-  tabUpdateParams: { // parameters to update tab
-    // https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
-    active: false
+  // Translation tab settings
+  translationTabParams: {
+    createTab: { active: false }, // could be null
+    createWindow: {               // could be null
+      width: 1080, height: 1080, top: 0, left: 0,
+      type: 'popup', focused: false
+    },
+    updateTab: null,              // should be null
+    updateWindow: null            // should be null
   },
-  windowCreateParams: { // parameters to create window
-    // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
-    width: 1080,
-    height: 1080,
-    top: 0,
-    left: 0,
-    type: 'popup', // 'normal'
-    focused: false
-  },
-  windowUpdateParams: { // parameters to update window
-    // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
-    focused: false
-  },
-  // DON'T touch tabId(s). they are used like a global variable, not config
+
+  // global variables
+  // DO NOT touch here
   deepLTabId: chrome.tabs.TAB_ID_NONE,
   translationTabId: chrome.tabs.TAB_ID_NONE
 });
@@ -77,58 +85,63 @@ const clearConfig = () => {
   chrome.storage.local.clear();
 }
 
-// create tab (and window)
-const createTab = async (url) => {
-  const config = await getConfig();
-  const tab = await chrome.tabs.create({...config.tabCreateParams, url: url});
-  if (config.useWindow) {
-    chrome.windows.create({...config.windowCreateParams, tabId: tab.id});
-  }
-  return tab;
-}
-
-// update tab (and window)
-const updateTab = async (url, tabId) => {
-  const config = await getConfig();
-  const tab = await chrome.tabs.update(tabId, {...config.tabUpdateParams, url: url});
-  if (config.useWindow) {
-    chrome.windows.update(tab.windowId, config.windowUpdateParams);
-  }
-  return tab;
-}
-
 // create or update tab (and window)
 // window.open does not seem to work in MV3
 // this function is similar to window.open
-const openTab = async (url, tabId) => {
-  const config = await getConfig();
-  if (!config.alwaysCreate && tabId != chrome.tabs.TAB_ID_NONE) {
+const openTab = async (url, tabId, params) => {
+  // tab already exists
+  if (tabId != chrome.tabs.TAB_ID_NONE) {
     try {
-      const tab = await chrome.tabs.get(tabId); // ensure tab already exists
-      console.assert(tab.id === tabId);
-      return updateTab(url, tabId);
+      // ensure tab exists
+      // chrome.tabs.get throws error if there is no tab with tabId
+      const currentTab = await chrome.tabs.get(tabId);
+      console.assert(currentTab.id === tabId);
+      // update tab
+      if (params.updateTab) {
+        const updatedTab = await chrome.tabs.update(tabId, {...params.updateTab, url: url});
+        console.assert(updatedTab.id === tabId);
+        if (params.updateWindow) {
+          chrome.windows.update(updatedTab.windowId, params.updateWindow);
+        }
+        return updatedTab;
+      }
+      // no need to update tab
+      return currentTab;
     } catch (err) {
+      // maybe user close tab
       console.debug(err);
-      return createTab(url);
     }
-  } else {
-    return createTab(url);
   }
+  // no tab exists
+  // should be first time or closed tab by user
+  if (params.createTab) {
+    const createdTab = await chrome.tabs.create({...params.createTab, url: url});
+    if (params.createWindow) {
+      chrome.windows.create({...params.createWindow, tabId: createdTab.id});
+    }
+    return createdTab;
+  }
+  // no need to create tab
+  return null;
 }
 
 // open DeepL tab
 const openDeepLTab = async (sourceText) => {
   const config = await getConfig();
-  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(sourceText)}`, config.deepLTabId);
-  setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
+  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(sourceText)}`, config.deepLTabId, config.deepLTabParams);
+  if (tab) {
+    setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
+  }
   return tab;
 }
 
 // open translation tab
 const openTranslationTab = async () => {
   const config = await getConfig();
-  const tab = await openTab('translation.html', config.translationTabId);
-  setConfig({translationTabId: tab.id}); // remember tab and reuse next time
+  const tab = await openTab('translation.html', config.translationTabId, config.translationTabParams);
+  if (tab) {
+    setConfig({translationTabId: tab.id}); // remember tab and reuse next time
+  }
   return tab;
 }
 
@@ -141,9 +154,8 @@ const getSelection = (tab) => {
     }, (results) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
-      } else {
-        resolve(results[0].result);
       }
+      resolve(results[0].result);
     });
   });
 }
@@ -175,9 +187,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const selection = await getSelection(tab);
     const source = selection || fixSelectionText(info.selectionText) || 'Could not get selection text.'
     const deepLTab = await openDeepLTab(source.trim());
-    if (config.useTranslationTab) {
-      const translationTab = await openTranslationTab();
-    }
+    const translationTab = await openTranslationTab();
+    // now, content.js will send message to background.js and translation.js
   }
   return true;
 });
@@ -189,13 +200,13 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
     const selection = await getSelection(tab);
     const source = selection || 'Could not get selection text. Try context menu by right click.';
     const deepLTab = await openDeepLTab(source.trim());
-    if (config.useTranslationTab) {
-      const translationTab = await openTranslationTab();
-    }
+    const translationTab = await openTranslationTab();
+    // now, content.js will send message to background.js and translation.js
   }
   return true;
 });
 
+// receive message from content.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     if (request.translation && request.translation.trim()) {
