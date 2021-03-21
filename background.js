@@ -38,8 +38,8 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
-  sourceLang: 'en',
-  targetLang: 'ja',
+  sourceLang: 'auto', // 'en',
+  targetLang: 'auto', // 'ja',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
 
   // create/update tab/window methods parameters
@@ -53,19 +53,19 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
   // DeepL tab settings
   deepLTabParams: {
     createTab: { active: false }, // MUST NOT be null
-    createWindow: null,           // could be not null
+    createWindow: null,
     updateTab: { active: false }, // MUST NOT be null
-    updateWindow: null,           // could be not null
+    updateWindow: null,
   },
   // Translation tab settings
   translationTabParams: {
-    createTab: { active: false }, // could be null
-    createWindow: {               // could be null
+    createTab: { active: false },
+    createWindow: {
       width: 1080, height: 1080, top: 0, left: 0,
       type: 'popup', focused: false
     },
-    updateTab: null,              // should be null
-    updateWindow: null            // should be null
+    updateTab: null,
+    updateWindow: null
   },
 
   // global variables
