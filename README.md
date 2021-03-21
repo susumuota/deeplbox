@@ -28,7 +28,7 @@ A Google Chrome extension to open DeepL translator page and send selected text b
 ### Change keyboard shortcuts
 
 - Open extensions setting page `chrome://extensions`
-- Open menu by clicking [Hamburger button](https://en.wikipedia.org/wiki/Hamburger_button) (triple bar icon) on the left of `Extensions`
+- Open menu by clicking `hamburger button` (triple bar icon) on the left of `Extensions`
 - Click `Keyboard shortcuts`
 - Click the pencil icon on the right of `Open DeepL`
 - Input key stroke. Default is `Command-b` (macOS) or `Control-b` (other OS).
@@ -48,7 +48,7 @@ Note: in most cases, DeepL automatically detects source language.
 
 ```javascript
 > DEFAULT_CONFIG
-{ sourceLang: 'en', targetLang: 'ja', ... }
+{ sourceLang: 'auto', targetLang: 'auto', ... }
 ```
 
 - `setConfig` changes setting
@@ -61,7 +61,7 @@ Note: in most cases, DeepL automatically detects source language.
 
 ```javascript
 > await getConfig()
-{ sourceLang: 'en', targetLang: 'de', ... }
+{ sourceLang: 'auto', targetLang: 'de', ... }
 ```
 
 - `clearConfig` clears all of the settings
@@ -83,7 +83,7 @@ Note: in most cases, DeepL automatically detects source language.
 
 ## Source code
 
-[https://github.com/susumuota/deeplkey](https://github.com/susumuota/deeplkey)
+https://github.com/susumuota/deeplkey
 
 ## Author
 
