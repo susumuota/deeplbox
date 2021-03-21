@@ -62,10 +62,10 @@ const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
     createTab: { active: false },
     createWindow: {
       width: 1080, height: 1080, top: 0, left: 0,
-      type: 'popup', focused: false
+      type: 'popup', focused: true
     },
     updateTab: null,
-    updateWindow: null
+    updateWindow: { focused: true }
   },
 
   // global variables
@@ -115,6 +115,9 @@ const openTab = async (url, tabId, params) => {
           chrome.windows.update(updatedTab.windowId, params.updateWindow);
         }
         return updatedTab;
+      }
+      if (params.updateWindow) {
+        chrome.windows.update(currentTab.windowId, params.updateWindow);
       }
       // no need to update tab
       return currentTab;
