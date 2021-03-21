@@ -122,12 +122,12 @@ const openTab = async (url, tabId, params) => {
       // no need to update tab
       return currentTab;
     } catch (err) {
-      // maybe user close tab
+      // maybe tab was closed by user
       console.debug(err);
     }
   }
   // no tab exists
-  // should be first time or closed tab by user
+  // first time or tab was closed by user
   if (params.createTab) {
     const createdTab = await chrome.tabs.create({...params.createTab, url: url});
     if (params.createWindow) {
