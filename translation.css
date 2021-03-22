@@ -4,3 +4,23 @@ body {
   font-size: large;
   margin: 25px 25px 25px 25px;
 }
+
+/* hide source text but show it when mouse hover at translation */
+span.source {
+  display: none;
+}
+
+span.translation:hover:after {
+  content: attr(title);
+}
+
+/* opposite of above. this could be helpful for learning */
+/*
+span.translation {
+  display: none;
+}
+
+span.source:hover:after {
+  content: attr(title);
+}
+*/

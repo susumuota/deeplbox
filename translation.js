@@ -17,26 +17,59 @@
 
 'use strict';
 
-// insert text to selector position
-const insertText = (selector, text) => {
-  const div = document.querySelector(selector);
-  if (!div) return; // user may delete div in translation.html
-  div.textContent = ''; // comment out if you want to keep previous text
-  const p = document.createElement('p');
-  for (const s of text.split('\n')) {
-    const span = document.createElement('span');
-    span.textContent = s;
-    p.insertAdjacentElement('beforeend', span);
-    p.insertAdjacentElement('beforeend', document.createElement('br'));
+// insert source and translation text to div position
+const insertResults = (div, source, translation) => {
+  const addAttribute = (elm, name, value) => {
+    const attr = document.createAttribute(name);
+    attr.value = value;
+    elm.setAttributeNode(attr);
   }
-  div.insertAdjacentElement('beforeend', p);
+  const insertSpan = (p, text, classAttr, titleAttr) => {
+    // insertSpan makes a span like this
+    //
+    // <span class="translation", title="source">translation<br /></span>
+    //
+    // this title can be used to show source text when mouse hover
+    // and make it more fancy by css like this
+    //
+    // span.translation:hover:after {
+    //   content: attr(title);
+    // }
+    //
+    // see translation.css
+    const span = document.createElement('span');
+    addAttribute(span, 'class', classAttr);
+    addAttribute(span, 'title', titleAttr);
+    span.textContent = text;
+    span.insertAdjacentElement('beforeend', document.createElement('br'));
+    p.insertAdjacentElement('beforeend', span);
+  }
+  const insertItem = (p, source, translation) => {
+    insertSpan(p, translation, 'translation', source);
+    insertSpan(p, source, 'source', translation); // swap source and translation
+  }
+  div.textContent = ''; // comment out this if you want to keep previous text
+  // split by newlines, and combine source and translation
+  const ss = source.split('\n');
+  const ts = translation.split('\n');
+  // console.assert(ss.length === ts.length); // is this always true?
+  if (ss.length != ts.length) console.debug('ss.length != ts.length', ss.length, ts.length);
+  for (let i = 0; i < Math.max(ss.length, ts.length); i++) {
+    const s = i in ss ? ss[i] : '';
+    const t = i in ts ? ts[i] : '';
+    if (s.trim() || t.trim()) {  // skip if both s and t are empty
+      const p = document.createElement('p');
+      insertItem(p, s, t);
+      div.insertAdjacentElement('beforeend', p);
+    }
+  }
 }
 
 // receive message from content.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
-    insertText('#translation', request.translation);
-    insertText('#source', request.source);
+    const div = document.querySelector('#results');
+    insertResults(div, request.source, request.translation);
     sendResponse({ message: 'translation.js: setTranslation: done' });
   }
   return true;
