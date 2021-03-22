@@ -106,11 +106,9 @@ const openTab = async (url, tabId, params) => {
       // ensure tab exists
       // chrome.tabs.get throws error if there is no tab with tabId
       const currentTab = await chrome.tabs.get(tabId);
-      console.assert(currentTab.id === tabId);
       // update tab
       if (params.updateTab) {
         const updatedTab = await chrome.tabs.update(tabId, {...params.updateTab, url: url});
-        console.assert(updatedTab.id === tabId);
         if (params.updateWindow) {
           chrome.windows.update(updatedTab.windowId, params.updateWindow);
         }
