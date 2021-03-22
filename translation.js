@@ -24,22 +24,22 @@ const insertResults = (div, source, translation) => {
     attr.value = value;
     elm.setAttributeNode(attr);
   }
-  const insertSpan = (p, text, classAttr, titleAttr) => {
+  const insertSpan = (p, text, classAttr, dataAltAttr) => {
     // insertSpan makes a span like this
     //
-    // <span class="translation", title="source">translation<br /></span>
+    // <span class="translation", data-alt="source">translation<br /></span>
     //
-    // this title can be used to show source text when mouse hover
+    // this data-alt can be used to show source text when mouse hover
     // and make it more fancy by css like this
     //
-    // span.translation:hover:after {
-    //   content: attr(title);
+    // span.translation:after {
+    //   content: attr(data-alt);
     // }
     //
     // see translation.css
     const span = document.createElement('span');
     addAttribute(span, 'class', classAttr);
-    addAttribute(span, 'title', titleAttr);
+    addAttribute(span, 'data-alt', dataAltAttr);
     span.textContent = text;
     span.insertAdjacentElement('beforeend', document.createElement('br'));
     p.insertAdjacentElement('beforeend', span);

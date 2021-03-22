@@ -10,17 +10,13 @@ span.source {
   display: none;
 }
 
+span.translation:after {
+  content: attr(data-alt);
+  color: skyblue;
+  transition: all 1s;
+  opacity: 0;
+}
+
 span.translation:hover:after {
-  content: attr(title);
+  opacity: 1;
 }
-
-/* opposite of above. this could be helpful for learning */
-/*
-span.translation {
-  display: none;
-}
-
-span.source:hover:after {
-  content: attr(title);
-}
-*/
