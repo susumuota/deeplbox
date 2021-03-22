@@ -35,11 +35,9 @@ const insertText = (selector, text) => {
 // receive message from content.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
-    if (request.translation && request.translation.trim()) {
-      insertText('#translation', request.translation);
-      insertText('#source', request.source);
-      sendResponse({ message: 'translation.js: setTranslation: done' });
-    }
+    insertText('#translation', request.translation);
+    insertText('#source', request.source);
+    sendResponse({ message: 'translation.js: setTranslation: done' });
   }
   return true;
 });

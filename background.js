@@ -169,14 +169,16 @@ const getSelection = (tab) => {
     }, (results) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
+      } else if (results && results.length > 0 && 'result' in results[0]){
+        resolve(results[0].result);
       }
-      resolve(results[0].result);
+      reject('Empty window.getSelection()');
     });
   });
 }
 
-// Chrome removes newlines from selected text
-// just a tiny hack to make it better
+// Chrome removes newlines from info.selectionText that makes hard to read
+// this is just a tiny hack to make it better
 const fixSelectionText = (text) => {
   return text.replace(/([\.\?\!])\s+/g, '$1\n\n');
 }
@@ -198,9 +200,14 @@ chrome.runtime.onInstalled.addListener(() => {
 // context menu event
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
-    const selection = await getSelection(tab);
+    let selection = null;
+    try {
+      selection = await getSelection(tab);
+    } catch (err) {
+      console.debug(err);
+    }
     const source = selection || fixSelectionText(info.selectionText) || 'Could not get selection text.'
-    const deepLTab = await openDeepLTab(source.trim());
+    const deepLTab = await openDeepLTab(source);
     const translationTab = await openTranslationTab();
     // now, content.js will send message to background.js and translation.js
   }
@@ -210,9 +217,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
-    const selection = await getSelection(tab);
+    let selection = null;
+    try {
+      selection = await getSelection(tab);
+    } catch (err) {
+      console.debug(err);
+    }
     const source = selection || 'Could not get selection text. Try context menu by right click.';
-    const deepLTab = await openDeepLTab(source.trim());
+    const deepLTab = await openDeepLTab(source);
     const translationTab = await openTranslationTab();
     // now, content.js will send message to background.js and translation.js
   }
@@ -222,10 +234,8 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 // receive message from content.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
-    if (request.translation && request.translation.trim()) {
-      console.log(request.translation);
-      sendResponse({ message: 'background.js: setTranslation: done' });
-    }
+    console.log(request.translation);
+    sendResponse({ message: 'background.js: setTranslation: done' });
   }
   return true;
 });

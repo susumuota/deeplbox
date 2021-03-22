@@ -79,7 +79,6 @@ Note: in most cases, DeepL automatically detects source language.
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
 - UI for settings
-- Chrome Web Store?
 
 ## Source code
 
