@@ -79,6 +79,7 @@ Note: in most cases, DeepL automatically detects source language.
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
 - UI for settings
+- Sophisticated UI for translation.html
 
 ## Source code
 
