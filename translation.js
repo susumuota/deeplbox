@@ -24,7 +24,7 @@ const insertResults = (div, source, translation) => {
     attr.value = value;
     elm.setAttributeNode(attr);
   }
-  const insertSpan = (p, text, classAttr, dataAltAttr) => {
+  const insertSpan = (elm, text, classAttr, dataAltAttr) => {
     // insertSpan makes a span like this
     //
     // <span class="translation", data-alt="source">translation<br /></span>
@@ -42,11 +42,11 @@ const insertResults = (div, source, translation) => {
     addAttribute(span, 'data-alt', dataAltAttr);
     span.textContent = text;
     span.insertAdjacentElement('beforeend', document.createElement('br'));
-    p.insertAdjacentElement('beforeend', span);
+    elm.insertAdjacentElement('beforeend', span);
   }
-  const insertItem = (p, source, translation) => {
-    insertSpan(p, translation, 'translation', source);
-    insertSpan(p, source, 'source', translation); // swap source and translation
+  const insertPair = (elm, source, translation) => {
+    insertSpan(elm, translation, 'translation', source);
+    insertSpan(elm, source, 'source', translation); // swap source and translation
   }
   div.textContent = ''; // comment out this if you want to keep previous text
   // split by newlines, and combine source and translation
@@ -59,7 +59,7 @@ const insertResults = (div, source, translation) => {
     const t = i in ts ? ts[i] : '';
     if (s.trim() || t.trim()) {  // skip if both s and t are empty
       const p = document.createElement('p');
-      insertItem(p, s, t);
+      insertPair(p, s, t);
       div.insertAdjacentElement('beforeend', p);
     }
   }
