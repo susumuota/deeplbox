@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // receive message from kindle-bookmarklet.js
 // then send message to background.js
 // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-const receiveMessage = (event) => {
+const receiveSetSelection = (event) => {
   if (event.origin === window.location.origin &&
       event.data.message === 'setSelection') {
     chrome.runtime.sendMessage(event.data, (response) => {
@@ -51,4 +51,4 @@ const receiveMessage = (event) => {
   }
 };
 
-window.addEventListener('message', receiveMessage, false);
+window.addEventListener('message', receiveSetSelection, false);
