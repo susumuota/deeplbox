@@ -4,4 +4,4 @@
 
 FILE="deeplkey-latest.zip"
 
-zip "$FILE" manifest.json background.js deepl.js kindle.js kindle-bookmarklet.js translation.html translation.js translation.css icons/icon*.png
+zip "$FILE" manifest.json background.js deepl.js kindle.js translation.html translation.js translation.css icons/icon*.png
