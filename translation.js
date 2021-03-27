@@ -65,7 +65,7 @@ const insertResults = (div, source, translation) => {
   }
 }
 
-// receive message from content.js
+// receive message from deepl.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     const div = document.querySelector('#results');

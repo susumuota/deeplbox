@@ -158,8 +158,8 @@ const openTranslationTab = async () => {
 }
 
 // get selection text
+// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
 const getSelection = (tab) => {
-  // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
   return new Promise((resolve, reject) => {
     chrome.scripting.executeScript({
       target: {tabId: tab.id},
@@ -167,10 +167,26 @@ const getSelection = (tab) => {
     }, (results) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
-      } else if (results && results.length > 0 && 'result' in results[0]){
-        resolve(results[0].result);
+      } else if (results && results.length > 0 &&
+                 'result' in results[0] && results[0].result.trim()){
+        resolve(results[0].result.trim());
       }
       reject('Empty window.getSelection()');
+    });
+  });
+}
+
+// send message to kindle.js
+const sendGetSelection = (tab) => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.sendMessage(tab.id, {
+      message: 'getSelection'
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError.message);
+      } else {
+        resolve(response);
+      }
     });
   });
 }
@@ -178,7 +194,14 @@ const getSelection = (tab) => {
 // Chrome removes newlines from info.selectionText that makes hard to read
 // this is just a tiny hack to make it better
 const fixSelectionText = (text) => {
-  return text.replace(/([\.\?\!])\s+/g, '$1\n\n');
+  return text ? text.replace(/([\.\?\!]+)\s+/g, '$1\n\n') : text;
+}
+
+// translate source text
+const translateText = (source) => {
+  openDeepLTab(source);
+  openTranslationTab();
+  // now, deepl.js will send message to translation.js (and background.js)
 }
 
 // initialize extension event
@@ -198,16 +221,12 @@ chrome.runtime.onInstalled.addListener(() => {
 // context menu event
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
-    let selection = null;
     try {
-      selection = await getSelection(tab);
+      translateText(await getSelection(tab));
     } catch (err) {
       console.debug(err);
+      translateText(fixSelectionText(info.selectionText));
     }
-    const source = selection || fixSelectionText(info.selectionText) || 'Could not get selection text.'
-    const deepLTab = await openDeepLTab(source);
-    const translationTab = await openTranslationTab();
-    // now, content.js will send message to background.js and translation.js
   }
   return true;
 });
@@ -215,25 +234,36 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
-    let selection = null;
     try {
-      selection = await getSelection(tab);
+      translateText(await getSelection(tab));
     } catch (err) {
       console.debug(err);
+      translateText('Could not get selection text. Try context menu by right click.')
+      try {
+        sendGetSelection(tab);
+      } catch (err) {
+        console.debug(err);
+      }
     }
-    const source = selection || 'Could not get selection text. Try context menu by right click.';
-    const deepLTab = await openDeepLTab(source);
-    const translationTab = await openTranslationTab();
-    // now, content.js will send message to background.js and translation.js
   }
   return true;
 });
 
-// receive message from content.js
+// receive message from deepl.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     console.log(request.translation);
     sendResponse({ message: 'background.js: setTranslation: done' });
+  }
+  return true;
+});
+
+// receive message from kindle.js
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.message === 'setSelection') {
+    const selection = fixSelectionText(request.selection.trim());
+    translateText(selection || 'Could not get selection text. Try context menu by right click.');
+    sendResponse({ message: 'background.js: setSelection: done' });
   }
   return true;
 });
