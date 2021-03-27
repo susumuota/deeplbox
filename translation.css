@@ -5,18 +5,12 @@ body {
   margin: 25px 25px 25px 25px;
 }
 
-/* hide source text but show it when mouse hover at translation */
 span.source {
-  display: none;
-}
-
-span.translation:after {
-  content: attr(data-alt);
   color: skyblue;
-  transition: all 1s;
-  opacity: 0;
+  opacity: 0.1;
+  transition: all 0.5s;
 }
 
-span.translation:hover:after {
+span.source:hover {
   opacity: 1;
 }
