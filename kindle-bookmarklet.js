@@ -25,6 +25,7 @@ javascript: (() => {
     const s = window.document.querySelector(`[id="${start}"]`);
     if (!s) { return null; }
     const e = window.document.querySelector(`[id="${end}"]`);
+    if (!e) { return null; }
     const range = window.document.createRange();
     range.setStartBefore(s);
     range.setEndAfter(e);
@@ -37,7 +38,18 @@ javascript: (() => {
     if (!selection) { throw Error('No selection text'); }
     for (let i = 0; i < w.length; i++) {
       const range = findRange(w[i], selection.start, selection.end);
-      if (range) { return range.toString(); }
+      if (range) {
+        const divs = range.cloneContents().querySelectorAll('div.was-a-p');
+        if (divs) {
+          let result = [];
+          for (let div of divs) {
+            result.push(div.textContent);
+          }
+          return result.join('\n');
+        } else {
+          return range.toString();
+        }
+      }
     }
     throw Error('No selection text');;
   };

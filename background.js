@@ -14,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // Manifest V3 for Chrome Extensions (MV3)
 //
 // https://developer.chrome.com/docs/extensions/mv3/intro/
@@ -22,7 +21,6 @@
 // https://developer.chrome.com/docs/extensions/mv3/manifest/
 // https://developer.chrome.com/docs/extensions/mv3/background_pages/
 // https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
-
 
 'use strict';
 
@@ -97,7 +95,6 @@ const deepCopy = (obj) => {
 }
 
 // create or update tab (and window)
-// window.open does not seem to work in MV3
 // this function is similar to window.open
 const openTab = async (url, tabId, params) => {
   // tab already exists
@@ -259,7 +256,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // receive message from kindle.js
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.message === 'setSelection') {
-    const selection = fixSelectionText(request.selection.trim());
+    const selection = request.selection.trim();
     translateText(selection || 'Could not get selection text. Try context menu by right click.');
     sendResponse({ message: 'background.js: setSelection: done' });
   }

@@ -14,13 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // bookmarklet ideas come from
 //
 // https://github.com/ccimpoi/ACRExtensions
 // https://github.com/motiko/kcr-translate-ext
 // https://sekailab.com/wp/2020/03/25/deepl-translation-with-kindle-cloud-reader/
-
 
 'use strict';
 
