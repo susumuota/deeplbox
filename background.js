@@ -179,9 +179,7 @@ const getSelection = (tab) => {
 // send message to kindle.js
 const sendGetSelection = (tab) => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tab.id, {
-      message: 'getSelection'
-    }, (response) => {
+    chrome.tabs.sendMessage(tab.id, { message: 'getSelection' }, (response) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
       } else {
@@ -198,9 +196,9 @@ const fixSelectionText = (text) => {
 }
 
 // translate source text
-const translateText = (source) => {
-  openDeepLTab(source);
-  openTranslationTab();
+const translateText = async (source) => {
+  await openDeepLTab(source);
+  await openTranslationTab();
   // now, deepl.js will send message to translation.js (and background.js)
 }
 
@@ -238,7 +236,7 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
       translateText(await getSelection(tab));
     } catch (err) {
       console.debug(err);
-      translateText('Could not get selection text. Try context menu by right click.')
+      await translateText('Could not get selection text. Try context menu by right click.')
       try {
         sendGetSelection(tab);
       } catch (err) {

@@ -1,8 +1,13 @@
 javascript: (() => {
 
-  /* https://sekailab.com/wp/2020/03/25/deepl-translation-with-kindle-cloud-reader/ */
+  if (window.deeplkey) {
+    const text = 'DeepLKey Kindle bookmarklet: already loaded';
+    console.debug(text);
+    alert(text);
+    return;
+  }
 
-  let getKindleWindow = (window) => {
+  const getKindleWindow = (window) => {
     if (!window) { throw new Error('No Kindle window'); }
     if (window.KindleReaderUI) { return window; }
     if (!window.length) { throw new Error('No Kindle window'); }
@@ -13,7 +18,7 @@ javascript: (() => {
     throw new Error('No Kindle window');
   };
 
-  let findRange = (window, start, end) => {
+  const findRange = (window, start, end) => {
     const s = window.document.querySelector(`[id="${start}"]`);
     if (!s) { return null; }
     const e = window.document.querySelector(`[id="${end}"]`);
@@ -23,7 +28,7 @@ javascript: (() => {
     return range;
   };
 
-  let getKindleSelection = (window) => {
+  const getKindleSelection = (window) => {
     const w = getKindleWindow(window);
     const selection = w.KindleReaderUI.getSelection();
     if (!selection) { throw Error('No selection text'); }
@@ -34,9 +39,9 @@ javascript: (() => {
     throw Error('No selection text');;
   };
 
-  let receiveMessage = (event) => {
-    if (event.origin === 'https://read.amazon.co.jp' &&
-        event.data === 'getSelection') {
+  const receiveGetSelection = (event) => {
+    if (event.origin === window.location.origin &&
+        event.data.message === 'getSelection') {
       let selection = null;
       try {
         selection = getKindleSelection(window);
@@ -44,13 +49,17 @@ javascript: (() => {
         console.debug(err);
         selection = err.message;
       }
-      event.source.postMessage(`setSelection: ${selection}`, event.origin);
+      event.source.postMessage({
+        message: 'setSelection', selection: selection
+      }, event.origin);
     }
   };
 
-  window.addEventListener('message', receiveMessage, false);
+  window.addEventListener('message', receiveGetSelection, false);
+  window.deeplkey = true;
 
-  /* alert('DeepLKey Kindle bookmarklet: done'); */
-  console.debug('DeepLKey Kindle bookmarklet: done');
+  const text = 'DeepLKey Kindle bookmarklet: loaded';
+  console.debug(text);
+  alert(text);
 
 })();

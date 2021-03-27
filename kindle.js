@@ -15,30 +15,33 @@
 // limitations under the License.
 
 
+// bookmarklet ideas come from
+//
+// https://github.com/ccimpoi/ACRExtensions
+// https://github.com/motiko/kcr-translate-ext
+// https://sekailab.com/wp/2020/03/25/deepl-translation-with-kindle-cloud-reader/
+
+
 'use strict';
 
 // receive message from background.js
-// then post message to bookmarklet.js
+// then post message to kindle-bookmarklet.js
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
-// https://sekailab.com/wp/2020/03/25/deepl-translation-with-kindle-cloud-reader/
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'getSelection') {
-    window.postMessage('getSelection', 'https://read.amazon.co.jp');
+    window.postMessage(request, window.location.origin);
     sendResponse({ message: 'kindle.js: getSelection: done' });
   }
   return true;
 });
 
-// receive message from bookmarklet.js
+// receive message from kindle-bookmarklet.js
 // then send message to background.js
 // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
 const receiveMessage = (event) => {
-  if (event.origin === 'https://read.amazon.co.jp' &&
-      event.data.match(/^setSelection: /)) {
-    chrome.runtime.sendMessage({
-      message: 'setSelection',
-      selection: event.data.replace(/^setSelection: /, '')
-    }, (response) => {
+  if (event.origin === window.location.origin &&
+      event.data.message === 'setSelection') {
+    chrome.runtime.sendMessage(event.data, (response) => {
       if (chrome.runtime.lastError) {
         console.debug(chrome.runtime.lastError.message);
       } else {
