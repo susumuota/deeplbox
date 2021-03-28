@@ -25,18 +25,6 @@ const insertResults = (div, source, translation) => {
     elm.setAttributeNode(attr);
   }
   const insertSpan = (elm, text, classAttr, dataAltAttr) => {
-    // insertSpan makes a span like this
-    //
-    // <span class="translation", data-alt="source">translation<br /></span>
-    //
-    // this data-alt can be used to show source text when mouse hover
-    // and make it more fancy by css like this
-    //
-    // span.translation:after {
-    //   content: attr(data-alt);
-    // }
-    //
-    // see translation.css
     const span = document.createElement('span');
     addAttribute(span, 'class', classAttr);
     addAttribute(span, 'data-alt', dataAltAttr);
@@ -55,8 +43,8 @@ const insertResults = (div, source, translation) => {
   // console.assert(ss.length === ts.length); // is this always true?
   if (ss.length != ts.length) console.debug('ss.length != ts.length', ss.length, ts.length);
   for (let i = 0; i < Math.max(ss.length, ts.length); i++) {
-    const s = i in ss ? ss[i] : '';
-    const t = i in ts ? ts[i] : '';
+    const s = ss[i] || '';
+    const t = ts[i] || '';
     if (s.trim() || t.trim()) {  // skip if both s and t are empty
       const p = document.createElement('p');
       insertPair(p, s, t);
