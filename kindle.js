@@ -50,3 +50,5 @@ const receiveSetSelection = (event) => {
 };
 
 window.addEventListener('message', receiveSetSelection, false);
+
+console.log('DeepLKey: Install bookmarklet from https://github.com/susumuota/deeplkey/blob/main/kindle-bookmarklet.js');
