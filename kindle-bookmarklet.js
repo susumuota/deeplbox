@@ -1,7 +1,7 @@
 javascript: (() => {
 
   const name = 'DeepLKey kindle-bookmarklet.js';
-  const version = '1.4.2';
+  const version = '1.4.3';
 
   if (window.deeplkey) {
     const text = `${name} ${version}: already loaded`;
