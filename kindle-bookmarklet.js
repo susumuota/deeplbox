@@ -1,10 +1,10 @@
 javascript: (() => {
 
-  const name = 'DeepLKey: kindle-bookmarklet.js';
-  const version = '1.4.5';
+  const NAME = 'DeepLKey: kindle-bookmarklet.js';
+  const VERSION = '1.4.6';
 
   if (window.deeplkey) {
-    const text = `${name} ${version}: already loaded`;
+    const text = `${NAME} ${VERSION}: already loaded`;
     console.debug(text);
     alert(text);
     return;
@@ -75,7 +75,7 @@ javascript: (() => {
   window.addEventListener('message', receiveGetSelection, false);
   window.deeplkey = true;
 
-  const text = `${name} ${version}: loaded`;
+  const text = `${NAME} ${VERSION}: loaded`;
   console.debug(text);
   alert(text);
 
