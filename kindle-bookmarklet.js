@@ -39,8 +39,8 @@ javascript: (() => {
     for (let i = 0; i < w.length; i++) {
       const range = findRange(w[i], selection.start, selection.end);
       if (range) {
-        const divs = range.cloneContents().querySelectorAll('div.was-a-p');
-        if (divs) {
+        const divs = range.cloneContents().querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
+        if (divs && divs.length > 0) {
           let result = [];
           for (let div of divs) {
             result.push(div.textContent);
