@@ -1,14 +1,15 @@
 body {
-  background-color: #121212; /* typical dark mode color */
+  background-color: #121212;
   color: darkgray;
-  font-size: large;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
   margin: 25px 25px 25px 25px;
 }
 
 span.source {
   color: skyblue;
   opacity: 0.1;
-  transition: all 0.5s;
+  transition: all 1s;
 }
 
 span.source:hover {
