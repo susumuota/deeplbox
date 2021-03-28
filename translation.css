@@ -1,15 +1,20 @@
+
 body {
   background-color: #121212;
+  /* background-color: white; */
   color: darkgray;
-  font-family: system-ui, sans-serif;
+  /* color: black; */
+  font-family: "Georgia", system-ui, sans-serif;
   line-height: 1.5;
   margin: 25px 25px 25px 25px;
 }
 
 span.source {
   color: skyblue;
+  /* color: darkblue; */
   opacity: 0.1;
   transition: all 1s;
+  /* display: none; */
 }
 
 span.source:hover {
