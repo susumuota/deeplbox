@@ -1,7 +1,7 @@
 javascript: (() => {
 
-  const name = 'DeepLKey kindle-bookmarklet.js';
-  const version = '1.4.4';
+  const name = 'DeepLKey: kindle-bookmarklet.js';
+  const version = '1.4.5';
 
   if (window.deeplkey) {
     const text = `${name} ${version}: already loaded`;
@@ -11,13 +11,9 @@ javascript: (() => {
   }
 
   const getKindleWindow = (window) => {
-    if (!window) { throw new Error('No Kindle window'); }
     if (window.KindleReaderUI) { return window; }
-    if (!window.length) { throw new Error('No Kindle window'); }
-    for (let i = 0; i < window.length; i++) {
-      const w = window[i];
-      if (w.KindleReaderUI) { return w; }
-    }
+    const kw = Array.from(window).find((w) => w.KindleReaderUI);
+    if (kw) { return kw; }
     throw new Error('No Kindle window');
   };
 
@@ -32,40 +28,32 @@ javascript: (() => {
     return range;
   };
 
-  const getSpanContent = (elm) => {
+  const getSpanContents = (elm) => {
     const spans = elm.querySelectorAll('span.k4w');
     if (spans.length === 0) { return elm.textContent; }
-    const results = [];
-    for (let span of spans) {
-      results.push(span.textContent);
-    }
-    return results.join(' ');
+    return Array.from(spans).map((span) => span.textContent).join(' ');
   };
 
-  const getDivContent = (elm) => {
+  const getDivContents = (elm) => {
     const divs = elm.querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
-    if (divs.length === 0) { return getSpanContent(elm); }
-    const results = [];
-    for (let div of divs) {
-      results.push(getSpanContent(div));
-    }
-    return results.join('\n');
+    if (divs.length === 0) { return getSpanContents(elm); }
+    return Array.from(divs).map((div) => getSpanContents(div)).join('\n');
   };
 
   const getKindleSelection = (window) => {
-    const w = getKindleWindow(window);
-    const selection = w.KindleReaderUI.getSelection();
-    console.debug('w.KindleReaderUI.getSelection(): ', selection);
+    const kw = getKindleWindow(window);
+    const selection = kw.KindleReaderUI.getSelection();
+    console.debug('kw.KindleReaderUI.getSelection(): ', selection);
     if (!selection) { throw Error('No selection text'); }
-    for (let i = 0; i < w.length; i++) {
-      const range = findRange(w[i], selection.start, selection.end);
+    for (let w of Array.from(kw)) {
+      const range = findRange(w, selection.start, selection.end);
       if (!range) { continue; }
       console.debug('range: ', range);
       const contents = range.cloneContents();
       console.debug('range.cloneContents(): ', contents);
-      return getDivContent(contents);
+      return getDivContents(contents);
     }
-    throw Error('No selection text');;
+    throw Error('No selection text');
   };
 
   const receiveGetSelection = (event) => {
