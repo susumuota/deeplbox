@@ -1,7 +1,7 @@
 javascript: (() => {
 
   const name = 'DeepLKey kindle-bookmarklet.js';
-  const version = '1.4.3';
+  const version = '1.4.4';
 
   if (window.deeplkey) {
     const text = `${name} ${version}: already loaded`;
@@ -32,24 +32,38 @@ javascript: (() => {
     return range;
   };
 
+  const getSpanContent = (elm) => {
+    const spans = elm.querySelectorAll('span.k4w');
+    if (spans.length === 0) { return elm.textContent; }
+    const results = [];
+    for (let span of spans) {
+      results.push(span.textContent);
+    }
+    return results.join(' ');
+  };
+
+  const getDivContent = (elm) => {
+    const divs = elm.querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
+    if (divs.length === 0) { return getSpanContent(elm); }
+    const results = [];
+    for (let div of divs) {
+      results.push(getSpanContent(div));
+    }
+    return results.join('\n');
+  };
+
   const getKindleSelection = (window) => {
     const w = getKindleWindow(window);
     const selection = w.KindleReaderUI.getSelection();
+    console.debug('w.KindleReaderUI.getSelection(): ', selection);
     if (!selection) { throw Error('No selection text'); }
     for (let i = 0; i < w.length; i++) {
       const range = findRange(w[i], selection.start, selection.end);
-      if (range) {
-        const divs = range.cloneContents().querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
-        if (divs && divs.length > 0) {
-          let result = [];
-          for (let div of divs) {
-            result.push(div.textContent);
-          }
-          return result.join('\n');
-        } else {
-          return range.toString();
-        }
-      }
+      if (!range) { continue; }
+      console.debug('range: ', range);
+      const contents = range.cloneContents();
+      console.debug('range.cloneContents(): ', contents);
+      return getDivContent(contents);
     }
     throw Error('No selection text');;
   };
