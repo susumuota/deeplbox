@@ -233,7 +233,6 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
       translateText(await getSelection(tab));
     } catch (err) {
       console.debug(err);
-      await translateText('Could not get selection text. Try context menu by right click.')
       try {
         sendGetSelection(tab);
       } catch (err) {
