@@ -51,4 +51,6 @@ const receiveSetSelection = (event) => {
 
 window.addEventListener('message', receiveSetSelection, false);
 
-console.log('DeepLKey: Install bookmarklet from https://github.com/susumuota/deeplkey/blob/main/kindle-bookmarklet.js');
+const text = 'DeepLKey: Install and run bookmarklet from https://github.com/susumuota/deeplkey/blob/main/kindle-bookmarklet.js';
+console.log(text);
+// alert(text);  // TODO: find less annoying way

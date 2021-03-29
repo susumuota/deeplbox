@@ -62,7 +62,8 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
   const getSpanContents = (elm) => {
     const spans = elm.querySelectorAll('span.k4w');
     if (spans.length === 0) { return elm.textContent; }
-    return Array.from(spans).map((span) => span.textContent).join(' ');
+    const text = Array.from(spans).map((span) => span.textContent).join(' ');
+    return text.replaceAll(/\se\s?\./g, 'e.');
   };
 
   const getDivContents = (elm) => {

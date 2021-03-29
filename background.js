@@ -137,7 +137,9 @@ const openTab = async (url, tabId, params) => {
 // open DeepL tab
 const openDeepLTab = async (sourceText) => {
   const config = await getConfig();
-  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encodeURIComponent(sourceText)}`, config.deepLTabId, config.deepLTabParams);
+  // slash (%2F) -> backslash slash (%5C%2F)
+  const enc = encodeURIComponent(sourceText).replaceAll(/%2F/g, '%5C%2F');
+  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${enc}`, config.deepLTabId, config.deepLTabParams);
   if (tab) {
     setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
   }
