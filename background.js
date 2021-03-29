@@ -173,7 +173,7 @@ const getSelection = (tab) => {
   });
 }
 
-// send message to kindle.js
+// send message to content scripts
 const sendGetSelection = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tab.id, { message: 'getSelection' }, (response) => {
@@ -252,11 +252,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-// receive message from kindle-bookmarklet.js
+// receive message from web pages
 chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
   if (request.message === 'setSelection') {
     const selection = request.selection.trim();
-    translateText(selection || 'Could not get selection text. Try context menu by right click.');
+    translateText(selection || 'Could not get selection text.');
     sendResponse({ message: 'background.js: setSelection: done' });
   }
   return true;
