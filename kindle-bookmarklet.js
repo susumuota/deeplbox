@@ -32,7 +32,7 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
 */
 
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.5.2';
+  const VERSION = '1.5.3';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
