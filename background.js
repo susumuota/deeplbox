@@ -252,8 +252,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-// receive message from web pages
-chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+// receive message from content scripts
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setSelection') {
     const selection = request.selection.trim();
     translateText(selection || 'Could not get selection text.');

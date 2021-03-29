@@ -8,26 +8,12 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
 
 ## Settings
 
-- Rewrite `EXTENSION_ID` if needed (see below)
 - Copy whole this script to clipboard
 - Create a bookmark on a random page
 - Edit the bookmark
   - Change the bookmark name to `DeepL Kindle`
   - Paste clipboard content at `URL`
 - Save the bookmark
-
-### Rewrite `EXTENSION_ID`
-
-If you downloaded DeepLKey from Chrome Web Store, you don't have to change the ID. It should be like thw following.
-
-const EXTENSION_ID = 'ompicphdlcomhddpfbpnhnejhkheeagf';
-
-But if you downloaded DeepLKey from github, you *MUST* change the ID.
-
-- Open Chrome's extensions setting page `chrome://extensions`
-- Turn `Developer mode` on
-- Find `ID: ...`
-- Specify it to `EXTENSION_ID`
 
 ## Usage
 
@@ -45,12 +31,8 @@ But if you downloaded DeepLKey from github, you *MUST* change the ID.
 
 */
 
-  /* rewrite EXTENSION_ID if needed */
-  const EXTENSION_ID = 'ompicphdlcomhddpfbpnhnejhkheeagf';
-
-
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.5.1';
+  const VERSION = '1.5.2';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
@@ -117,15 +99,9 @@ But if you downloaded DeepLKey from github, you *MUST* change the ID.
         console.debug(err);
         selection = err.message;
       }
-      chrome.runtime.sendMessage(EXTENSION_ID, {
+      event.source.postMessage({
         message: 'setSelection', selection: selection
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.debug(chrome.runtime.lastError.message);
-        } else {
-          console.debug(response.message);
-        }
-      });
+      }, event.origin);
     }
   };
 
