@@ -98,7 +98,7 @@ const deepCopy = (obj) => {
 // this function is similar to window.open
 const openTab = async (url, tabId, params) => {
   // tab already exists
-  if (tabId != chrome.tabs.TAB_ID_NONE) {
+  if (tabId !== chrome.tabs.TAB_ID_NONE) {
     try {
       // ensure tab exists
       // chrome.tabs.get throws error if there is no tab with tabId
@@ -165,7 +165,7 @@ const getSelection = (tab) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
       } else if (results && results.length > 0 &&
-                 'result' in results[0] && results[0].result.trim()){
+                 results[0].result && results[0].result.trim()){
         resolve(results[0].result.trim());
       }
       reject('Empty window.getSelection()');
@@ -252,8 +252,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-// receive message from kindle.js
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+// receive message from kindle-bookmarklet.js
+chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
   if (request.message === 'setSelection') {
     const selection = request.selection.trim();
     translateText(selection || 'Could not get selection text. Try context menu by right click.');

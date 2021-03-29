@@ -33,22 +33,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-// receive message from kindle-bookmarklet.js
-// then send message to background.js
-// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-const receiveSetSelection = (event) => {
-  if (event.origin === window.location.origin &&
-      event.data.message === 'setSelection') {
-    chrome.runtime.sendMessage(event.data, (response) => {
-      if (chrome.runtime.lastError) {
-        console.debug(chrome.runtime.lastError.message);
-      } else {
-        console.debug(response.message);
-      }
-    });
-  }
-};
-
-window.addEventListener('message', receiveSetSelection, false);
-
 console.log('DeepLKey: Install bookmarklet from https://github.com/susumuota/deeplkey/blob/main/kindle-bookmarklet.js');
