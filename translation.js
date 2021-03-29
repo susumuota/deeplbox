@@ -41,7 +41,7 @@ const insertResults = (div, source, translation) => {
   const ss = source.split('\n');
   const ts = translation.split('\n');
   // console.assert(ss.length === ts.length); // is this always true?
-  if (ss.length != ts.length) console.debug('ss.length != ts.length', ss.length, ts.length);
+  if (ss.length !== ts.length) console.debug('ss.length !== ts.length', ss.length, ts.length);
   for (let i = 0; i < Math.max(ss.length, ts.length); i++) {
     const s = ss[i] || '';
     const t = ts[i] || '';
