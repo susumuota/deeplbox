@@ -50,7 +50,6 @@
   },
 
   "permissions": [
-    "tabs",
     "commands",
     "contextMenus",
     "scripting",
