@@ -50,7 +50,7 @@ But if you downloaded DeepLKey from github, you *MUST* change the ID.
 
 
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.5.0';
+  const VERSION = '1.5.1';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
