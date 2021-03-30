@@ -27,12 +27,20 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
 ## Limitations
 
 - Only tested on https://read.amazon.com/ and https://read.amazon.co.jp/
-- Kindle Cloud Reader may change their document structure, etc.
+- Kindle Cloud Reader may change their document structure, etc in future.
+
+## Links
+
+Bookmarklet ideas come from:
+
+- https://github.com/ccimpoi/ACRExtensions
+- https://github.com/motiko/kcr-translate-ext
+- https://sekailab.com/wp/2020/03/25/deepl-translation-with-kindle-cloud-reader/
 
 */
 
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.5.4';
+  const VERSION = '1.5.5';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
@@ -61,15 +69,17 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
 
   const getTextContent = (documentFragment) => {
     const getInnerText = (elm) => {
+      /* TODO: any other special cases? */
       const as = elm.querySelectorAll('a.filepos_src');
       Array.from(as).forEach((a) => a.innerText = ` ${a.innerText} `);
       return elm.innerText;
     };
+    /* TODO: is this selector enough? */
     let divs = documentFragment.querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
     if (divs.length === 0) {
-      const div = document.createElement('div');
-      div.appendChild(documentFragment);
-      divs = [div];
+      const dummy = document.createElement('div');
+      dummy.appendChild(documentFragment);
+      divs = [dummy];
     }
     return Array.from(divs).map(getInnerText).join('\n');
   };
@@ -92,7 +102,11 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
     throw Error('No selection text');
   };
 
-  const receiveGetSelection = (event) => {
+  /*
+    receive message (getSelection) from selection.js
+    then send message (setSelection) to selection.js
+  */
+  window.addEventListener('message', (event) => {
     if (event.origin === window.location.origin &&
         event.data.message === 'getSelection') {
       let selection = null;
@@ -106,9 +120,8 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
         message: 'setSelection', selection: selection
       }, event.origin);
     }
-  };
+  };, false);
 
-  window.addEventListener('message', receiveGetSelection, false);
   window.deeplkey = true;
 
   const text = `${NAME} ${VERSION}: loaded`;

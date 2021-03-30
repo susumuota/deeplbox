@@ -14,29 +14,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// bookmarklet ideas come from
-//
-// https://github.com/ccimpoi/ACRExtensions
-// https://github.com/motiko/kcr-translate-ext
-// https://sekailab.com/wp/2020/03/25/deepl-translation-with-kindle-cloud-reader/
-
 'use strict';
 
-// receive message from background.js
-// then post message to kindle-bookmarklet.js
+// ## message flow
+//
+// background.js --> selection.js --> web page (bookmarklet.js)
+//
+// then,
+//
+// background.js <-- selection.js <-- web page (bookmarklet.js)
+//
+//
+// ## message passing between background.js and selection.js
+//
+// https://developer.chrome.com/docs/extensions/mv3/messaging/
+// https://developer.chrome.com/docs/extensions/reference/runtime/#method-sendMessage
+// https://developer.chrome.com/docs/extensions/reference/runtime/#event-onMessage
+//
+// ## message passing between selection.js and web page (bookmarklet.js)
+//
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+
+
+// receive message from background.js
+// then send message to the web page
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'getSelection') {
     window.postMessage(request, window.location.origin);
-    sendResponse({ message: 'kindle.js: getSelection: done' });
+    sendResponse({ message: 'selection.js: getSelection: done' });
   }
   return true;
 });
 
-// receive message from kindle-bookmarklet.js
+// receive message from the web page
 // then send message to background.js
-// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
-const receiveSetSelection = (event) => {
+window.addEventListener('message', (event) => {
   if (event.origin === window.location.origin &&
       event.data.message === 'setSelection') {
     chrome.runtime.sendMessage(event.data, (response) => {
@@ -47,10 +60,9 @@ const receiveSetSelection = (event) => {
       }
     });
   }
-};
+}, false);
 
-window.addEventListener('message', receiveSetSelection, false);
 
-const text = 'DeepLKey: Install and run bookmarklet from https://github.com/susumuota/deeplkey/blob/main/kindle-bookmarklet.js';
+const text = 'DeepLKey: Install and run bookmarklet from https://github.com/susumuota/deeplkey';
 console.log(text);
-// alert(text);  // TODO: find less annoying way
+// alert(text);  // TODO: find a way to notify without annoying
