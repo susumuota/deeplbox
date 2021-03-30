@@ -32,7 +32,7 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
 */
 
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.5.3';
+  const VERSION = '1.5.4';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
@@ -59,17 +59,19 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
     return range;
   };
 
-  const getSpanContents = (elm) => {
-    const spans = elm.querySelectorAll('span.k4w');
-    if (spans.length === 0) { return elm.textContent; }
-    const text = Array.from(spans).map((span) => span.textContent).join(' ');
-    return text.replaceAll(/\se\s?\./g, 'e.');
-  };
-
-  const getDivContents = (elm) => {
-    const divs = elm.querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
-    if (divs.length === 0) { return getSpanContents(elm); }
-    return Array.from(divs).map((div) => getSpanContents(div)).join('\n');
+  const getTextContent = (documentFragment) => {
+    const getInnerText = (elm) => {
+      const as = elm.querySelectorAll('a.filepos_src');
+      Array.from(as).forEach((a) => a.innerText = ` ${a.innerText} `);
+      return elm.innerText;
+    };
+    let divs = documentFragment.querySelectorAll('div.was-a-p,h1,h2,h3,h4,h5,h6');
+    if (divs.length === 0) {
+      const div = document.createElement('div');
+      div.appendChild(documentFragment);
+      divs = [div];
+    }
+    return Array.from(divs).map(getInnerText).join('\n');
   };
 
   const getKindleSelection = (window) => {
@@ -83,8 +85,8 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
       console.debug('findRange(w, selection.start, selection.end): ', range);
       const contents = range.cloneContents();
       console.debug('range.cloneContents(): ', contents);
-      const result = getDivContents(contents);
-      console.debug('getDivContents(contents): ', result);
+      const result = getTextContent(contents);
+      console.debug('getTextContent(contents): ', result);
       return result;
     }
     throw Error('No selection text');
