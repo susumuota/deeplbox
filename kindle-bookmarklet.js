@@ -120,7 +120,7 @@ Bookmarklet ideas come from:
         message: 'setSelection', selection: selection
       }, event.origin);
     }
-  };, false);
+  }, false);
 
   window.deeplkey = true;
 
