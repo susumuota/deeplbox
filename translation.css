@@ -15,6 +15,7 @@ span.source {
   opacity: 0.1;
   transition: all 1s;
   /* display: none; */
+  display: block;
 }
 
 span.source:hover {
