@@ -16,22 +16,24 @@
 
 'use strict';
 
-// ## message flow
+// this script just pass through the message between background.js and web page
+//
+// background.js send 'getSelection' message to web page via selection.js
 //
 // background.js --> selection.js --> web page (bookmarklet.js)
 //
-// then,
+// then, bookmarklet.js try to get selection text
+// and send 'setSelection' message back to background.js via selection.js
 //
-// background.js <-- selection.js <-- web page (bookmarklet.js)
+// background.js <-- selection.js <-- web page (bookmarklet.js )
 //
-//
-// ## message passing between background.js and selection.js
+// sendMessage/onMessage are used between background.js and selection.js
 //
 // https://developer.chrome.com/docs/extensions/mv3/messaging/
 // https://developer.chrome.com/docs/extensions/reference/runtime/#method-sendMessage
 // https://developer.chrome.com/docs/extensions/reference/runtime/#event-onMessage
 //
-// ## message passing between selection.js and web page (bookmarklet.js)
+// postMessage/addEventListener are used between selection.js and web page
 //
 // https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
 // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener

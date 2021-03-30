@@ -14,12 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 'use strict';
 
 const source = document.querySelector('#source-dummydiv');
 const target = document.querySelector('#target-dummydiv');
 
+// monitor source/target textarea and when its content is changed,
 // send message to translation.js (and background.js)
 // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
 const observer = new MutationObserver((mutations, obs) => {

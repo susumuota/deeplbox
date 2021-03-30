@@ -53,7 +53,7 @@ const insertResults = (div, source, translation) => {
   }
 }
 
-// receive message from deepl.js
+// receive message from deepl.js, then insert results on div element
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     const div = document.querySelector('#results');

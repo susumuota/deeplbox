@@ -25,6 +25,7 @@
 'use strict';
 
 // default config
+//
 // edit DEFAULT_CONFIG and reload extension
 // or call setConfig on DevTools console like the following
 //
