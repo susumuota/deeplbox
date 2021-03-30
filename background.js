@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Manifest V3 for Chrome Extensions (MV3)
+// this code is written according to MV3
 //
 // https://developer.chrome.com/docs/extensions/mv3/intro/
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/
@@ -156,9 +156,9 @@ const openTranslationTab = async () => {
   return tab;
 }
 
-// get selection text
+// get selection text by injection
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
-const getSelection = (tab) => {
+const getSelectionByInjection = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.scripting.executeScript({
       target: {tabId: tab.id},
@@ -175,15 +175,17 @@ const getSelection = (tab) => {
   });
 }
 
+// get selection text by message
 // send message to content scripts
-const sendGetSelection = (tab) => {
+const getSelectionByMessage = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tab.id, { message: 'getSelection' }, (response) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
-      } else {
+      } else if (response) {
         resolve(response);
       }
+      reject('Empty response');
     });
   });
 }
@@ -219,7 +221,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
     try {
-      translateText(await getSelection(tab));
+      translateText(await getSelectionByInjection(tab));
     } catch (err) {
       console.debug(err);
       translateText(fixSelectionText(info.selectionText));
@@ -232,11 +234,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
     try {
-      translateText(await getSelection(tab));
+      translateText(await getSelectionByInjection(tab));
     } catch (err) {
       console.debug(err);
       try {
-        sendGetSelection(tab);
+        await getSelectionByMessage(tab);
       } catch (err) {
         console.debug(err);
       }
