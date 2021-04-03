@@ -138,9 +138,11 @@ const openTab = async (url, tabId, params) => {
 // open DeepL tab
 const openDeepLTab = async (sourceText) => {
   const config = await getConfig();
-  // slash (%2F) -> backslash slash (%5C%2F)
-  const enc = encodeURIComponent(sourceText).replaceAll(/%2F/g, '%5C%2F');
-  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${enc}`, config.deepLTabId, config.deepLTabParams);
+  // slash, pipe and backslash need to be escaped by backslash
+  // TODO: any other characters?
+  const escaped = sourceText.replaceAll(/([\/\|\\])/g, '\\$1');
+  const encoded = encodeURIComponent(escaped);
+  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, config.deepLTabId, config.deepLTabParams);
   if (tab) {
     setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
   }
@@ -168,7 +170,7 @@ const getSelectionByInjection = (tab) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
       } else if (results && results.length > 0 &&
-                 results[0].result && results[0].result.trim()){
+                 results[0].result && results[0].result.trim()) {
         resolve(results[0].result.trim());
       }
       reject('Empty window.getSelection()');
