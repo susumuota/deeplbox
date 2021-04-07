@@ -14,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 'use strict';
 
 // insert source and translation text to div position
@@ -40,7 +39,7 @@ const insertResults = (div, source, translation) => {
   // split by newlines, and combine source and translation
   const ss = source.split('\n');
   const ts = translation.split('\n');
-  // console.assert(ss.length === ts.length); // is this always true?
+  console.assert(ss.length === ts.length); // is this always true?
   if (ss.length !== ts.length) console.debug('ss.length !== ts.length', ss.length, ts.length);
   for (let i = 0; i < Math.max(ss.length, ts.length); i++) {
     const s = ss[i] || '';
@@ -53,12 +52,21 @@ const insertResults = (div, source, translation) => {
   }
 }
 
-// receive message from deepl.js, then insert results on div element
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
+    // receive message from deepl.js, then insert results on div element
     const div = document.querySelector('#results');
     insertResults(div, request.source, request.translation);
     sendResponse({ message: 'translation.js: setTranslation: done' });
+  } else if (request.message === 'setCSS') {
+    // receive message from background.js, then append style on head element
+    let style = document.querySelector('head style');
+    if (!style) {
+      style = document.createElement('style');
+      document.head.appendChild(style);
+    }
+    style.textContent = request.css;
+    sendResponse({ message: 'translation.js: setCSS: done' });
   }
   return true;
 });

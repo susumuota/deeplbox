@@ -24,76 +24,7 @@
 
 'use strict';
 
-// default config
-//
-// edit DEFAULT_CONFIG and reload extension
-// or call setConfig on DevTools console like the following
-//
-// const config = deepCopy(DEFAULT_CONFIG)
-// config.translationTabParams.createWindow.type = "normal" // for example
-// setConfig(config)
-// await getConfig()
-const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
-  // DeepL settings
-  //
-  // https://www.deepl.com/docs-api/translating-text/
-  sourceLang: 'auto', // 'en',
-  targetLang: 'auto', // 'ja',
-  urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
-
-  // create/update tab/window methods parameters
-  // if you specify null, that method won't call
-  // see these pages for parameters details
-  //
-  // https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
-  // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
-  // https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
-  // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
-  // DeepL tab settings
-  deepLTabParams: {
-    createTab: { active: false }, // MUST NOT be null
-    createWindow: null,
-    updateTab: { active: false }, // MUST NOT be null
-    updateWindow: null,
-  },
-  // Translation tab settings
-  translationTabParams: {
-    createTab: { active: false },
-    createWindow: {
-      width: 1080, height: 1080, top: 0, left: 0,
-      type: 'popup', focused: true
-    },
-    updateTab: null,
-    updateWindow: { focused: true }
-  },
-
-  // global variables
-  // DO NOT touch here
-  deepLTabId: chrome.tabs.TAB_ID_NONE,
-  translationTabId: chrome.tabs.TAB_ID_NONE
-});
-
-// setConfig({targetLang: 'ja'})
-const setConfig = (config) => {
-  chrome.storage.local.set(config);
-}
-
-// await getConfig()
-const getConfig = () => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(DEFAULT_CONFIG, resolve);
-  });
-}
-
-// clearConfig()
-const clearConfig = () => {
-  chrome.storage.local.clear();
-}
-
-// deep copy object
-const deepCopy = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
-}
+importScripts('default.js');  // DEFAULT_CONFIG
 
 // create or update tab (and window)
 // this function is similar to window.open
@@ -164,7 +95,7 @@ const openTranslationTab = async () => {
 const getSelectionByInjection = (tab) => {
   return new Promise((resolve, reject) => {
     chrome.scripting.executeScript({
-      target: {tabId: tab.id},
+      target: {tabId: tab.id, allFrames: true},
       function: () => window.getSelection().toString()
     }, (results) => {
       if (chrome.runtime.lastError) {
@@ -199,6 +130,23 @@ const fixSelectionText = (text) => {
   return text ? text.replace(/([\.\?\!]+)\s+/g, '$1\n\n') : text;
 }
 
+// send css to translation.js
+const setCSS = (tabId, css) => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.sendMessage(tabId, {
+       message: 'setCSS',
+       css: css
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError.message);
+      } else if (response) {
+        resolve(response);
+      }
+      reject('Empty response');
+    });
+  });
+}
+
 // translate source text
 const translateText = async (source) => {
   await openDeepLTab(source);
@@ -217,6 +165,7 @@ chrome.runtime.onInstalled.addListener(() => {
   // must reset. old tabId should be invalid
   setConfig({deepLTabId: chrome.tabs.TAB_ID_NONE});
   setConfig({translationTabId: chrome.tabs.TAB_ID_NONE});
+  chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
   return true;
 });
 
@@ -225,9 +174,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
     try {
       translateText(await getSelectionByInjection(tab));
+      chrome.action.setBadgeText({text: ''});
     } catch (err) {
       console.debug(err);
       translateText(fixSelectionText(info.selectionText));
+      chrome.action.setBadgeText({text: ''});
     }
   }
   return true;
@@ -238,12 +189,15 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
     try {
       translateText(await getSelectionByInjection(tab));
+      chrome.action.setBadgeText({text: ''});
     } catch (err) {
       console.debug(err);
+      chrome.action.setBadgeText({text: 'X'});
       try {
         await getSelectionByMessage(tab);
       } catch (err) {
         console.debug(err);
+        chrome.action.setBadgeText({text: 'X'});
       }
     }
   }
@@ -251,19 +205,16 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 });
 
 // receive message from deepl.js
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     console.log(request.translation);
+    const config = await getConfig();
+    setCSS(config.translationTabId, config.translationCSS || '');
     sendResponse({ message: 'background.js: setTranslation: done' });
-  }
-  return true;
-});
-
-// receive message from content scripts
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.message === 'setSelection') {
+  } else if (request.message === 'setSelection') {
     const selection = request.selection.trim();
     translateText(selection || 'Could not get selection text.');
+    chrome.action.setBadgeText({text: ''});
     sendResponse({ message: 'background.js: setSelection: done' });
   }
   return true;
