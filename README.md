@@ -43,7 +43,6 @@ Note: in most cases, DeepL automatically detects source language.
 - Turn `Developer mode` on
 - Click `Service Worker` at `DeepLKey: DeepL Keyboard Shortcut`
 - DevTools console will appear
-
 - Type `DEFAULT_CONFIG` to shows default settings (uneditable).
 
 ```javascript
@@ -54,7 +53,14 @@ Note: in most cases, DeepL automatically detects source language.
 - `setConfig` changes setting
 
 ```javascript
-> setConfig({'targetLang': 'de'}) // change target language to German
+// change target language to German
+> setConfig({targetLang: 'de'})
+
+// change color to dark theme
+> setConfig({translationCSS: 'body { background-color: #121212; color: darkgray; } span.source { color: skyblue; }'})
+
+// hide source text (only show translation text)
+> setConfig({translationCSS: 'span.source { display: none; }'})
 ```
 
 - `getConfig` gets current settings
