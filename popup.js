@@ -74,28 +74,21 @@ window.addEventListener('load', async () => {
     setConfig({targetLang: targetLang.value});
     message.textContent = `Target Language: "${targetLang.value}". This change will take effect in the next translation.`;
   });
-  themeLight.addEventListener('change', (event) => {
-    console.assert(themeLight.value);
-    message.textContent = 'Applying Color Theme...';
-    setConfig({translationCSS: null});
-    try {
-      setCSS(''); // apply css immediately
-    } catch (err) {
-      console.log(err);
-    }
-    message.textContent = `Color Theme: "${themeLight.value}"`;
-  });
-  themeDark.addEventListener('change', (event) => {
-    console.assert(themeDark.value);
-    message.textContent = 'Applying Color Theme...';
-    setConfig({translationCSS: DARK_THEME_CSS});
-    try {
-      setCSS(DARK_THEME_CSS); // apply css immediately
-    } catch (err) {
-      console.log(err);
-    }
-    message.textContent = `Color Theme: "${themeDark.value}"`;
-  });
+  const addEventListenerToTheme = (elm, css) => {
+    elm.addEventListener('change', async (event) => {
+      console.assert(elm.value);
+      message.textContent = 'Applying Color Theme...';
+      setConfig({translationCSS: css});
+      try {
+        await setCSS(css === null ? '' : css); // apply css immediately
+      } catch (err) {
+        console.log(err);
+      }
+      message.textContent = `Color Theme: "${elm.value}"`;
+    });
+  };
+  addEventListenerToTheme(themeLight, null);
+  addEventListenerToTheme(themeDark, DARK_THEME_CSS);
   const addEventListenerToWindow = (elm, elmName) => {
     elm.addEventListener('change', (event) => {
       if (/[^\d]+/.test(elm.value) || isNaN(parseInt(elm.value))) {
