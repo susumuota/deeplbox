@@ -16,7 +16,7 @@
 
 'use strict';
 
-const DARK_THEME_CSS = 'body { background-color: #121212; color: darkgray; } span.source { color: skyblue; }';
+const DARK_THEME_CSS = 'html { background-color: #121212; color: darkgray; } div.source { color: skyblue; }';
 
 // send css to translation.js
 const setCSS = (css) => {

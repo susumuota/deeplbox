@@ -17,25 +17,24 @@
 'use strict';
 
 // insert source and translation text to div position
-const insertResults = (div, source, translation) => {
+const insertResults = (elm, source, translation) => {
   const addAttribute = (elm, name, value) => {
     const attr = document.createAttribute(name);
     attr.value = value;
     elm.setAttributeNode(attr);
   }
-  const insertSpan = (elm, text, classAttr, dataAltAttr) => {
-    const span = document.createElement('span');
-    addAttribute(span, 'class', classAttr);
-    addAttribute(span, 'data-alt', dataAltAttr);
-    span.textContent = text;
-    span.insertAdjacentElement('beforeend', document.createElement('br'));
-    elm.insertAdjacentElement('beforeend', span);
+  const insertDiv = (elm, text, classAttr, dataAltAttr) => {
+    const div = document.createElement('div');
+    addAttribute(div, 'class', classAttr);
+    addAttribute(div, 'data-alt', dataAltAttr);
+    div.textContent = text;
+    elm.insertAdjacentElement('beforeend', div);
   }
   const insertPair = (elm, source, translation) => {
-    insertSpan(elm, translation, 'translation', source);
-    insertSpan(elm, source, 'source', translation); // swap source and translation
+    insertDiv(elm, translation, 'translation', source);
+    insertDiv(elm, source, 'source', translation); // swap source and translation
   }
-  div.textContent = ''; // comment out this if you want to keep previous text
+  elm.textContent = ''; // comment out this if you want to keep previous text
   // split by newlines, and combine source and translation
   const ss = source.split('\n');
   const ts = translation.split('\n');
@@ -45,9 +44,10 @@ const insertResults = (div, source, translation) => {
     const s = ss[i] || '';
     const t = ts[i] || '';
     if (s.trim() || t.trim()) {  // skip if both s and t are empty
-      const p = document.createElement('p');
-      insertPair(p, s, t);
-      div.insertAdjacentElement('beforeend', p);
+      const item = document.createElement('div');
+      addAttribute(item, 'class', 'item');
+      insertPair(item, s, t);
+      elm.insertAdjacentElement('beforeend', item);
     }
   }
 }
@@ -55,8 +55,8 @@ const insertResults = (div, source, translation) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     // receive message from deepl.js, then insert results on div element
-    const div = document.querySelector('#results');
-    insertResults(div, request.source, request.translation);
+    const results = document.querySelector('#results');
+    insertResults(results, request.source, request.translation);
     sendResponse({ message: 'translation.js: setTranslation: done' });
   } else if (request.message === 'setCSS') {
     // receive message from background.js, then append style on head element
