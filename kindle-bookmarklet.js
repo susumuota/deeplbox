@@ -40,7 +40,7 @@ Bookmarklet ideas come from:
 */
 
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.6.0';
+  const VERSION = '1.6.1';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
