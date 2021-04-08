@@ -14,15 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// this code is written according to MV3
-//
-// https://developer.chrome.com/docs/extensions/mv3/intro/
-// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/
-// https://developer.chrome.com/docs/extensions/mv3/manifest/
-// https://developer.chrome.com/docs/extensions/mv3/background_pages/
-// https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
-
 'use strict';
+
+// deep freeze object
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#What_is_shallow_freeze
+// https://www.30secondsofcode.org/blog/s/javascript-deep-freeze-object
+const deepFreeze = (object) => {
+  if (object === null) return null;
+  if (object === undefined) return undefined;
+  for (const name of Object.getOwnPropertyNames(object)) {
+    const value = object[name];
+    (typeof value === 'object' ? deepFreeze : Object.freeze)(value);
+  }
+  return Object.freeze(object);
+}
 
 // default config
 //
@@ -38,7 +43,7 @@
 // config.translationTabParams.createWindow.type = "normal" // for example
 // setConfig({translationTabParams: config.translationTabParams})
 // await getConfig()
-const DEFAULT_CONFIG = Object.freeze({ // TODO: deepFreeze
+const DEFAULT_CONFIG = deepFreeze({
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
@@ -115,6 +120,50 @@ const clearConfig = () => {
 }
 
 // deep copy object
-const deepCopy = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
+//
+// JSON.parse(JSON.stringify(object)) sounds enough but
+// it's slow and it can NOT copy some types like function, Map, etc.
+//
+// JSON.stringify(() => {}) // undefined
+//
+// so it needs to implement by recursive function
+//
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures
+// https://developer.mozilla.org/en-US/docs/Glossary/Primitive
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+// https://medium.com/@pmzubar/why-json-parse-json-stringify-is-a-bad-practice-to-clone-an-object-in-javascript-b28ac5e36521
+// https://www.30secondsofcode.org/js/s/deep-clone
+// https://gist.github.com/izy521/4d394dec28054d54684269d91b16cb8a
+const deepCopy = (object) => {
+  // there are 7 primitives
+  if (object === null) return null;
+  if (object === undefined) return undefined;
+  switch (object.constructor) {
+    // primitives
+    case String:
+    case Number:
+    case BigInt:
+    case Boolean:
+    case Symbol:
+      return object; // primitives are immutable, so no need to clone
+    // array-like
+    // TODO: confirm WeakMap and WeakSet are impossible to clone
+    case Array: return object.map(deepCopy);
+    case Map: return new Map(Array.from(object, deepCopy));
+    case Set: return new Set(Array.from(object, deepCopy));
+    // other classes
+    case Function: return object.bind({}); // TODO: what if function have properties
+    case RegExp: return new RegExp(object);
+    case Date: return new Date(object);
+    case Object:
+      const clone = Object.assign({}, object); // shallow copy
+      for (const name of Object.getOwnPropertyNames(object)) {
+        clone[name] = deepCopy(object[name]);
+      }
+      return clone;
+    // TODO: any other classes which are worth to support?
+    default: // unknown
+      throw Error(`Unsupported type: ${object.constructor}`);
+      // return object; TODO: not Error but just return object?
+  }
 }
