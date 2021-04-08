@@ -209,7 +209,12 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     console.log(request.translation);
     const config = await getConfig();
-    setCSS(config.translationTabId, config.translationCSS || '');
+    try {
+      await setCSS(config.translationTabId, config.translationCSS || '');
+    } catch (err) {
+      console.debug(err);
+      chrome.action.setBadgeText({text: 'X'});
+    }
     sendResponse({ message: 'background.js: setTranslation: done' });
   } else if (request.message === 'setSelection') {
     const selection = request.selection.trim();
