@@ -57,7 +57,7 @@ Note: in most cases, DeepL automatically detects source language.
 > setConfig({targetLang: 'de'})
 
 // change color to dark theme
-> setConfig({translationCSS: 'body { background-color: #121212; color: darkgray; } span.source { color: skyblue; }'})
+> setConfig({translationCSS: 'html { background-color: #121212; color: darkgray; } div.source { color: skyblue; }'})
 
 // hide source text (only show translation text)
 > setConfig({translationCSS: 'span.source { display: none; }'})
@@ -84,7 +84,6 @@ Note: in most cases, DeepL automatically detects source language.
 ## TODO
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
-- UI for settings
 - Sophisticated UI for translation.html
 
 ## Source code
