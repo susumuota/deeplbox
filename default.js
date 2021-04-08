@@ -29,6 +29,11 @@
 // edit DEFAULT_CONFIG and reload extension
 // or call setConfig on DevTools console like the following
 //
+// setConfig({targetLang: 'ja'})
+//
+// if the value is an Object (not string or number), deepCopy(DEFAULT_CONFIG) would be convenient
+// e.g. the value of DEFAULT_CONFIG.translationTabParams is an Object, then
+//
 // const config = deepCopy(DEFAULT_CONFIG)
 // config.translationTabParams.createWindow.type = "normal" // for example
 // setConfig({translationTabParams: config.translationTabParams})
@@ -90,10 +95,17 @@ const setConfig = (config) => {
   chrome.storage.local.set(config);
 }
 
+// get config value
+// https://developer.chrome.com/docs/extensions/reference/storage/#type-StorageArea
+//
+// to see default + custom config
 // await getConfig()
-const getConfig = () => {
+//
+// to see only custom config
+// await getConfig(null)
+const getConfig = (defaultConfig = DEFAULT_CONFIG) => {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(DEFAULT_CONFIG, resolve);
+    chrome.storage.local.get(defaultConfig, resolve);
   });
 }
 
