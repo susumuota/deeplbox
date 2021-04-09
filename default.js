@@ -136,26 +136,25 @@ const clearConfig = () => {
 // https://gist.github.com/izy521/4d394dec28054d54684269d91b16cb8a
 const deepCopy = (object) => {
   // there are 7 primitives
-  if (object === null) return null;
-  if (object === undefined) return undefined;
-  switch (object.constructor) {
+  if (object === null || object === undefined) return object;
+  switch (object.constructor.name) {
     // primitives
-    case String:
-    case Number:
-    case BigInt:
-    case Boolean:
-    case Symbol:
+    case 'String':
+    case 'Number':
+    case 'BigInt':
+    case 'Boolean':
+    case 'Symbol':
       return object; // primitives are immutable, so no need to clone
     // array-like
     // TODO: confirm WeakMap and WeakSet are impossible to clone
-    case Array: return object.map(deepCopy);
-    case Map: return new Map(Array.from(object, deepCopy));
-    case Set: return new Set(Array.from(object, deepCopy));
+    case 'Array': return object.map(deepCopy);
+    case 'Map': return new Map(Array.from(object, deepCopy));
+    case 'Set': return new Set(Array.from(object, deepCopy));
     // other classes
-    case Function: return object.bind({}); // TODO: what if function have properties
-    case RegExp: return new RegExp(object);
-    case Date: return new Date(object);
-    case Object:
+    case 'Function': return object.bind({}); // TODO: what if function have properties
+    case 'RegExp': return new RegExp(object);
+    case 'Date': return new Date(object);
+    case 'Object':
       const clone = Object.assign({}, object); // shallow copy
       for (const name of Object.getOwnPropertyNames(object)) {
         clone[name] = deepCopy(object[name]);
