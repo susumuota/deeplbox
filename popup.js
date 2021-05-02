@@ -22,8 +22,8 @@ const DARK_THEME_CSS = 'html { background-color: #121212; color: darkgray; } div
 const setCSS = (css) => {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage({
-       message: 'setCSS',
-       css: css
+      message: 'setCSS',
+      css: css
     }, (response) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
@@ -40,11 +40,8 @@ window.addEventListener('load', async () => {
   const targetLang = document.getElementById('target_lang');
   const themeLight = document.getElementById('theme_light');
   const themeDark = document.getElementById('theme_dark');
+  const windowPosition = document.getElementById('window_position');
   const message = document.getElementById('message');
-  const windowWidth = document.getElementById('window_width');
-  const windowHeight = document.getElementById('window_height');
-  const windowTop = document.getElementById('window_top');
-  const windowLeft = document.getElementById('window_left');
   const config = await getConfig();
 
   // set current values
@@ -55,15 +52,6 @@ window.addEventListener('load', async () => {
     themeLight.checked = true;
   } else if (config.translationCSS === DARK_THEME_CSS) {
     themeDark.checked = true;
-  } else {
-    // TODO: what to do?
-  }
-  if (config.translationTabParams && config.translationTabParams.createWindow) {
-    const w = config.translationTabParams.createWindow;
-    windowWidth.value = w.width;
-    windowHeight.value = w.height;
-    windowTop.value = w.top;
-    windowLeft.value = w.left;
   } else {
     // TODO: what to do?
   }
@@ -89,20 +77,21 @@ window.addEventListener('load', async () => {
   };
   addEventListenerToTheme(themeLight, null);
   addEventListenerToTheme(themeDark, DARK_THEME_CSS);
-  const addEventListenerToWindow = (elm, elmName) => {
-    elm.addEventListener('change', (event) => {
-      if (/[^\d]+/.test(elm.value) || isNaN(parseInt(elm.value))) {
-        message.textContent = `Invalid value: "${elm.value}". Specify an integer >= 0.`;
-        return;
-      }
+  windowPosition.addEventListener('click', async (event) => {
+    const config = await getConfig();
+    if (!config.translationTabParams.createWindow) return;
+    if (config.translationTabId === chrome.tabs.TAB_ID_NONE) return;
+    try {
+      const translationTab = await chrome.tabs.get(config.translationTabId);
+      const translationWindow = await chrome.windows.get(translationTab.windowId);
       const params = deepCopy(config.translationTabParams);
-      params.createWindow[elmName] = parseInt(elm.value);
+      params.createWindow['left'] = translationWindow.left;
+      params.createWindow['top'] = translationWindow.top;
+      params.createWindow['width'] = translationWindow.width;
+      params.createWindow['height'] = translationWindow.height;
       setConfig({translationTabParams: params});
-      message.textContent = `Window ${elmName}: "${elm.value}". Close the translation window and try to translate again.`;
-    });
-  };
-  addEventListenerToWindow(windowWidth, 'width');
-  addEventListenerToWindow(windowHeight, 'height');
-  addEventListenerToWindow(windowTop, 'top');
-  addEventListenerToWindow(windowLeft, 'left');
+    } catch (err) {
+      console.debug(err);
+    }
+  });
 });
