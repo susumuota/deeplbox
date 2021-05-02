@@ -122,11 +122,11 @@ const clearConfig = () => {
 // deep copy object
 //
 // JSON.parse(JSON.stringify(object)) sounds enough but
-// it's slow and it can NOT copy some types like function, Map, etc.
+// it's slow and it can NOT copy some types like function, Map, etc. for example,
 //
 // JSON.stringify(() => {}) // undefined
 //
-// so it needs to implement by recursive function
+// so it needs to be implemented by recursive function
 //
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures
 // https://developer.mozilla.org/en-US/docs/Glossary/Primitive
