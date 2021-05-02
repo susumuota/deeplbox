@@ -79,8 +79,14 @@ window.addEventListener('load', async () => {
   addEventListenerToTheme(themeDark, DARK_THEME_CSS);
   windowPosition.addEventListener('click', async (event) => {
     const config = await getConfig();
-    if (!config.translationTabParams.createWindow) return;
-    if (config.translationTabId === chrome.tabs.TAB_ID_NONE) return;
+    if (!config.translationTabParams.createWindow) {
+      message.textContent = 'Translation window disabled.';
+      return;
+    }
+    if (config.translationTabId === chrome.tabs.TAB_ID_NONE) {
+      message.textContent = 'No translation window. Try to translate first.';
+      return;
+    }
     try {
       const translationTab = await chrome.tabs.get(config.translationTabId);
       const translationWindow = await chrome.windows.get(translationTab.windowId);
@@ -90,8 +96,10 @@ window.addEventListener('load', async () => {
       params.createWindow['width'] = translationWindow.width;
       params.createWindow['height'] = translationWindow.height;
       setConfig({translationTabParams: params});
+      message.textContent = `Window Position: {left: ${translationWindow.left}, top: ${translationWindow.top}, width: ${translationWindow.width}, height: ${translationWindow.height}}`;
     } catch (err) {
       console.debug(err);
+      message.textContent = 'No translation window. Try to translate first.';
     }
   });
 });
