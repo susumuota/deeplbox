@@ -134,8 +134,8 @@ const fixSelectionText = (text) => {
 const setCSS = (tabId, css) => {
   return new Promise((resolve, reject) => {
     chrome.tabs.sendMessage(tabId, {
-       message: 'setCSS',
-       css: css
+      message: 'setCSS',
+      css: css
     }, (response) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
