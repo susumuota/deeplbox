@@ -37,6 +37,7 @@ const setCSS = (css) => {
 
 
 window.addEventListener('load', async () => {
+  const sourceLang = document.getElementById('source_lang');
   const targetLang = document.getElementById('target_lang');
   const themeLight = document.getElementById('theme_light');
   const themeDark = document.getElementById('theme_dark');
@@ -45,6 +46,9 @@ window.addEventListener('load', async () => {
   const config = await getConfig();
 
   // set current values
+  if (config.sourceLang && config.sourceLang !== 'en') {
+    document.getElementById(`source_lang_${config.sourceLang}`).selected = true;
+  }
   if (config.targetLang && config.targetLang !== 'auto') {
     document.getElementById(`target_lang_${config.targetLang}`).selected = true;
   }
@@ -57,6 +61,11 @@ window.addEventListener('load', async () => {
   }
 
   // event listeners
+  sourceLang.addEventListener('change', (event) => {
+    console.assert(sourceLang.value);
+    setConfig({sourceLang: sourceLang.value});
+    message.textContent = `Source Language: "${sourceLang.value}". This change will take effect in the next translation.`;
+  });
   targetLang.addEventListener('change', (event) => {
     console.assert(targetLang.value);
     setConfig({targetLang: targetLang.value});
