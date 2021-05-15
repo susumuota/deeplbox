@@ -51,15 +51,18 @@ You can change translation language, color theme and window position by Chrome's
 
 ![DeepLKey popup](https://user-images.githubusercontent.com/1632335/118348869-12c4d000-b588-11eb-84e9-df807eb56967.png)
 
+> **_Note:_** in most cases, DeepL automatically detects source language.
+
 ### Change settings by developer console
 
 Also, you can change settings by developer console.
 
-> **_Note:_** in most cases, DeepL automatically detects source language.
-
 - Open extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Service Worker` at `DeepLKey: DeepL Keyboard Shortcut`
+
+![DeepLKey Service Worker](https://user-images.githubusercontent.com/1632335/118350402-67207d80-b591-11eb-8c90-1adcb4c7ef8d.png)
+
 - DevTools console will appear
 - Type `DEFAULT_CONFIG` to shows default settings (uneditable).
 
