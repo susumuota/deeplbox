@@ -10,8 +10,14 @@ A Google Chrome extension to open DeepL translator page and send selected text b
 
 ## Install
 
-- Download zip file from [here](https://github.com/susumuota/deeplkey/archive/main.zip) and extract it
-  - Or open Terminal and type `git clone https://github.com/susumuota/deeplkey.git`
+There are 2 options to install DeepLKey. Chrome Web Store is convenient for all users. Source would be useful if you try to customize/modify features.
+
+### [Option 1] Install from Chrome Web Store
+- Install from [here](https://chrome.google.com/webstore/detail/deeplkey-deepl-keyboard-s/ompicphdlcomhddpfbpnhnejhkheeagf)
+
+### [Option 2] Install from source
+
+- Open Terminal and type `git clone https://github.com/susumuota/deeplkey.git`
 - Open Chrome's extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese)
@@ -33,11 +39,23 @@ A Google Chrome extension to open DeepL translator page and send selected text b
 - Click the pencil icon on the right of `Open DeepL`
 - Input key stroke. Default is `Command-b` (macOS) or `Control-b` (other OS).
 
-### Change translation language
+### Change settings by popup dialog
 
-You can change translation source language, target language, etc. Available languages are listed [here](https://www.deepl.com/docs-api/translating-text/).
+You can change translation language, color theme and window position by Chrome's popup dialog.
 
-Note: in most cases, DeepL automatically detects source language.
+- Click the DeepLKey icon (you can "pin" the icon)
+
+![DeepLKey icon](https://user-images.githubusercontent.com/1632335/118349094-8a472f00-b589-11eb-9186-331f81dc0f77.png)
+
+- Change settings by selections and buttons. See [YouTube video](http://www.youtube.com/watch?v=gZVzj4uDTss) for more details.
+
+![DeepLKey popup](https://user-images.githubusercontent.com/1632335/118348869-12c4d000-b588-11eb-84e9-df807eb56967.png)
+
+### Change settings by developer console
+
+Also, you can change settings by developer console.
+
+> **_Note:_** in most cases, DeepL automatically detects source language.
 
 - Open extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
@@ -70,11 +88,13 @@ Note: in most cases, DeepL automatically detects source language.
 { sourceLang: 'auto', targetLang: 'de', ... }
 ```
 
-- `clearConfig` clears all of the settings
+- `clearConfig` clears all of the custom settings
 
 ```javascript
 > clearConfig()
 ```
+
+- See [default.js](https://github.com/susumuota/deeplkey/blob/main/default.js) for more details about configuration parameters.
 
 ## Limitations
 
