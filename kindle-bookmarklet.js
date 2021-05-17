@@ -26,8 +26,9 @@ If you want to use DeepLKey on Kindle Cloud Reader (e.g. https://read.amazon.com
 
 ## Limitations
 
-- Only tested on https://read.amazon.com/ and https://read.amazon.co.jp/
-- Kindle Cloud Reader may change their document structure, etc in future.
+- This script was tested on https://read.amazon.co.jp/ at 20210517
+- This script does not work on https://read.amazon.com/ at 20210517
+- Kindle Cloud Reader may change their document structure, etc in the future
 
 ## Links
 
@@ -40,7 +41,7 @@ Bookmarklet ideas come from:
 */
 
   const NAME = 'DeepLKey: kindle-bookmarklet.js';
-  const VERSION = '1.6.4';
+  const VERSION = '1.6.5';
 
   if (window.deeplkey) {
     const text = `${NAME} ${VERSION}: already loaded`;
@@ -57,9 +58,13 @@ Bookmarklet ideas come from:
   };
 
   const findRange = (window, start, end) => {
-    const s = window.document.querySelector(`[id="${start}"]`);
+    let s = window.document.querySelector(`[id="${start}"]`);
+    if (!s) { s = window.document.querySelector(`[data-id="${start}"]`); }
+    console.debug('querySelector: start: ', s);
     if (!s) { return null; }
-    const e = window.document.querySelector(`[id="${end}"]`);
+    let e = window.document.querySelector(`[id="${end}"]`);
+    if (!e) { e = window.document.querySelector(`[data-id="${end}"]`); }
+    console.debug('querySelector: end: ', e);
     if (!e) { return null; }
     const range = window.document.createRange();
     range.setStartBefore(s);
@@ -85,14 +90,16 @@ Bookmarklet ideas come from:
   };
 
   const getKindleSelection = (window) => {
-    const kw = getKindleWindow(window);
+    let kw = getKindleWindow(window);
     const selection = kw.KindleReaderUI.getSelection();
     console.debug('kw.KindleReaderUI.getSelection(): ', selection);
     if (!selection) { throw Error('No selection text'); }
+    if (kw && kw.length === 0) { kw = [kw]; }
     for (let w of Array.from(kw)) {
       const range = findRange(w, selection.start, selection.end);
       if (!range) { continue; }
       console.debug('findRange(w, selection.start, selection.end): ', range);
+      /* TODO: can not get content in latest read.amazon.com format at 20210517 */
       const contents = range.cloneContents();
       console.debug('range.cloneContents(): ', contents);
       const result = getTextContent(contents);
