@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "DeepLKey: DeepL Keyboard Shortcut",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplkey",
@@ -21,22 +21,6 @@
   "content_scripts": [{
     "matches": ["https://www.deepl.com/*"],
     "js": ["deepl.js"]
-  }, {
-    "matches": [
-      "https://read.amazon.com/*",
-      "https://read.amazon.co.jp/*",
-      "https://leer.amazon.com.mx/*",
-      "https://leer.amazon.es/*",
-      "https://leggi.amazon.it/*",
-      "https://ler.amazon.com.br/*",
-      "https://lesen.amazon.de/*",
-      "https://lire.amazon.fr/*",
-      "https://read.amazon.ca/*",
-      "https://read.amazon.co.uk/*",
-      "https://read.amazon.com.au/*",
-      "https://read.amazon.in/*"
-    ],
-    "js": ["selection.js"]
   }],
 
   "action": {
@@ -53,7 +37,7 @@
   "commands": {
     "deepl-open": {
       "suggested_key": {
-        "default": "Ctrl+B",
+        "default": "Ctrl+Shift+B",
         "mac": "Command+B"
       },
       "description": "Open DeepL"
