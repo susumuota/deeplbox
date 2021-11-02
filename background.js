@@ -127,7 +127,11 @@ const getSelectionByMessage = (tab) => {
 // Chrome removes newlines from info.selectionText that makes hard to read
 // this is just a tiny hack to make it better
 const fixSelectionText = (text) => {
-  return text ? text.replace(/([\.\?\!]+)\s+/g, '$1\n\n') : text;
+  if (!text) return text;
+  // TODO: sophisticated way
+  const replaced = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
+  const fixed = replaced.replace(/(et al\.|e\.g\.|i\.e\.|pp\.|Fig\.|\W\w\.)\n\n/g, '$1 ');
+  return fixed;
 }
 
 // send css to translation.js
