@@ -39,6 +39,8 @@ const setCSS = (css) => {
 window.addEventListener('load', async () => {
   const sourceLang = document.getElementById('source_lang');
   const targetLang = document.getElementById('target_lang');
+  const splitOn = document.getElementById('split_on');
+  const splitOff = document.getElementById('split_off');
   const themeLight = document.getElementById('theme_light');
   const themeDark = document.getElementById('theme_dark');
   const windowPosition = document.getElementById('window_position');
@@ -51,6 +53,11 @@ window.addEventListener('load', async () => {
   }
   if (config.targetLang && config.targetLang !== 'auto') {
     document.getElementById(`target_lang_${config.targetLang}`).selected = true;
+  }
+  if (config.isSplit) {
+    splitOn.checked = true;
+  } else {
+    splitOff.checked = true;
   }
   if (!config.translationCSS) {
     themeLight.checked = true;
@@ -70,6 +77,16 @@ window.addEventListener('load', async () => {
     console.assert(targetLang.value);
     setConfig({targetLang: targetLang.value});
     message.textContent = `Target Language: "${targetLang.value}". This change will take effect in the next translation.`;
+  });
+  splitOn.addEventListener('change', (event) => {
+    console.assert(splitOn.value);
+    setConfig({isSplit: splitOn.value === 'on'});
+    message.textContent = `Split Sentences: "${splitOn.value}"`;
+  });
+  splitOff.addEventListener('change', (event) => {
+    console.assert(splitOff.value);
+    setConfig({isSplit: splitOff.value !== 'off'});
+    message.textContent = `Split Sentences: "${splitOff.value}"`;
   });
   const addEventListenerToTheme = (elm, css) => {
     elm.addEventListener('change', async (event) => {

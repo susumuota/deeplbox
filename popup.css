@@ -55,10 +55,10 @@ div#content {
 }
 
 div#message {
-  font-size: 1rem;
-  line-height: 1.5rem;
-  height: 5rem;
-  padding-top: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  height: 3rem;
+  padding-top: 0rem;
 }
 
 div.item {

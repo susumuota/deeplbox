@@ -43,7 +43,7 @@ There are 2 options to install DeepLKey. Chrome Web Store is convenient for all 
 
 You can change translation language, color theme and window position by Chrome's popup dialog.
 
-- Click the DeepLKey icon (you can "pin" the icon)
+- Click the DeepLKey icon `D`
 
 ![DeepLKey icon](https://user-images.githubusercontent.com/1632335/118349094-8a472f00-b589-11eb-9186-331f81dc0f77.png)
 

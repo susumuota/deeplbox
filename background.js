@@ -69,9 +69,10 @@ const openTab = async (url, tabId, params) => {
 // open DeepL tab
 const openDeepLTab = async (sourceText) => {
   const config = await getConfig();
+  const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
   // slash, pipe and backslash need to be escaped by backslash
   // TODO: any other characters?
-  const escaped = sourceText.replaceAll(/([\/\|\\])/g, '\\$1');
+  const escaped = splitted.replaceAll(/([\/\|\\])/g, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, config.deepLTabId, config.deepLTabParams);
   if (tab) {
@@ -124,13 +125,13 @@ const getSelectionByMessage = (tab) => {
   });
 }
 
-// Chrome removes newlines from info.selectionText that makes hard to read
-// this is just a tiny hack to make it better
-const fixSelectionText = (text) => {
+// insert 2 newlines between sentences
+// TODO: sophisticated way
+  const splitSentences = (text) => {
   if (!text) return text;
-  // TODO: sophisticated way
   const replaced = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
-  const fixed = replaced.replace(/(et al\.|e\.g\.|i\.e\.|pp\.|Fig\.|\W\w\.)\n\n/g, '$1 ');
+  // TODO: more abbreviations
+  const fixed = replaced.replace(/(et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|min\.|Fig\.|fig\.|Figure\.|Table\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|pp\.|pt\.|ft\.|lb\.|gal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
   return fixed;
 }
 
@@ -181,7 +182,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       chrome.action.setBadgeText({text: ''});
     } catch (err) {
       console.debug(err);
-      translateText(fixSelectionText(info.selectionText));
+      translateText(info.selectionText);
       chrome.action.setBadgeText({text: ''});
     }
   }

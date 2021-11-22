@@ -79,6 +79,9 @@ const DEFAULT_CONFIG = deepFreeze({
     updateWindow: { focused: true }
   },
 
+  // split sentences
+  isSplit: false,
+
   translationCSS: null,
   // e.g. dark mode
   // translationCSS: `
