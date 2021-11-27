@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "DeepLKey: DeepL Keyboard Shortcut",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplkey",
@@ -37,7 +37,7 @@
   "commands": {
     "deepl-open": {
       "suggested_key": {
-        "default": "Ctrl+Shift+B",
+        "default": "Alt+B",
         "mac": "Command+B"
       },
       "description": "Open DeepL"

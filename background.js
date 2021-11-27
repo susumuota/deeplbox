@@ -72,7 +72,7 @@ const openDeepLTab = async (sourceText) => {
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
   // slash, pipe and backslash need to be escaped by backslash
   // TODO: any other characters?
-  const escaped = splitted.replaceAll(/([\/\|\\])/g, '\\$1');
+  const escaped = splitted.replace(/([\/\|\\])/g, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, config.deepLTabId, config.deepLTabParams);
   if (tab) {
@@ -101,8 +101,7 @@ const getSelectionByInjection = (tab) => {
     }, (results) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
-      } else if (results && results.length > 0 &&
-                 results[0].result && results[0].result.trim()) {
+      } else if (results && results.length > 0 && results[0].result && results[0].result.trim()) {
         resolve(results[0].result.trim());
       }
       reject('Empty window.getSelection()');
@@ -110,24 +109,9 @@ const getSelectionByInjection = (tab) => {
   });
 }
 
-// get selection text by message
-// send message to content scripts
-const getSelectionByMessage = (tab) => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tab.id, { message: 'getSelection' }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else if (response) {
-        resolve(response);
-      }
-      reject('Empty response');
-    });
-  });
-}
-
 // insert 2 newlines between sentences
 // TODO: sophisticated way
-  const splitSentences = (text) => {
+const splitSentences = (text) => {
   if (!text) return text;
   const replaced = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
   // TODO: more abbreviations
@@ -198,12 +182,6 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
     } catch (err) {
       console.debug(err);
       chrome.action.setBadgeText({text: 'X'});
-      try {
-        await getSelectionByMessage(tab);
-      } catch (err) {
-        console.debug(err);
-        chrome.action.setBadgeText({text: 'X'});
-      }
     }
   }
   return true;
@@ -221,11 +199,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       chrome.action.setBadgeText({text: 'X'});
     }
     sendResponse({ message: 'background.js: setTranslation: done' });
-  } else if (request.message === 'setSelection') {
-    const selection = request.selection.trim();
-    translateText(selection || 'Could not get selection text.');
-    chrome.action.setBadgeText({text: ''});
-    sendResponse({ message: 'background.js: setSelection: done' });
   }
   return true;
 });

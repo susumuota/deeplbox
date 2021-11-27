@@ -48,7 +48,7 @@ window.addEventListener('load', async () => {
   const config = await getConfig();
 
   // set current values
-  if (config.sourceLang && config.sourceLang !== 'en') {
+  if (config.sourceLang && config.sourceLang !== 'auto') {
     document.getElementById(`source_lang_${config.sourceLang}`).selected = true;
   }
   if (config.targetLang && config.targetLang !== 'auto') {
@@ -81,12 +81,12 @@ window.addEventListener('load', async () => {
   splitOn.addEventListener('change', (event) => {
     console.assert(splitOn.value);
     setConfig({isSplit: splitOn.value === 'on'});
-    message.textContent = `Split Sentences: "${splitOn.value}"`;
+    message.textContent = `Split Sentences: "${splitOn.value}". This change will take effect in the next translation.`;
   });
   splitOff.addEventListener('change', (event) => {
     console.assert(splitOff.value);
     setConfig({isSplit: splitOff.value !== 'off'});
-    message.textContent = `Split Sentences: "${splitOff.value}"`;
+    message.textContent = `Split Sentences: "${splitOff.value}". This change will take effect in the next translation.`;
   });
   const addEventListenerToTheme = (elm, css) => {
     elm.addEventListener('change', async (event) => {

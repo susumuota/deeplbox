@@ -26,7 +26,7 @@ There are 2 options to install DeepLKey. Chrome Web Store is convenient for all 
 ## Usage
 
 - Select text by mouse or keyboard
-- Press `Command-b` (macOS) or `Control-Shift-b` (other OS)
+- Press `Command-b` (macOS) or `Alt-b` (other OS)
   - Or right click to open context menu and choose `DeepL Translate`
 
 ## Settings
@@ -34,7 +34,7 @@ There are 2 options to install DeepLKey. Chrome Web Store is convenient for all 
 ### Change keyboard shortcuts
 
 - Open extensions setting page `chrome://extensions`
-- Open menu by clicking `hamburger button` (triple bar icon) on the left of `Extensions`
+- Open menu by clicking `hamburger button` "☰" (triple bar icon) on the left of `Extensions`
 - Click `Keyboard shortcuts`
 - Click the pencil icon on the right of `Open DeepL`
 - Input key stroke. Default is `Command-b` (macOS) or `Control-Shift-b` (other OS).

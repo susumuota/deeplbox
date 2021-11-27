@@ -47,7 +47,7 @@ const DEFAULT_CONFIG = deepFreeze({
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
-  sourceLang: 'en', // 'auto',
+  sourceLang: 'auto', // 'en',
   targetLang: 'auto', // 'ja',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
 
