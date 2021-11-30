@@ -81,7 +81,7 @@ Also, you can change settings by developer console.
 > setConfig({translationCSS: 'html { background-color: #121212; color: darkgray; } div.source { color: skyblue; }'})
 
 // hide source text (only show translation text)
-> setConfig({translationCSS: 'span.source { display: none; }'})
+> setConfig({translationCSS: 'div.source { display: none; }'})
 ```
 
 - `getConfig` gets current settings

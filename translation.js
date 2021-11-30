@@ -31,10 +31,15 @@ const insertResults = (elm, source, translation) => {
     elm.insertAdjacentElement('beforeend', div);
   }
   const insertPair = (elm, source, translation) => {
-    insertDiv(elm, translation, 'translation', source);
-    insertDiv(elm, source, 'source', translation); // swap source and translation
+    const div = document.createElement('div');
+    addAttribute(div, 'class', 'pair');
+    insertDiv(div, translation, 'translation', source);
+    insertDiv(div, source, 'source', translation); // swap source and translation
+    elm.insertAdjacentElement('beforeend', div);
   }
-  elm.textContent = ''; // comment out this if you want to keep previous text
+  // elm.textContent = ''; // comment out this if you want to clear previous text
+  const div = document.createElement('div');
+  addAttribute(div, 'class', 'item');
   // split by newlines, and combine source and translation
   const ss = source.split('\n');
   const ts = translation.split('\n');
@@ -44,29 +49,40 @@ const insertResults = (elm, source, translation) => {
     const s = ss[i] || '';
     const t = ts[i] || '';
     if (s.trim() || t.trim()) {  // skip if both s and t are empty
-      const item = document.createElement('div');
-      addAttribute(item, 'class', 'item');
-      insertPair(item, s, t);
-      elm.insertAdjacentElement('beforeend', item);
+      insertPair(div, s, t);
     }
   }
+  div.insertAdjacentElement('beforeend', document.createElement('hr'));
+  elm.insertAdjacentElement('beforeend', div);
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+const setCSS = (css) => {
+  let style = document.querySelector('head style');
+  if (!style) {
+    style = document.createElement('style');
+    document.head.appendChild(style);
+  }
+  style.textContent = css;
+}
+
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.message === 'setTranslation') {
     // receive message from deepl.js, then insert results on div element
-    const results = document.querySelector('#results');
-    insertResults(results, request.source, request.translation);
+    const config = await getConfig();
+    setCSS(config.translationCSS || '');
+    const content = document.querySelector('#content');
+    insertResults(content, request.source, request.translation);
     sendResponse({ message: 'translation.js: setTranslation: done' });
-  } else if (request.message === 'setCSS') {
-    // receive message from background.js, then append style on head element
-    let style = document.querySelector('head style');
-    if (!style) {
-      style = document.createElement('style');
-      document.head.appendChild(style);
-    }
-    style.textContent = request.css;
-    sendResponse({ message: 'translation.js: setCSS: done' });
   }
   return true;
+});
+
+window.addEventListener('load', async () => {
+  const config = await getConfig();
+  setCSS(config.translationCSS || '');
+  const clearButton = document.getElementById('clear_button');
+  clearButton.addEventListener('click', (event) => {
+    const content = document.querySelector('#content');
+    content.textContent = '';
+  });
 });

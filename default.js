@@ -80,17 +80,17 @@ const DEFAULT_CONFIG = deepFreeze({
   },
 
   // split sentences
-  isSplit: false,
+  isSplit: true,
 
   translationCSS: null,
   // e.g. dark mode
   // translationCSS: `
   //   body { background-color: #121212; color: darkgray; }
-  //   span.source { color: skyblue; }
+  //   div.source { color: skyblue; }
   // `,
   //
   // e.g. hide source text (only show translation text)
-  // translationCSS: 'span.source { display: none; }',
+  // translationCSS: 'div.source { display: none; }',
 
   // global variables
   // DO NOT touch here

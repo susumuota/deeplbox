@@ -113,27 +113,13 @@ const getSelectionByInjection = (tab) => {
 // TODO: sophisticated way
 const splitSentences = (text) => {
   if (!text) return text;
-  const replaced = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
+  const splitted = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
+  // DeepL sometimes ignores sentences around '—' (em dash, \u2014)
+  // TODO: more tweaks?
+  const tweaked = splitted.replace(/(\u2014+)/g, '$1\n\n');
   // TODO: more abbreviations
-  const fixed = replaced.replace(/(et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|min\.|Fig\.|fig\.|Figure\.|Table\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|pp\.|pt\.|ft\.|lb\.|gal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
+  const fixed = tweaked.replace(/(et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|min\.|Fig\.|fig\.|Figure\.|Table\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|pp\.|pt\.|ft\.|lb\.|gal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
   return fixed;
-}
-
-// send css to translation.js
-const setCSS = (tabId, css) => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, {
-      message: 'setCSS',
-      css: css
-    }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else if (response) {
-        resolve(response);
-      }
-      reject('Empty response');
-    });
-  });
 }
 
 // translate source text
@@ -183,22 +169,6 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
       console.debug(err);
       chrome.action.setBadgeText({text: 'X'});
     }
-  }
-  return true;
-});
-
-// receive message from deepl.js
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.message === 'setTranslation') {
-    console.log(request.translation);
-    const config = await getConfig();
-    try {
-      await setCSS(config.translationTabId, config.translationCSS || '');
-    } catch (err) {
-      console.debug(err);
-      chrome.action.setBadgeText({text: 'X'});
-    }
-    sendResponse({ message: 'background.js: setTranslation: done' });
   }
   return true;
 });

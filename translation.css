@@ -12,6 +12,15 @@ body {
   padding: 1rem;
 }
 
+input[type="button"] {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+hr {
+  border: 0.01rem solid;
+  opacity: 0.5;
+}
 
 div.source {
   color: #174ea6;

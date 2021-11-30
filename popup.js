@@ -18,23 +18,6 @@
 
 const DARK_THEME_CSS = 'html { background-color: #121212; color: darkgray; } div.source { color: skyblue; }';
 
-// send css to translation.js
-const setCSS = (css) => {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({
-      message: 'setCSS',
-      css: css
-    }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else if (response) {
-        resolve(response);
-      }
-      reject('Empty response');
-    });
-  });
-}
-
 
 window.addEventListener('load', async () => {
   const sourceLang = document.getElementById('source_lang');
@@ -89,16 +72,11 @@ window.addEventListener('load', async () => {
     message.textContent = `Split Sentences: "${splitOff.value}". This change will take effect in the next translation.`;
   });
   const addEventListenerToTheme = (elm, css) => {
-    elm.addEventListener('change', async (event) => {
+    elm.addEventListener('change', (event) => {
       console.assert(elm.value);
       message.textContent = 'Applying Color Theme...';
       setConfig({translationCSS: css});
-      try {
-        await setCSS(css === null ? '' : css); // apply css immediately
-      } catch (err) {
-        console.log(err);
-      }
-      message.textContent = `Color Theme: "${elm.value}"`;
+      message.textContent = `Color Theme: "${elm.value}". This change will take effect in the next translation.`;
     });
   };
   addEventListenerToTheme(themeLight, null);
