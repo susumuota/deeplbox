@@ -56,16 +56,12 @@ const splitToPairs = (source, translation) => {
 };
 
 const Pair = props => {
-  return /*#__PURE__*/React.createElement(Box, null, /*#__PURE__*/React.createElement(Box, {
-    sx: {
-      color: 'text.primary'
-    }
-  }, props.translation), /*#__PURE__*/React.createElement(Box, {
+  return /*#__PURE__*/React.createElement(Box, null, /*#__PURE__*/React.createElement(Box, null, props.translation), /*#__PURE__*/React.createElement(Box, {
     sx: {
       color: 'text.secondary',
       mb: 1,
       opacity: 0.1,
-      transition: 'all 1s',
+      transition: 'all 0.5s',
       '&:hover': {
         opacity: 1
       }
@@ -80,7 +76,7 @@ const Item = props => {
       mt: 3,
       mb: 3
     },
-    elevation: 12
+    elevation: 6
   }, props.pairs.map(pair => /*#__PURE__*/React.createElement(Pair, {
     key: pair.key,
     source: pair.source,
@@ -102,15 +98,18 @@ const SmallIconButton = props => {
 };
 
 const App = props => {
-  // detect user's color scheme  https://stackoverflow.com/a/57795495
-  const isPrefersDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const [isDarkTheme, setDarkTheme] = useState(isPrefersDark);
+  const [isDarkTheme, setDarkTheme] = useState(props.isDarkTheme);
   const [isShowSource, setShowSource] = useState(false);
   const [isOpenSnack, setOpenSnack] = useState(false);
   const [items, setItems] = useState([]);
   const toggleDarkTheme = useCallback(() => {
-    setDarkTheme(prev => !prev);
-  }, [setDarkTheme]);
+    setDarkTheme(prev => {
+      setConfig({
+        isDarkTheme: !prev
+      });
+      return !prev;
+    });
+  }, [setDarkTheme, setConfig]);
   const toggleShowSource = useCallback(() => {
     setShowSource(prev => !prev);
   }, [setShowSource]);
@@ -131,10 +130,6 @@ const App = props => {
     return true;
   }, [setItems, setOpenSnack]);
   const handleCloseSnack = useCallback((event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
     setOpenSnack(false);
   }, [setOpenSnack]);
   const clearItems = useCallback(() => {
@@ -170,7 +165,13 @@ const App = props => {
     theme: isDarkTheme ? darkTheme : lightTheme
   }, /*#__PURE__*/React.createElement(CssBaseline, null), /*#__PURE__*/React.createElement(AppBar, {
     position: "sticky"
-  }, /*#__PURE__*/React.createElement(Toolbar, null, /*#__PURE__*/React.createElement(SmallIconButton, {
+  }, /*#__PURE__*/React.createElement(Toolbar, {
+    variant: "dense"
+  }, /*#__PURE__*/React.createElement(Box, {
+    sx: {
+      flexGrow: 1
+    }
+  }), /*#__PURE__*/React.createElement(SmallIconButton, {
     title: "Copy All",
     onClick: copyItems,
     iconName: "copy_all"
@@ -179,13 +180,13 @@ const App = props => {
     onClick: clearItems,
     iconName: "delete"
   }), /*#__PURE__*/React.createElement(SmallIconButton, {
-    title: "Toggle Source Text",
-    onClick: toggleShowSource,
-    iconName: isShowSource ? 'check_box' : 'check_box_outline_blank'
+    title: isShowSource ? 'Hide Source Text' : 'Show Source Text',
+    iconName: isShowSource ? 'check_box' : 'check_box_outline_blank',
+    onClick: toggleShowSource
   }), /*#__PURE__*/React.createElement(SmallIconButton, {
-    title: "Toggle Light/Dark Theme",
-    onClick: toggleDarkTheme,
-    iconName: isDarkTheme ? 'mode_night' : 'light_mode'
+    title: isDarkTheme ? 'To Light Theme' : 'To Dark Theme',
+    iconName: isDarkTheme ? 'mode_night' : 'light_mode',
+    onClick: toggleDarkTheme
   }))), /*#__PURE__*/React.createElement(Container, null, items.map(item => /*#__PURE__*/React.createElement(Item, {
     key: item.key,
     pairs: item.pairs,
@@ -193,18 +194,28 @@ const App = props => {
   }))), /*#__PURE__*/React.createElement(Snackbar, {
     open: isOpenSnack,
     autoHideDuration: 5000,
-    onClose: handleCloseSnack
+    onClose: handleCloseSnack,
+    anchorOrigin: {
+      vertical: 'bottom',
+      horizontal: 'right'
+    }
   }, /*#__PURE__*/React.createElement(Alert, {
     severity: "success"
-  }, "A new translation has been added!  ", /*#__PURE__*/React.createElement(Icon, {
+  }, "A new translation has been added!", /*#__PURE__*/React.createElement(Icon, {
     sx: {
+      ml: 1,
       verticalAlign: 'middle'
     },
     fontSize: "small"
   }, "arrow_downward"))));
 };
 
-window.addEventListener('load', () => {
-  ReactDOM.render( /*#__PURE__*/React.createElement(App, null), document.getElementById('app'));
+window.addEventListener('load', async () => {
+  const config = await getConfig(); // detect user's color scheme  https://stackoverflow.com/a/57795495
+
+  const isDarkTheme = Boolean(config.isDarkTheme === null ? window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches : config.isDarkTheme);
+  ReactDOM.render( /*#__PURE__*/React.createElement(App, {
+    isDarkTheme: isDarkTheme
+  }), document.getElementById('app'));
 });
 

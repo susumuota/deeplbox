@@ -89,6 +89,8 @@ const DEFAULT_CONFIG = deepFreeze({
   // this only works for 'translation_v1.html'
   translationCSS: null,
 
+  isDarkTheme: null, // null, true or false
+
   // global variables
   // DO NOT touch here
   deepLTabId: chrome.tabs.TAB_ID_NONE,

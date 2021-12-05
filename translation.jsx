@@ -60,10 +60,10 @@ const splitToPairs = (source, translation) => {
 const Pair = props => {
   return (
     <Box>
-      <Box sx={{color: 'text.primary'}}>
+      <Box>
         {props.translation}
       </Box>
-      <Box sx={{color: 'text.secondary', mb: 1, opacity: 0.1, transition: 'all 1s', '&:hover': {opacity: 1}}}>
+      <Box sx={{color: 'text.secondary', mb: 1, opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
         {props.isShowSource ? props.source : ''}
       </Box>
     </Box>
@@ -72,7 +72,7 @@ const Pair = props => {
 
 const Item = props => {
   return (
-    <Paper sx={{p: 2, mt: 3, mb: 3}} elevation={12}>
+    <Paper sx={{p: 2, mt: 3, mb: 3}} elevation={6}>
       {props.pairs.map(pair => <Pair key={pair.key} source={pair.source} translation={pair.translation} isShowSource={props.isShowSource} />)}
     </Paper>
   );
@@ -89,17 +89,17 @@ const SmallIconButton = props => {
 };
 
 const App = props => {
-  // detect user's color scheme  https://stackoverflow.com/a/57795495
-  const isPrefersDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  const [isDarkTheme, setDarkTheme] = useState(isPrefersDark);
+  const [isDarkTheme, setDarkTheme] = useState(props.isDarkTheme);
   const [isShowSource, setShowSource] = useState(false);
   const [isOpenSnack, setOpenSnack] = useState(false);
   const [items, setItems] = useState([]);
 
   const toggleDarkTheme = useCallback(() => {
-    setDarkTheme(prev => !prev);
-  }, [setDarkTheme]);
+    setDarkTheme(prev => {
+      setConfig({isDarkTheme: !prev});
+      return !prev;
+    });
+  }, [setDarkTheme, setConfig]);
 
   const toggleShowSource = useCallback(() => {
     setShowSource(prev => !prev);
@@ -117,9 +117,6 @@ const App = props => {
   }, [setItems, setOpenSnack]);
 
   const handleCloseSnack = useCallback((event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
     setOpenSnack(false);
   }, [setOpenSnack]);
 
@@ -160,23 +157,50 @@ const App = props => {
     <ThemeProvider theme={isDarkTheme ? darkTheme : lightTheme}>
       <CssBaseline />
       <AppBar position="sticky">
-        <Toolbar>
+        <Toolbar variant="dense">
+          <Box sx={{flexGrow: 1}} />
           <SmallIconButton title="Copy All" onClick={copyItems} iconName="copy_all" />
           <SmallIconButton title="Delete All" onClick={clearItems} iconName="delete" />
-          <SmallIconButton title="Toggle Source Text" onClick={toggleShowSource} iconName={isShowSource ? 'check_box' : 'check_box_outline_blank'} />
-          <SmallIconButton title="Toggle Light/Dark Theme" onClick={toggleDarkTheme} iconName={isDarkTheme ? 'mode_night' : 'light_mode'} />
+          <SmallIconButton
+            title={isShowSource ? 'Hide Source Text' : 'Show Source Text'}
+            iconName={isShowSource ? 'check_box' : 'check_box_outline_blank'}
+            onClick={toggleShowSource}
+          />
+          <SmallIconButton
+            title={isDarkTheme ? 'To Light Theme' : 'To Dark Theme'}
+            iconName={isDarkTheme ? 'mode_night' : 'light_mode'}
+            onClick={toggleDarkTheme}
+          />
         </Toolbar>
       </AppBar>
       <Container>
         {items.map(item => <Item key={item.key} pairs={item.pairs} isShowSource={isShowSource} />)}
       </Container>
-      <Snackbar open={isOpenSnack} autoHideDuration={5000} onClose={handleCloseSnack}>
-        <Alert severity="success">A new translation has been added!  <Icon sx={{verticalAlign: 'middle'}} fontSize="small">arrow_downward</Icon></Alert>
+      <Snackbar
+        open={isOpenSnack}
+        autoHideDuration={5000}
+        onClose={handleCloseSnack}
+        anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+      >
+        <Alert severity="success">
+          A new translation has been added!
+          <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">arrow_downward</Icon>
+        </Alert>
       </Snackbar>
     </ThemeProvider>
   );
 };
 
-window.addEventListener('load', () => {
-  ReactDOM.render(<App />, document.getElementById('app'));
+window.addEventListener('load', async () => {
+  const config = await getConfig();
+  // detect user's color scheme  https://stackoverflow.com/a/57795495
+  const isDarkTheme = Boolean(
+    config.isDarkTheme === null ?
+    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches :
+    config.isDarkTheme
+  );
+  ReactDOM.render(
+    <App isDarkTheme={isDarkTheme} />,
+    document.getElementById('app')
+  );
 });
