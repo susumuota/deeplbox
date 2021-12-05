@@ -15,7 +15,8 @@
 // limitations under the License.
 
 //
-// DO NOT edit trans.js directly. Edit trans.jsx then convert it to trans.js by babel.
+// DO NOT edit translation.js manually.
+// Edit translation.jsx then convert it to translation.js by babel.
 //
 //   npx babel --presets @babel/preset-react translation.jsx > translation.js
 //
