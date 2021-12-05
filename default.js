@@ -80,21 +80,14 @@ const DEFAULT_CONFIG = deepFreeze({
   },
 
   // split sentences
-  isSplit: true,
+  isSplit: false,
 
   // translation tab HTML
   translationHTML: 'translation.html', // or 'translation_v1.html'
 
   // translation tab CSS
+  // this only works for 'translation_v1.html'
   translationCSS: null,
-  // e.g. dark mode
-  // translationCSS: `
-  //   body { background-color: #121212; color: darkgray; }
-  //   div.source { color: skyblue; }
-  // `,
-  //
-  // e.g. hide source text (only show translation text)
-  // translationCSS: 'div.source { display: none; }',
 
   // global variables
   // DO NOT touch here

@@ -81,12 +81,6 @@ Also, you can change settings by developer console.
 ```javascript
 // change target language to German
 > setConfig({targetLang: 'de'})
-
-// change color to dark theme
-> setConfig({translationCSS: 'html { background-color: #121212; color: darkgray; } div.source { color: skyblue; }'})
-
-// hide source text (only show translation text)
-> setConfig({translationCSS: 'div.source { display: none; }'})
 ```
 
 - `getConfig` gets current settings

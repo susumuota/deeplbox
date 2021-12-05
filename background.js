@@ -169,3 +169,28 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   }
   return true;
 });
+
+chrome.windows.onBoundsChanged.addListener(async (window) => {
+  const config = await getConfig();
+  if (!config.translationTabParams.createWindow) {
+    return true;
+  }
+  if (config.translationTabId === chrome.tabs.TAB_ID_NONE) {
+    return true;
+  }
+  try {
+    const translationTab = await chrome.tabs.get(config.translationTabId);
+    const translationWindow = await chrome.windows.get(translationTab.windowId);
+    if (window.id === translationWindow.id) {
+      const params = deepCopy(config.translationTabParams);
+      params.createWindow['left'] = window.left;
+      params.createWindow['top'] = window.top;
+      params.createWindow['width'] = window.width;
+      params.createWindow['height'] = window.height;
+      setConfig({translationTabParams: params});
+    }
+  } catch (err) {
+    console.debug(err);
+  }
+  return true;
+});
