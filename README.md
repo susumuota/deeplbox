@@ -42,7 +42,7 @@ There are 2 options to install DeepLKey. Chrome Web Store is convenient for all 
 - Open menu by clicking `hamburger button` "☰" (triple bar icon) on the left of `Extensions`
 - Click `Keyboard shortcuts`
 - Click the pencil icon on the right of `Open DeepL`
-- Input key stroke. Default is `Command-b` (macOS) or `Control-Shift-b` (other OS).
+- Input key stroke. Default is `Command-b` (macOS) or `Alt-b` (other OS).
 
 ### Change settings by popup dialog
 
