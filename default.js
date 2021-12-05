@@ -82,6 +82,10 @@ const DEFAULT_CONFIG = deepFreeze({
   // split sentences
   isSplit: true,
 
+  // translation tab HTML
+  translationHTML: 'translation.html', // or 'translation_v1.html'
+
+  // translation tab CSS
   translationCSS: null,
   // e.g. dark mode
   // translationCSS: `

@@ -84,7 +84,7 @@ const openDeepLTab = async (sourceText) => {
 // open translation tab
 const openTranslationTab = async () => {
   const config = await getConfig();
-  const tab = await openTab('translation.html', config.translationTabId, config.translationTabParams);
+  const tab = await openTab(config.translationHTML, config.translationTabId, config.translationTabParams);
   if (tab) {
     setConfig({translationTabId: tab.id}); // remember tab and reuse next time
   }
@@ -114,11 +114,8 @@ const getSelectionByInjection = (tab) => {
 const splitSentences = (text) => {
   if (!text) return text;
   const splitted = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
-  // DeepL sometimes ignores sentences around '—' (em dash, \u2014)
-  // TODO: more tweaks?
-  const tweaked = splitted.replace(/(\u2014+)/g, '$1\n\n');
   // TODO: more abbreviations
-  const fixed = tweaked.replace(/(et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|min\.|Fig\.|fig\.|Figure\.|Table\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|pp\.|pt\.|ft\.|lb\.|gal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
+  const fixed = splitted.replace(/(\n\d+\.|^\d+\.|et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|\smin\.|Fig\.|\sfig\.|Figure\.|Table\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|\spp\.|\spt\.|\sft\.|\slb\.|\sgal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
   return fixed;
 }
 
