@@ -17,7 +17,12 @@ There are 2 options to install DeepLKey. Chrome Web Store is convenient for all 
 
 ### [Option 2] Install from source
 
-- Open Terminal and type `git clone https://github.com/susumuota/deeplkey.git`
+- Open Terminal and type
+  - `git clone https://github.com/susumuota/deeplkey.git`
+  - `cd deeplkey`
+  - `curl -OL https://unpkg.com/react@17/umd/react.production.min.js`
+  - `curl -OL https://unpkg.com/react-dom@17/umd/react-dom.production.min.js`
+  - `curl -OL https://unpkg.com/@mui/material@5.2/umd/material-ui.production.min.js`
 - Open Chrome's extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese)
