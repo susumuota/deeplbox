@@ -16,7 +16,7 @@
 // DO NOT edit translation.js manually.
 // Edit translation.jsx then convert it to translation.js by babel.
 //
-//   npx babel --presets @babel/preset-react translation.jsx > translation.js
+//   npx babel --presets @babel/preset-react -o translation.js -w --verbose translation.jsx
 //
 'use strict';
 
@@ -218,4 +218,3 @@ window.addEventListener('load', async () => {
     isDarkTheme: isDarkTheme
   }), document.getElementById('app'));
 });
-

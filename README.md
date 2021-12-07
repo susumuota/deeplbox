@@ -103,6 +103,14 @@ Also, you can change settings by developer console.
 - In certain pages (e.g. Kaggle Notebooks), keyboard shortcut cannot get selected text because `window.getSelection()` returns empty. In that case, try context menu instead.
 - When you use context menu, Chrome removes newlines from selected text because `info.selectionText` removes newlines. See [Linebreaks/newlines missing from chrome.contextMenus selectionText](https://bugs.chromium.org/p/chromium/issues/detail?id=116429)
 
+## Development
+
+```sh
+npm init -y
+npm install --save-dev @babel/core @babel/cli @babel/preset-react
+npx babel --presets @babel/preset-react -o translation.js -w --verbose translation.jsx
+```
+
 ## TODO
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
