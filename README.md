@@ -18,15 +18,21 @@ There are 2 options to install DeepLKey. Chrome Web Store is convenient for all 
 ### [Option 2] Install from source
 
 - Open Terminal and type
-  - `git clone https://github.com/susumuota/deeplkey.git`
-  - `cd deeplkey`
-  - `curl -OL https://unpkg.com/react@17/umd/react.production.min.js`
-  - `curl -OL https://unpkg.com/react-dom@17/umd/react-dom.production.min.js`
-  - `curl -OL https://unpkg.com/@mui/material@5.2/umd/material-ui.production.min.js`
+
+```sh
+# install Node.js and npm if needed
+node -v  # v16.13.0
+npm -v   # 8.1.0
+git clone https://github.com/susumuota/deeplkey.git
+cd deeplkey
+npm ci
+npm run build
+```
+
 - Open Chrome's extensions setting page `chrome://extensions`
 - Turn `Developer mode` on
 - Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese)
-- Specify the extracted folder `/path/to/deeplkey`
+- Specify the dist folder `/path/to/deeplkey/dist`
 
 ## Usage
 
@@ -96,7 +102,7 @@ Also, you can change settings by developer console.
 > clearConfig()
 ```
 
-- See [default.js](https://github.com/susumuota/deeplkey/blob/main/default.js) for more details about configuration parameters.
+- See [config.js](https://github.com/susumuota/deeplkey/blob/main/config.js) for more details about configuration parameters.
 
 ## Limitations
 
@@ -105,9 +111,67 @@ Also, you can change settings by developer console.
 
 ## Development
 
+- Minimum steps to create Chrome Extension with React, MUI, TypeScript and webpack.
+
 ```sh
-npm install
-npm run build  # build or watch
+# Setup package.json
+npm init -y
+# package.json should be created
+# Edit package.json
+#   "private": true,
+
+# Install react and react-dom
+# https://www.npmjs.com/package/react
+# https://www.npmjs.com/package/react-dom
+npm install --save react react-dom
+
+# Install MUI
+# https://mui.com/getting-started/installation/#npm
+npm install --save @mui/material @emotion/react @emotion/styled
+
+# Install TypeScript
+# https://www.typescriptlang.org/download
+# https://www.npmjs.com/package/@types/react
+# https://www.npmjs.com/package/@types/react-dom
+# https://www.npmjs.com/package/@types/chrome
+npm install --save-dev typescript @types/react @types/react-dom @types/chrome
+npx tsc --init
+# tsconfig.json should be created
+# Edit tsconfig.json
+#   "jsx": "react",
+
+# Install webpack
+# https://webpack.js.org/guides/getting-started/#basic-setup
+# https://webpack.js.org/plugins/copy-webpack-plugin/#getting-started
+# https://github.com/TypeStrong/ts-loader#getting-started
+npm install --save-dev webpack webpack-cli copy-webpack-plugin ts-loader
+# Edit package.json
+#   "scripts": {
+#     "watch": "webpack --watch",
+#     "build": "webpack"
+#   },
+# Create webpack.config.js
+#   TODO
+
+# Build src/*.ts to dist/*.js
+npm run build
+# `dist` folder should be created
+# Open Chrome's extensions setting page `chrome://extensions`
+# Turn `Developer mode` on
+# Click `Load unpacked`
+# Specify the dist folder `/path/to/deeplkey/dist`
+```
+
+- Development cycle
+
+```sh
+# Change webpack.config.js to development mode
+npm run watch
+# Modify src/*.ts
+# `dist` folder should be updated automatically
+# Go to Chrome's extensions setting page and press `Update`
+# Click `Service Worker` to open DevTools
+# Test on Chrome
 ```
 
 ## TODO

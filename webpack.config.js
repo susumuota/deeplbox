@@ -5,6 +5,7 @@ module.exports = {
   mode: 'production',
   // mode: 'development',
   // devtool: 'inline-source-map',
+  // devtool: 'inline-cheap-source-map',
   entry: {
     background: './src/background.ts',
     deepl: './src/deepl.ts',
@@ -27,6 +28,10 @@ module.exports = {
         test: /\.(ts|tsx)$/,
         use: ['ts-loader'],
         exclude: /node_modules/,
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
       },
     ],
   },

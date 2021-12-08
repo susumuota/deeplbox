@@ -6,6 +6,6 @@
 
 zip deeplkey-latest.zip \
   manifest.json background.js deepl.js \
-  popup.html popup.js popup.css \
+  popup.html popup.js popup.js.LICENSE.txt \
   translation.html translation.js translation.js.LICENSE.txt \
   icons/*.png
