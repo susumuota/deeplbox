@@ -14,39 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//
-// DO NOT edit translation.js manually.
-// Edit translation.jsx then convert it to translation.js by babel.
-//
-//   npx babel --presets @babel/preset-react -o translation.js -w --verbose translation.jsx
-//
-
 'use strict';
 
-const {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect
-} = React;
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {useState, useCallback, useMemo, useEffect} from 'react';
+import {CssBaseline, Paper, IconButton, Icon, Tooltip, AppBar, Snackbar, Alert, Toolbar, Container, Box, Typography, createTheme, ThemeProvider} from '@mui/material'
 
-const {
-  CssBaseline,
-  Paper,
-  IconButton,
-  Icon,
-  Tooltip,
-  AppBar,
-  Snackbar,
-  Alert,
-  Toolbar,
-  Container,
-  Box,
-  createTheme,
-  ThemeProvider
-} = MaterialUI;
+import {getConfig, setConfig} from './config';
 
-const splitToPairs = (source, translation) => {
+
+const splitToPairs = (source: string, translation: string): Array<{key: number, source: string, translation: string}> => {
   const ss = source.split('\n');
   const ts = translation.split('\n');
   console.assert(ss.length === ts.length); // is this always true?
@@ -57,53 +35,56 @@ const splitToPairs = (source, translation) => {
     .map(([s, t], i) => ({key: i, source: s, translation: t}));
 };
 
-const Pair = props => {
+const Pair = ({source, translation, isShowSource}: {source: string, translation: string, isShowSource: boolean}): JSX.Element => {
   return (
     <Box>
       <Box>
-        {props.translation}
+        {translation}
       </Box>
       <Box sx={{color: 'text.secondary', mb: 1, opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
-        {props.isShowSource ? props.source : ''}
+        {isShowSource ? source : ''}
       </Box>
     </Box>
   );
 };
 
-const Item = props => {
+const Item = ({pairs, isShowSource}: {pairs: Array<{key: number, source: string, translation: string}>, isShowSource: boolean}): JSX.Element => {
   return (
     <Paper sx={{p: 2, mt: 3, mb: 3}} elevation={6}>
-      {props.pairs.map(pair => <Pair key={pair.key} source={pair.source} translation={pair.translation} isShowSource={props.isShowSource} />)}
+      {pairs.map((pair: {key: number, source: string, translation: string}) => <Pair key={pair.key} source={pair.source} translation={pair.translation} isShowSource={isShowSource} />)}
     </Paper>
   );
 };
 
-const SmallIconButton = props => {
+const SmallIconButton = ({title, onClick, iconName}: {title: string, onClick: () => void, iconName: string}): JSX.Element => {
   return (
-    <Tooltip title={props.title}>
-      <IconButton color="inherit" onClick={props.onClick} size="small">
-        <Icon fontSize="small">{props.iconName}</Icon>
+    <Tooltip title={title}>
+      <IconButton color="inherit" onClick={onClick} size="small">
+        <Icon fontSize="small">{iconName}</Icon>
       </IconButton>
     </Tooltip>
   );
 };
 
-const App = props => {
-  const [isDarkTheme, setDarkTheme] = useState(props.isDarkTheme);
-  const [isShowSource, setShowSource] = useState(false);
+const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boolean, initialIsShowSource: boolean}) => {
+  const [isDarkTheme, setDarkTheme] = useState(initialIsDarkTheme);
+  const [isShowSource, setShowSource] = useState(initialIsShowSource);
   const [isOpenSnack, setOpenSnack] = useState(false);
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([] as Object[]);
 
   const toggleDarkTheme = useCallback(() => {
-    setDarkTheme(prev => {
+    setDarkTheme((prev: boolean) => {
       setConfig({isDarkTheme: !prev});
       return !prev;
     });
   }, [setDarkTheme, setConfig]);
 
   const toggleShowSource = useCallback(() => {
-    setShowSource(prev => !prev);
-  }, [setShowSource]);
+    setShowSource((prev: boolean) => {
+      setConfig({isShowSource: !prev});
+      return !prev;
+    });
+  }, [setShowSource, setConfig]);
 
   const handleMessage = useCallback((request, sender, sendResponse) => {
     if (request.message === 'setTranslation') {
@@ -125,8 +106,9 @@ const App = props => {
   }, [setItems]);
 
   const copyItems = useCallback(() => {
-    const toString = pair => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
-    const text = items.map(item => item.pairs.map(pair => toString(pair)).join('\n')).join('\n\n');
+    type pairType = {source: string, translation: string};
+    const toString = (pair: pairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
+    const text = items.map((item: any) => item.pairs.map((pair: pairType) => toString(pair)).join('\n')).join('\n\n');
     navigator.clipboard.writeText(text);
   }, [items, isShowSource]);
 
@@ -158,7 +140,7 @@ const App = props => {
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar variant="dense">
-          <Box sx={{flexGrow: 1}} />
+          <Typography sx={{flexGrow: 1}}>Translated by DeepL</Typography>
           <SmallIconButton title="Copy All" onClick={copyItems} iconName="copy_all" />
           <SmallIconButton title="Delete All" onClick={clearItems} iconName="delete" />
           <SmallIconButton
@@ -174,7 +156,7 @@ const App = props => {
         </Toolbar>
       </AppBar>
       <Container>
-        {items.map(item => <Item key={item.key} pairs={item.pairs} isShowSource={isShowSource} />)}
+        {items.map((item: any) => <Item key={item.key} pairs={item.pairs} isShowSource={isShowSource} />)}
       </Container>
       <Snackbar
         open={isOpenSnack}
@@ -193,14 +175,11 @@ const App = props => {
 
 window.addEventListener('load', async () => {
   const config = await getConfig();
-  // detect user's color scheme  https://stackoverflow.com/a/57795495
-  const isDarkTheme = Boolean(
-    config.isDarkTheme === null ?
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches :
-    config.isDarkTheme
-  );
   ReactDOM.render(
-    <App isDarkTheme={isDarkTheme} />,
+    <App
+      initialIsDarkTheme={Boolean(config.isDarkTheme)}
+      initialIsShowSource={Boolean(config.isShowSource)}
+    />,
     document.getElementById('app')
   );
 });

@@ -16,20 +16,24 @@
 
 'use strict';
 
+import {getConfig, setConfig} from './config';
+
 window.addEventListener('load', async () => {
-  const sourceLang = document.getElementById('source_lang');
-  const targetLang = document.getElementById('target_lang');
-  const splitOn = document.getElementById('split_on');
-  const splitOff = document.getElementById('split_off');
-  const message = document.getElementById('message');
+  const sourceLang: any = document.getElementById('source_lang');
+  const targetLang: any = document.getElementById('target_lang');
+  const splitOn: any = document.getElementById('split_on');
+  const splitOff: any = document.getElementById('split_off');
+  const message: any = document.getElementById('message');
   const config = await getConfig();
 
   // set current values
   if (config.sourceLang && config.sourceLang !== 'auto') {
-    document.getElementById(`source_lang_${config.sourceLang}`).selected = true;
+    const elm: any = document.getElementById(`source_lang_${config.sourceLang}`);
+    elm.selected = true;
   }
   if (config.targetLang && config.targetLang !== 'auto') {
-    document.getElementById(`target_lang_${config.targetLang}`).selected = true;
+    const elm: any = document.getElementById(`target_lang_${config.targetLang}`);
+    elm.selected = true;
   }
   if (config.isSplit) {
     splitOn.checked = true;
@@ -38,22 +42,22 @@ window.addEventListener('load', async () => {
   }
 
   // event listeners
-  sourceLang.addEventListener('change', (event) => {
+  sourceLang.addEventListener('change', (event: any) => {
     console.assert(sourceLang.value);
     setConfig({sourceLang: sourceLang.value});
     message.textContent = `Source Language: "${sourceLang.value}". This change will take effect in the next translation.`;
   });
-  targetLang.addEventListener('change', (event) => {
+  targetLang.addEventListener('change', (event: any) => {
     console.assert(targetLang.value);
     setConfig({targetLang: targetLang.value});
     message.textContent = `Target Language: "${targetLang.value}". This change will take effect in the next translation.`;
   });
-  splitOn.addEventListener('change', (event) => {
+  splitOn.addEventListener('change', (event: any) => {
     console.assert(splitOn.value);
     setConfig({isSplit: splitOn.value === 'on'});
     message.textContent = `Split Sentences: "${splitOn.value}". This change will take effect in the next translation.`;
   });
-  splitOff.addEventListener('change', (event) => {
+  splitOff.addEventListener('change', (event: any) => {
     console.assert(splitOff.value);
     setConfig({isSplit: splitOff.value !== 'off'});
     message.textContent = `Split Sentences: "${splitOff.value}". This change will take effect in the next translation.`;

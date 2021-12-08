@@ -106,15 +106,13 @@ Also, you can change settings by developer console.
 ## Development
 
 ```sh
-npm init -y
-npm install --save-dev @babel/core @babel/cli @babel/preset-react
-npx babel --presets @babel/preset-react -o translation.js -w --verbose translation.jsx
+npm install
+npm run build  # build or watch
 ```
 
 ## TODO
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
-- Sophisticated UI for translation.html
 
 ## Source code
 
