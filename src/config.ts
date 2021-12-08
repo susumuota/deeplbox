@@ -19,7 +19,7 @@
 // deep freeze object
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#What_is_shallow_freeze
 // https://www.30secondsofcode.org/blog/s/javascript-deep-freeze-object
-const deepFreeze = (object) => {
+const deepFreeze = (object: any): any => {
   if (object === null) return null;
   if (object === undefined) return undefined;
   for (const name of Object.getOwnPropertyNames(object)) {
@@ -43,7 +43,7 @@ const deepFreeze = (object) => {
 // config.translationTabParams.createWindow.type = "normal" // for example
 // setConfig({translationTabParams: config.translationTabParams})
 // await getConfig()
-const DEFAULT_CONFIG = deepFreeze({
+export const DEFAULT_CONFIG: Object = deepFreeze({
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
@@ -59,6 +59,7 @@ const DEFAULT_CONFIG = deepFreeze({
   // https://developer.chrome.com/docs/extensions/reference/windows/#method-create
   // https://developer.chrome.com/docs/extensions/reference/tabs/#method-update
   // https://developer.chrome.com/docs/extensions/reference/windows/#method-update
+  //
   // DeepL tab settings
   deepLTabParams: {
     createTab: { active: false }, // MUST NOT be null
@@ -71,8 +72,6 @@ const DEFAULT_CONFIG = deepFreeze({
     createTab: { active: false },
     createWindow: {
       width: 1080, height: 1080, top: 0, left: 0,
-      // e.g. for 3440x1440 display
-      // width: 1080, height: 1440, top: 0, left: 3440-1080,
       type: 'popup', focused: true
     },
     updateTab: null,
@@ -83,13 +82,13 @@ const DEFAULT_CONFIG = deepFreeze({
   isSplit: false,
 
   // translation tab HTML
-  translationHTML: 'translation.html', // or 'translation_v1.html'
+  translationHTML: 'translation.html',
 
-  // translation tab CSS
-  // this only works for 'translation_v1.html'
-  translationCSS: null,
+  // dark theme on translation.html
+  isDarkTheme: false,
 
-  isDarkTheme: null, // null, true or false
+  // show source text on translation.html
+  isShowSource: false,
 
   // global variables
   // DO NOT touch here
@@ -97,8 +96,9 @@ const DEFAULT_CONFIG = deepFreeze({
   translationTabId: chrome.tabs.TAB_ID_NONE
 });
 
+// set config value
 // setConfig({targetLang: 'ja'})
-const setConfig = (config) => {
+export const setConfig = (config: Object): void => {
   chrome.storage.local.set(config);
 }
 
@@ -110,14 +110,14 @@ const setConfig = (config) => {
 //
 // to see only custom config
 // await getConfig(null)
-const getConfig = (defaultConfig = DEFAULT_CONFIG) => {
+export const getConfig = (defaultConfig: Object = DEFAULT_CONFIG): Promise<any> => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(defaultConfig, resolve);
   });
 }
 
 // clearConfig()
-const clearConfig = () => {
+export const clearConfig = (): void => {
   chrome.storage.local.clear();
 }
 
@@ -136,7 +136,7 @@ const clearConfig = () => {
 // https://medium.com/@pmzubar/why-json-parse-json-stringify-is-a-bad-practice-to-clone-an-object-in-javascript-b28ac5e36521
 // https://www.30secondsofcode.org/js/s/deep-clone
 // https://gist.github.com/izy521/4d394dec28054d54684269d91b16cb8a
-const deepCopy = (object) => {
+export const deepCopy = (object: any): any => {
   // there are 7 primitives
   if (object === null || object === undefined) return object;
   switch (object.constructor.name) {

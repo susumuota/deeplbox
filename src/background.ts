@@ -14,21 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// this code is written according to MV3
-//
-// https://developer.chrome.com/docs/extensions/mv3/intro/
-// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/
-// https://developer.chrome.com/docs/extensions/mv3/manifest/
-// https://developer.chrome.com/docs/extensions/mv3/background_pages/
-// https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
-
 'use strict';
 
-importScripts('default.js');  // DEFAULT_CONFIG
+import {getConfig, setConfig, deepCopy} from './config';
+
 
 // create or update tab (and window)
 // this function is similar to window.open
-const openTab = async (url, tabId, params) => {
+const openTab = async (url: string, tabId: number, params: any): Promise<chrome.tabs.Tab | null> => {
   // tab already exists
   if (tabId !== chrome.tabs.TAB_ID_NONE) {
     try {
@@ -67,7 +60,7 @@ const openTab = async (url, tabId, params) => {
 }
 
 // open DeepL tab
-const openDeepLTab = async (sourceText) => {
+const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab | null> => {
   const config = await getConfig();
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
   // slash, pipe and backslash need to be escaped by backslash
@@ -82,7 +75,7 @@ const openDeepLTab = async (sourceText) => {
 }
 
 // open translation tab
-const openTranslationTab = async () => {
+const openTranslationTab = async (): Promise<chrome.tabs.Tab | null> => {
   const config = await getConfig();
   const tab = await openTab(config.translationHTML, config.translationTabId, config.translationTabParams);
   if (tab) {
@@ -93,11 +86,11 @@ const openTranslationTab = async () => {
 
 // get selection text by injection
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
-const getSelectionByInjection = (tab) => {
+const getSelectionByInjection = (tab: chrome.tabs.Tab): Promise<string> => {
   return new Promise((resolve, reject) => {
     chrome.scripting.executeScript({
-      target: {tabId: tab.id, allFrames: true},
-      function: () => window.getSelection().toString()
+      target: {tabId: tab.id || chrome.tabs.TAB_ID_NONE, allFrames: true},
+      func: () => (window.getSelection() || '').toString()
     }, (results) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
@@ -111,7 +104,7 @@ const getSelectionByInjection = (tab) => {
 
 // insert 2 newlines between sentences
 // TODO: sophisticated way
-const splitSentences = (text) => {
+const splitSentences = (text: string): string => {
   if (!text) return text;
   const splitted = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
   // TODO: more abbreviations
@@ -120,7 +113,7 @@ const splitSentences = (text) => {
 }
 
 // translate source text
-const translateText = async (source) => {
+const translateText = async (source: string) => {
   await openDeepLTab(source);
   await openTranslationTab();
   // now, deepl.js will send message to translation.js (and background.js)
@@ -145,12 +138,21 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'deepl-menu') {
     try {
-      translateText(await getSelectionByInjection(tab));
-      chrome.action.setBadgeText({text: ''});
+      if (tab) {
+        translateText(await getSelectionByInjection(tab));
+        chrome.action.setBadgeText({text: ''});
+      } else {
+        throw 'Invalid tab';
+      }
     } catch (err) {
       console.debug(err);
-      translateText(info.selectionText);
-      chrome.action.setBadgeText({text: ''});
+      if (info.selectionText) {
+        translateText(info.selectionText);
+        chrome.action.setBadgeText({text: ''});
+      } else {
+        console.debug(info);
+        chrome.action.setBadgeText({text: 'X'});
+      }
     }
   }
   return true;
