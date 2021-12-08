@@ -37,11 +37,11 @@ const splitToPairs = (source: string, translation: string): Array<{key: number, 
 
 const Pair = ({source, translation, isShowSource}: {source: string, translation: string, isShowSource: boolean}): JSX.Element => {
   return (
-    <Box>
+    <Box mb={1}>
       <Box>
         {translation}
       </Box>
-      <Box sx={{color: 'text.secondary', mb: 1, opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
+      <Box sx={{color: 'text.secondary', opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
         {isShowSource ? source : ''}
       </Box>
     </Box>
@@ -120,6 +120,10 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
   const lightTheme = useMemo(() => createTheme({
     palette: {
       mode: 'light',
+      primary: {
+        main: 'rgba(21, 183, 185)',
+        contrastText: 'rgb(255, 255, 255, 0.87)',
+      },
       text: {
         secondary: 'rgba(23, 78, 166, 1.0)'
       }
@@ -140,7 +144,7 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar variant="dense">
-          <Typography sx={{flexGrow: 1}}>Translated by DeepL</Typography>
+          <Box flexGrow={1}></Box>
           <SmallIconButton title="Copy All" onClick={copyItems} iconName="copy_all" />
           <SmallIconButton title="Delete All" onClick={clearItems} iconName="delete" />
           <SmallIconButton
