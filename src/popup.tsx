@@ -37,7 +37,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  SvgIcon,
   ThemeProvider,
   Toolbar,
   Tooltip,
@@ -106,13 +105,10 @@ const SplitSentenceCheckbox = ({initialIsSplit}: {initialIsSplit: boolean}) => {
     setConfig({isSplit: c});
   }, [setSplit, setConfig]);
 
-  const splitLabelMessage = chrome.i18n.getMessage('split_label');
-  const splitTooltipMessage = chrome.i18n.getMessage('split_tooltip');
-
   return (
-    <Tooltip title={splitTooltipMessage}>
+    <Tooltip title={chrome.i18n.getMessage('split_tooltip')}>
       <FormGroup>
-        <FormControlLabel control={<Checkbox checked={isSplit} onChange={handleChange} />} label={splitLabelMessage} />
+        <FormControlLabel control={<Checkbox checked={isSplit} onChange={handleChange} />} label={chrome.i18n.getMessage('split_label')} />
       </FormGroup>
     </Tooltip>
   );
