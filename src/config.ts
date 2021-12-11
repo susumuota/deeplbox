@@ -98,8 +98,8 @@ export const DEFAULT_CONFIG: Object = deepFreeze({
 
 // set config value
 // setConfig({targetLang: 'ja'})
-export const setConfig = (config: Object): void => {
-  chrome.storage.local.set(config);
+export const setConfig = (config: Object): Promise<void> => {
+  return chrome.storage.local.set(config);
 }
 
 // get config value
@@ -112,13 +112,13 @@ export const setConfig = (config: Object): void => {
 // await getConfig(null)
 export const getConfig = (defaultConfig: Object = DEFAULT_CONFIG): Promise<any> => {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(defaultConfig, resolve);
+    return chrome.storage.local.get(defaultConfig, resolve);
   });
 }
 
 // clearConfig()
-export const clearConfig = (): void => {
-  chrome.storage.local.clear();
+export const clearConfig = (): Promise<void> => {
+  return chrome.storage.local.clear();
 }
 
 // deep copy object
@@ -168,3 +168,65 @@ export const deepCopy = (object: any): any => {
       // return object; TODO: not Error but just return object?
   }
 }
+
+// https://www.deepl.com/docs-api/translating-text/
+export const SOURCE_LANG_LIST: string[] = [
+  'auto',
+  'bg',
+  'cs',
+  'da',
+  'de',
+  'el',
+  'en',
+  'es',
+  'et',
+  'fi',
+  'fr',
+  'hu',
+  'it',
+  'ja',
+  'lt',
+  'lv',
+  'nl',
+  'pl',
+  'pt',
+  'ro',
+  'ru',
+  'sk',
+  'sl',
+  'sv',
+  'zh',
+];
+
+// https://www.deepl.com/docs-api/translating-text/
+export const TARGET_LANG_LIST: string[] = [
+  'auto',
+  'bg',
+  'cs',
+  'da',
+  'de',
+  'el',
+  'en-gb',
+  'en-us',
+  // 'en',
+  'es',
+  'et',
+  'fi',
+  'fr',
+  'hu',
+  'it',
+  'ja',
+  'lt',
+  'lv',
+  'nl',
+  'pl',
+  'pt-pt',
+  'pt-br',
+  // 'pt',
+  'ro',
+  'ru',
+  'sk',
+  'sl',
+  'sv',
+  'zh',
+];

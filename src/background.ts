@@ -21,7 +21,7 @@ import {getConfig, setConfig, deepCopy} from './config';
 
 // create or update tab (and window)
 // this function is similar to window.open
-const openTab = async (url: string, tabId: number, params: any): Promise<chrome.tabs.Tab | null> => {
+const openTab = async (url: string, tabId: number, params: {updateTab: Object | null, updateWindow: Object | null, createTab: Object | null, createWindow: Object | null}): Promise<chrome.tabs.Tab> => {
   // tab already exists
   if (tabId !== chrome.tabs.TAB_ID_NONE) {
     try {
@@ -55,32 +55,28 @@ const openTab = async (url: string, tabId: number, params: any): Promise<chrome.
     }
     return createdTab;
   }
-  // no need to create tab
-  return null;
+  // something is wrong at params
+  throw 'Invalid openTab params';
 }
 
 // open DeepL tab
-const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab | null> => {
+const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab> => {
   const config = await getConfig();
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
   // slash, pipe and backslash need to be escaped by backslash
-  // TODO: any other characters?
+  // TODO: other characters?
   const escaped = splitted.replace(/([\/\|\\])/g, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, config.deepLTabId, config.deepLTabParams);
-  if (tab) {
-    setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
-  }
+  setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
   return tab;
 }
 
 // open translation tab
-const openTranslationTab = async (): Promise<chrome.tabs.Tab | null> => {
+const openTranslationTab = async (): Promise<chrome.tabs.Tab> => {
   const config = await getConfig();
   const tab = await openTab(config.translationHTML, config.translationTabId, config.translationTabParams);
-  if (tab) {
-    setConfig({translationTabId: tab.id}); // remember tab and reuse next time
-  }
+  setConfig({translationTabId: tab.id}); // remember tab and reuse next time
   return tab;
 }
 
@@ -115,7 +111,13 @@ const splitSentences = (text: string): string => {
 // translate source text
 const translateText = async (source: string) => {
   await openDeepLTab(source);
-  await openTranslationTab();
+  const translationTab = await openTranslationTab();
+  chrome.tabs.sendMessage(translationTab.id as number, {
+    message: 'startTranslation'
+  }, (response) => {
+    console.debug(chrome.runtime.lastError ? chrome.runtime.lastError.message :
+                  `background.ts: got message: ${response.message}`);
+  });
   // now, deepl.js will send message to translation.js (and background.js)
 }
 
