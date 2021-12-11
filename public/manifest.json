@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "__MSG_extension_name__",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "__MSG_extension_description__",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplkey",
@@ -30,7 +30,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "DeepLKey: DeepL Keyboard Shortcut",
+    "default_title": "__MSG_extension_name__",
     "default_popup": "popup.html"
   },
 
@@ -40,7 +40,7 @@
         "default": "Alt+B",
         "mac": "Command+B"
       },
-      "description": "Open DeepL"
+      "description": "__MSG_open_command_description__"
     }
   },
 

@@ -4,8 +4,12 @@
     "description": "Extension name."
   },
   "extension_description": {
-    "message": "キーボードショートカットまたは右クリックメニューで選択テキストを DeepL 翻訳ページに送ります。",
+    "message": "キーボードショートカットまたは右クリックメニューで、選択中のテキストを DeepL 翻訳ページに送ります。",
     "description": "Extension description."
+  },
+  "open_command_description": {
+    "message": "DeepL 翻訳ページを開いて選択テキストを送る",
+    "description": "Keyboard shortcut description."
   },
   "source_language": {
     "message": "原文の言語",
@@ -20,8 +24,40 @@
     "description": "Splits on punctuation."
   },
   "split_tooltip": {
-    "message": "句点で分割すると、改行を含まない長い段落が読み易くなる場合があります(例: PDF)。",
+    "message": "ピリオド等の句点で分割すると、 PDF などの改行を含まない長いテキストの読みやすさが向上するかもしれません。",
     "description": "Split option tooltip."
+  },
+  "copy_icon_tooltip": {
+    "message": "全てコピー",
+    "description": "Copy icon tooltip."
+  },
+  "delete_icon_tooltip": {
+    "message": "全て削除",
+    "description": "Delete icon tooltip."
+  },
+  "show_source_icon_tooltip": {
+    "message": "原文を表示",
+    "description": "Show source text icon tooltip."
+  },
+  "hide_source_icon_tooltip": {
+    "message": "原文を非表示",
+    "description": "Hide source text icon tooltip."
+  },
+  "light_theme_icon_tooltip": {
+    "message": "ライトモードに変更",
+    "description": "Light theme icon tooltip."
+  },
+  "dark_theme_icon_tooltip": {
+    "message": "ダークモードに変更",
+    "description": "Dark theme icon tooltip."
+  },
+  "progress_snackbar_alert": {
+    "message": "翻訳中...",
+    "description": "Progress snackbar alert text."
+  },
+  "success_snackbar_alert": {
+    "message": "翻訳完了!",
+    "description": "Success snackbar alert text."
   },
   "language_auto": {
     "message": "言語を自動検出",

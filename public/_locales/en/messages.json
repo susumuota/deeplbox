@@ -4,8 +4,12 @@
     "description": "Extension name."
   },
   "extension_description": {
-    "message": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
+    "message": "Open DeepL page and send selected text by keyboard shortcut or context menu.",
     "description": "Extension description."
+  },
+  "open_command_description": {
+    "message": "Open DeepL page and send selected text",
+    "description": "Keyboard shortcut description."
   },
   "source_language": {
     "message": "Source Language",
@@ -20,8 +24,40 @@
     "description": "Splits on punctuation."
   },
   "split_tooltip": {
-    "message": "This option may improve readability in long paragraphs that do not contain newlines, e.g. PDF.",
+    "message": "This option may improve the readability of long text without newlines, such as PDF.",
     "description": "Split option tooltip."
+  },
+  "copy_icon_tooltip": {
+    "message": "Copy All",
+    "description": "Copy icon tooltip."
+  },
+  "delete_icon_tooltip": {
+    "message": "Delete All",
+    "description": "Delete icon tooltip."
+  },
+  "show_source_icon_tooltip": {
+    "message": "Show Source Text",
+    "description": "Show source text icon tooltip."
+  },
+  "hide_source_icon_tooltip": {
+    "message": "Hide Source Text",
+    "description": "Hide source text icon tooltip."
+  },
+  "light_theme_icon_tooltip": {
+    "message": "To Light Mode",
+    "description": "Light theme icon tooltip."
+  },
+  "dark_theme_icon_tooltip": {
+    "message": "To Dark Mode",
+    "description": "Dark theme icon tooltip."
+  },
+  "progress_snackbar_alert": {
+    "message": "Translating...",
+    "description": "Progress snackbar alert text."
+  },
+  "success_snackbar_alert": {
+    "message": "Translating...done!",
+    "description": "Success snackbar alert text."
   },
   "language_auto": {
     "message": "Detect language",
