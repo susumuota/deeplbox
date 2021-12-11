@@ -2,10 +2,6 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  mode: 'production',
-  // mode: 'development',
-  // devtool: 'inline-source-map',
-  // devtool: 'inline-cheap-source-map',
   entry: {
     background: './src/background.ts',
     deepl: './src/deepl.ts',

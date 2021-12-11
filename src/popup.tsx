@@ -18,70 +18,37 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {useState, useCallback, useMemo, useEffect, ChangeEvent} from 'react';
-import {CssBaseline, Tooltip, SvgIcon, Link, FormGroup, FormControl, FormControlLabel, InputLabel, Checkbox, MenuItem, Select, AppBar, Toolbar, Container, Paper, Box, Typography, createTheme, ThemeProvider} from '@mui/material'
+import {
+  useCallback,
+  useMemo,
+  useState,
+  ChangeEvent,
+} from 'react';
+import {
+  AppBar,
+  Box,
+  Checkbox,
+  Container,
+  CssBaseline,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  InputLabel,
+  Link,
+  MenuItem,
+  Paper,
+  Select,
+  SvgIcon,
+  ThemeProvider,
+  Toolbar,
+  Tooltip,
+  createTheme,
+} from '@mui/material'
 import {SelectChangeEvent} from '@mui/material/Select';
 
-import {getConfig, setConfig} from './config';
+import {getConfig, setConfig, SOURCE_LANG_LIST, TARGET_LANG_LIST} from './config';
 
-// https://www.deepl.com/docs-api/translating-text/
-const SOURCE_LANG_LIST = [
-  {code: 'BG', name: 'Bulgarian'},
-  {code: 'CS', name: 'Czech'},
-  {code: 'DA', name: 'Danish'},
-  {code: 'DE', name: 'German'},
-  {code: 'EL', name: 'Greek'},
-  {code: 'EN', name: 'English'},
-  {code: 'ES', name: 'Spanish'},
-  {code: 'ET', name: 'Estonian'},
-  {code: 'FI', name: 'Finnish'},
-  {code: 'FR', name: 'French'},
-  {code: 'HU', name: 'Hungarian'},
-  {code: 'IT', name: 'Italian'},
-  {code: 'JA', name: 'Japanese'},
-  {code: 'LT', name: 'Lithuanian'},
-  {code: 'LV', name: 'Latvian'},
-  {code: 'NL', name: 'Dutch'},
-  {code: 'PL', name: 'Polish'},
-  {code: 'PT', name: 'Portuguese'},
-  {code: 'RO', name: 'Romanian'},
-  {code: 'RU', name: 'Russian'},
-  {code: 'SK', name: 'Slovak'},
-  {code: 'SL', name: 'Slovenian'},
-  {code: 'SV', name: 'Swedish'},
-  {code: 'ZH', name: 'Chinese'},
-];
-
-const TARGET_LANG_LIST = [
-  {code: 'BG', name: 'Bulgarian'},
-  {code: 'CS', name: 'Czech'},
-  {code: 'DA', name: 'Danish'},
-  {code: 'DE', name: 'German'},
-  {code: 'EL', name: 'Greek'},
-  {code: 'EN-GB', name: 'English (British)'},
-  {code: 'EN-US', name: 'English (American)'},
-  {code: 'ES', name: 'Spanish'},
-  {code: 'ET', name: 'Estonian'},
-  {code: 'FI', name: 'Finnish'},
-  {code: 'FR', name: 'French'},
-  {code: 'HU', name: 'Hungarian'},
-  {code: 'IT', name: 'Italian'},
-  {code: 'JA', name: 'Japanese'},
-  {code: 'LT', name: 'Lithuanian'},
-  {code: 'LV', name: 'Latvian'},
-  {code: 'NL', name: 'Dutch'},
-  {code: 'PL', name: 'Polish'},
-  {code: 'PT-PT', name: 'Portuguese'},
-  {code: 'PT-BR', name: 'Portuguese (Brazilian)'},
-  {code: 'RO', name: 'Romanian'},
-  {code: 'RU', name: 'Russian'},
-  {code: 'SK', name: 'Slovak'},
-  {code: 'SL', name: 'Slovenian'},
-  {code: 'SV', name: 'Swedish'},
-  {code: 'ZH', name: 'Chinese'},
-];
-
-const LangSelect = ({configName, labelName, initialLang, langList}: {configName: string, labelName: string, initialLang: string, langList: Array<{code: string, name: string}>}) => {
+const LangSelect = ({configName, labelName, initialLang, langList}: {configName: string, labelName: string, initialLang: string, langList: string[]}) => {
   const [lang, setLang] = useState(initialLang);
 
   const handleChange = useCallback((event: SelectChangeEvent) => {
@@ -102,10 +69,31 @@ const LangSelect = ({configName, labelName, initialLang, langList}: {configName:
         label={labelName}
         onChange={handleChange}
       >
-        <MenuItem value="auto">Auto Detect</MenuItem>
-        {langList.map(item => <MenuItem key={item.code} value={item.code.toLocaleLowerCase()}>{item.name}</MenuItem>)}
+        {langList.map(lang => <MenuItem key={lang} value={lang}>{chrome.i18n.getMessage(`language_${lang.replace('-', '_')}`)}</MenuItem>)}
       </Select>
     </FormControl>
+  );
+};
+
+const SourceLangSelect = ({initialSourceLang}: {initialSourceLang: string}) => {
+  return (
+    <LangSelect
+      configName="sourceLang"
+      labelName={chrome.i18n.getMessage('source_language')}
+      initialLang={initialSourceLang}
+      langList={SOURCE_LANG_LIST}
+    />
+  );
+};
+
+const TargetLangSelect = ({initialTargetLang}: {initialTargetLang: string}) => {
+  return (
+    <LangSelect
+      configName="targetLang"
+      labelName={chrome.i18n.getMessage('target_language')}
+      initialLang={initialTargetLang}
+      langList={TARGET_LANG_LIST}
+    />
   );
 };
 
@@ -117,10 +105,15 @@ const SplitSentenceCheckbox = ({initialIsSplit}: {initialIsSplit: boolean}) => {
     setConfig({isSplit: event.target.checked});
   }, [setSplit, setConfig]);
 
+  const splitLabelMessage = chrome.i18n.getMessage('split_label');
+  const splitTooltipMessage = chrome.i18n.getMessage('split_tooltip');
+
   return (
-    <FormGroup>
-      <FormControlLabel control={<Checkbox checked={isSplit} onChange={handleChange} />} label="Split Sentences" />
-    </FormGroup>
+    <Tooltip title={splitTooltipMessage}>
+      <FormGroup>
+        <FormControlLabel control={<Checkbox checked={isSplit} onChange={handleChange} />} label={splitLabelMessage} />
+      </FormGroup>
+    </Tooltip>
   );
 };
 
@@ -147,20 +140,10 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
         <Paper elevation={6}>
           <Box p={2} mt={2} mb={2} minWidth={240} minHeight={280}>
             <Box mt={1} mb={2}>
-              <LangSelect
-                configName="sourceLang"
-                labelName="Source Language"
-                initialLang={initialSourceLang}
-                langList={SOURCE_LANG_LIST}
-              />
+              <SourceLangSelect initialSourceLang={initialSourceLang} />
             </Box>
             <Box mt={2}>
-              <LangSelect
-                configName="targetLang"
-                labelName="Target Language"
-                initialLang={initialTargetLang}
-                langList={TARGET_LANG_LIST}
-              />
+              <TargetLangSelect initialTargetLang={initialTargetLang} />
             </Box>
             <Box mt={1}>
               <SplitSentenceCheckbox initialIsSplit={initialIsSplit} />

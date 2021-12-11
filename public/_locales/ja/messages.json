@@ -1,0 +1,142 @@
+{
+  "extension_name": {
+    "message": "DeepLKey: DeepL キーボードショートカット",
+    "description": "Extension name."
+  },
+  "extension_description": {
+    "message": "キーボードショートカットまたは右クリックメニューで選択テキストを DeepL 翻訳ページに送ります。",
+    "description": "Extension description."
+  },
+  "source_language": {
+    "message": "原文の言語",
+    "description": "Language of the text to be translated."
+  },
+  "target_language": {
+    "message": "訳文の言語",
+    "description": "The language into which the text should be translated."
+  },
+  "split_label": {
+    "message": "句点で分割",
+    "description": "Splits on punctuation."
+  },
+  "split_tooltip": {
+    "message": "句点で分割すると、改行を含まない長い段落が読み易くなる場合があります(例: PDF)。",
+    "description": "Split option tooltip."
+  },
+  "language_auto": {
+    "message": "言語を自動検出",
+    "description": "Language name."
+  },
+  "language_bg": {
+    "message": "ブルガリア語",
+    "description": "Language name."
+  },
+  "language_cs": {
+    "message": "チェコ語",
+    "description": "Language name."
+  },
+  "language_da": {
+    "message": "デンマーク語",
+    "description": "Language name."
+  },
+  "language_de": {
+    "message": "ドイツ語",
+    "description": "Language name."
+  },
+  "language_el": {
+    "message": "ギリシャ語",
+    "description": "Language name."
+  },
+  "language_en_gb": {
+    "message": "英語 (イギリス)",
+    "description": "Language name."
+  },
+  "language_en_us": {
+    "message": "英語 (アメリカ)",
+    "description": "Language name."
+  },
+  "language_en": {
+    "message": "英語",
+    "description": "Language name."
+  },
+  "language_es": {
+    "message": "スペイン語",
+    "description": "Language name."
+  },
+  "language_et": {
+    "message": "エストニア語",
+    "description": "Language name."
+  },
+  "language_fi": {
+    "message": "フィンランド語",
+    "description": "Language name."
+  },
+  "language_fr": {
+    "message": "フランス語",
+    "description": "Language name."
+  },
+  "language_hu": {
+    "message": "ハンガリー語",
+    "description": "Language name."
+  },
+  "language_it": {
+    "message": "イタリア語",
+    "description": "Language name."
+  },
+  "language_ja": {
+    "message": "日本語",
+    "description": "Language name."
+  },
+  "language_lt": {
+    "message": "リトアニア語",
+    "description": "Language name."
+  },
+  "language_lv": {
+    "message": "ラトビア語",
+    "description": "Language name."
+  },
+  "language_nl": {
+    "message": "オランダ語",
+    "description": "Language name."
+  },
+  "language_pl": {
+    "message": "ポーランド語",
+    "description": "Language name."
+  },
+  "language_pt_pt": {
+    "message": "ポルトガル語",
+    "description": "Language name."
+  },
+  "language_pt_br": {
+    "message": "ポルトガル語 (ブラジル)",
+    "description": "Language name."
+  },
+  "language_pt": {
+    "message": "ポルトガル語",
+    "description": "Language name."
+  },
+  "language_ro": {
+    "message": "ルーマニア語",
+    "description": "Language name."
+  },
+  "language_ru": {
+    "message": "ロシア語",
+    "description": "Language name."
+  },
+  "language_sk": {
+    "message": "スロバキア語",
+    "description": "Language name."
+  },
+  "language_sl": {
+    "message": "スロベニア語",
+    "description": "Language name."
+  },
+  "language_sv": {
+    "message": "スウェーデン語",
+    "description": "Language name."
+  },
+  "language_zh": {
+    "message": "中国語",
+    "description": "Language name."
+  }
+}

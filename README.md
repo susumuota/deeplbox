@@ -75,31 +75,25 @@ Also, you can change settings by developer console.
 ![DeepLKey Service Worker](https://user-images.githubusercontent.com/1632335/118350402-67207d80-b591-11eb-8c90-1adcb4c7ef8d.png)
 
 - DevTools console will appear
-- Type `DEFAULT_CONFIG` to shows default settings (uneditable).
 
-```javascript
-> DEFAULT_CONFIG
-{ sourceLang: 'auto', targetLang: 'auto', ... }
-```
-
-- `setConfig` changes setting
+- Use `chrome.storage.local.set` to change settings
 
 ```javascript
 // change target language to German
-> setConfig({targetLang: 'de'})
+> await chrome.storage.local.set({targetLang: 'de'})
 ```
 
-- `getConfig` gets current settings
+- Use `chrome.storage.local.get` to see current settings
 
 ```javascript
-> await getConfig()
-{ sourceLang: 'auto', targetLang: 'de', ... }
+> await chrome.storage.local.get()
+{targetLang: 'de', ...}
 ```
 
-- `clearConfig` clears all of the custom settings
+- Use `chrome.storage.local.clear` to clear all of the custom settings
 
 ```javascript
-> clearConfig()
+> await chrome.storage.local.clear()
 ```
 
 - See [config.js](https://github.com/susumuota/deeplkey/blob/main/config.js) for more details about configuration parameters.
@@ -144,13 +138,14 @@ npx tsc --init
 # https://webpack.js.org/guides/getting-started/#basic-setup
 # https://webpack.js.org/plugins/copy-webpack-plugin/#getting-started
 # https://github.com/TypeStrong/ts-loader#getting-started
-npm install --save-dev webpack webpack-cli copy-webpack-plugin ts-loader
+# https://webpack.js.org/guides/production/
+npm install --save-dev webpack webpack-cli copy-webpack-plugin ts-loader webpack-merge
 # Edit package.json
 #   "scripts": {
-#     "watch": "webpack --watch",
-#     "build": "webpack"
+#     "watch": "webpack --config webpack.dev.js --watch",
+#     "build": "webpack --config webpack.prod.js"
 #   },
-# Create webpack.config.js
+# Create webpack.common.js, webpack.dev.js and webpack.prod.js
 #   TODO
 
 # Build src/*.ts to dist/*.js
@@ -165,7 +160,6 @@ npm run build
 - Development cycle
 
 ```sh
-# Change webpack.config.js to development mode
 npm run watch
 # Modify src/*.ts
 # `dist` folder should be updated automatically

@@ -1,0 +1,142 @@
+{
+  "extension_name": {
+    "message": "DeepLKey: DeepL Keyboard Shortcut",
+    "description": "Extension name."
+  },
+  "extension_description": {
+    "message": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
+    "description": "Extension description."
+  },
+  "source_language": {
+    "message": "Source Language",
+    "description": "Language of the text to be translated."
+  },
+  "target_language": {
+    "message": "Target Language",
+    "description": "The language into which the text should be translated."
+  },
+  "split_label": {
+    "message": "Splits on punctuation",
+    "description": "Splits on punctuation."
+  },
+  "split_tooltip": {
+    "message": "This option may improve readability in long paragraphs that do not contain newlines, e.g. PDF.",
+    "description": "Split option tooltip."
+  },
+  "language_auto": {
+    "message": "Detect language",
+    "description": "Language name."
+  },
+  "language_bg": {
+    "message": "Bulgarian",
+    "description": "Language name."
+  },
+  "language_cs": {
+    "message": "Czech",
+    "description": "Language name."
+  },
+  "language_da": {
+    "message": "Danish",
+    "description": "Language name."
+  },
+  "language_de": {
+    "message": "German",
+    "description": "Language name."
+  },
+  "language_el": {
+    "message": "Greek",
+    "description": "Language name."
+  },
+  "language_en_gb": {
+    "message": "English (British)",
+    "description": "Language name."
+  },
+  "language_en_us": {
+    "message": "English (American)",
+    "description": "Language name."
+  },
+  "language_en": {
+    "message": "English",
+    "description": "Language name."
+  },
+  "language_es": {
+    "message": "Spanish",
+    "description": "Language name."
+  },
+  "language_et": {
+    "message": "Estonian",
+    "description": "Language name."
+  },
+  "language_fi": {
+    "message": "Finnish",
+    "description": "Language name."
+  },
+  "language_fr": {
+    "message": "French",
+    "description": "Language name."
+  },
+  "language_hu": {
+    "message": "Hungarian",
+    "description": "Language name."
+  },
+  "language_it": {
+    "message": "Italian",
+    "description": "Language name."
+  },
+  "language_ja": {
+    "message": "Japanese",
+    "description": "Language name."
+  },
+  "language_lt": {
+    "message": "Lithuanian",
+    "description": "Language name."
+  },
+  "language_lv": {
+    "message": "Latvian",
+    "description": "Language name."
+  },
+  "language_nl": {
+    "message": "Dutch",
+    "description": "Language name."
+  },
+  "language_pl": {
+    "message": "Polish",
+    "description": "Language name."
+  },
+  "language_pt_pt": {
+    "message": "Portuguese",
+    "description": "Language name."
+  },
+  "language_pt_br": {
+    "message": "Portuguese (Brazilian)",
+    "description": "Language name."
+  },
+  "language_pt": {
+    "message": "Portuguese",
+    "description": "Language name."
+  },
+  "language_ro": {
+    "message": "Romanian",
+    "description": "Language name."
+  },
+  "language_ru": {
+    "message": "Russian",
+    "description": "Language name."
+  },
+  "language_sk": {
+    "message": "Slovak",
+    "description": "Language name."
+  },
+  "language_sl": {
+    "message": "Slovenian",
+    "description": "Language name."
+  },
+  "language_sv": {
+    "message": "Swedish",
+    "description": "Language name."
+  },
+  "language_zh": {
+    "message": "Chinese",
+    "description": "Language name."
+  }
+}
