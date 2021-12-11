@@ -118,7 +118,7 @@ const translateText = async (source: string) => {
     console.debug(chrome.runtime.lastError ? chrome.runtime.lastError.message :
                   `background.ts: got message: ${response.message}`);
   });
-  // now, deepl.js will send message to translation.js (and background.js)
+  // now, deepl.ts will send message to translation.tsx (and background.ts)
 }
 
 // initialize extension event

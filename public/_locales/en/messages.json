@@ -27,6 +27,38 @@
     "message": "This option may improve readability in long paragraphs that do not contain newlines, e.g. PDF.",
     "description": "Split option tooltip."
   },
+  "copy_icon_tooltip": {
+    "message": "Copy All",
+    "description": "Copy icon tooltip."
+  },
+  "delete_icon_tooltip": {
+    "message": "Delete All",
+    "description": "Delete icon tooltip."
+  },
+  "show_source_icon_tooltip": {
+    "message": "Show Source Text",
+    "description": "Show source text icon tooltip."
+  },
+  "hide_source_icon_tooltip": {
+    "message": "Hide Source Text",
+    "description": "Hide source text icon tooltip."
+  },
+  "light_theme_icon_tooltip": {
+    "message": "To Light Mode",
+    "description": "Light theme icon tooltip."
+  },
+  "dark_theme_icon_tooltip": {
+    "message": "To Dark Mode",
+    "description": "Dark theme icon tooltip."
+  },
+  "progress_snackbar_alert": {
+    "message": "Translating...",
+    "description": "Progress snackbar alert text."
+  },
+  "success_snackbar_alert": {
+    "message": "Translating...done!",
+    "description": "Success snackbar alert text."
+  },
   "language_auto": {
     "message": "Detect language",
     "description": "Language name."

@@ -132,14 +132,15 @@ npm install --save-dev typescript @types/react @types/react-dom @types/chrome
 npx tsc --init
 # tsconfig.json should be created
 # Edit tsconfig.json
+#   "target": "es2021",
 #   "jsx": "react",
 
 # Install webpack
 # https://webpack.js.org/guides/getting-started/#basic-setup
 # https://webpack.js.org/plugins/copy-webpack-plugin/#getting-started
-# https://github.com/TypeStrong/ts-loader#getting-started
 # https://webpack.js.org/guides/production/
-npm install --save-dev webpack webpack-cli copy-webpack-plugin ts-loader webpack-merge
+# https://github.com/TypeStrong/ts-loader#getting-started
+npm install --save-dev webpack webpack-cli webpack-merge copy-webpack-plugin ts-loader
 # Edit package.json
 #   "scripts": {
 #     "watch": "webpack --config webpack.dev.js --watch",

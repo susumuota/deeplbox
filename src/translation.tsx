@@ -99,7 +99,7 @@ const SmallIconButton = ({title, onClick, iconName}: {title: string, onClick: ()
   );
 };
 
-const ProgressSnackbar = ({isProgress, handleCloseProgress}: {isProgress: boolean, handleCloseProgress: (event: any, reason: any) => void}) => {
+const ProgressSnackbar = ({isProgress, handleCloseProgress}: {isProgress: boolean, handleCloseProgress: () => void}) => {
   return (
     <Snackbar
       open={isProgress}
@@ -108,14 +108,14 @@ const ProgressSnackbar = ({isProgress, handleCloseProgress}: {isProgress: boolea
       anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
     >
       <Alert severity="info">
-        Translating...
+        {chrome.i18n.getMessage('progress_snackbar_alert')}
         <CircularProgress size='1rem' sx={{ml: 1, verticalAlign: 'middle'}} />
       </Alert>
     </Snackbar>
   );
 };
 
-const SuccessSnackbar = ({isSuccess, handleCloseSuccess}: {isSuccess: boolean, handleCloseSuccess: (event: any, reason: any) => void}) => {
+const SuccessSnackbar = ({isSuccess, handleCloseSuccess}: {isSuccess: boolean, handleCloseSuccess: () => void}) => {
   return (
     <Snackbar
       open={isSuccess}
@@ -124,7 +124,7 @@ const SuccessSnackbar = ({isSuccess, handleCloseSuccess}: {isSuccess: boolean, h
       anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
     >
       <Alert severity="success">
-        Translating...done!
+        {chrome.i18n.getMessage('success_snackbar_alert')}
         <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">arrow_downward</Icon>
       </Alert>
     </Snackbar>
@@ -134,7 +134,7 @@ const SuccessSnackbar = ({isSuccess, handleCloseSuccess}: {isSuccess: boolean, h
 const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boolean, initialIsShowSource: boolean}) => {
   const [isDarkTheme, setDarkTheme] = useState(initialIsDarkTheme);
   const [isShowSource, setShowSource] = useState(initialIsShowSource);
-  const [isProgress, setProgress] = useState(false);
+  const [isProgress, setProgress] = useState(true);
   const [isSuccess, setSuccess] = useState(false);
   const [items, setItems] = useState([] as ItemType[]);
 
@@ -159,20 +159,20 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
       setItems(prev => [...prev, item]);
       setProgress(false);
       setSuccess(true);
-      sendResponse({message: 'translation.js: setTranslation: done'});
+      sendResponse({message: 'translation.tsx: setTranslation: done'});
     } else if (request.message === 'startTranslation') {
       setSuccess(false);
       setProgress(true);
-      sendResponse({message: 'translation.js: startTranslation: done'});
+      sendResponse({message: 'translation.tsx: startTranslation: done'});
     }
     return true;
   }, [splitToPairs, setItems, setSuccess, setProgress]);
 
-  const handleCloseProgress = useCallback((event, reason) => {
+  const handleCloseProgress = useCallback(() => {
     setProgress(false);
   }, [setProgress]);
 
-  const handleCloseSuccess = useCallback((event, reason) => {
+  const handleCloseSuccess = useCallback(() => {
     setSuccess(false);
   }, [setSuccess]);
 
@@ -219,15 +219,15 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
       <AppBar position="sticky">
         <Toolbar variant="dense">
           <Box flexGrow={1}></Box>
-          <SmallIconButton title="Copy All" onClick={copyItems} iconName="copy_all" />
-          <SmallIconButton title="Delete All" onClick={clearItems} iconName="delete" />
+          <SmallIconButton title={chrome.i18n.getMessage('copy_icon_tooltip')} onClick={copyItems} iconName="copy_all" />
+          <SmallIconButton title={chrome.i18n.getMessage('delete_icon_tooltip')} onClick={clearItems} iconName="delete" />
           <SmallIconButton
-            title={isShowSource ? 'Hide Source Text' : 'Show Source Text'}
+            title={isShowSource ? chrome.i18n.getMessage('hide_source_icon_tooltip') : chrome.i18n.getMessage('show_source_icon_tooltip')}
             iconName={isShowSource ? 'check_box' : 'check_box_outline_blank'}
             onClick={toggleShowSource}
           />
           <SmallIconButton
-            title={isDarkTheme ? 'To Light Theme' : 'To Dark Theme'}
+            title={isDarkTheme ? chrome.i18n.getMessage('light_theme_icon_tooltip') : chrome.i18n.getMessage('dark_theme_icon_tooltip')}
             iconName={isDarkTheme ? 'mode_night' : 'light_mode'}
             onClick={toggleDarkTheme}
           />
@@ -235,7 +235,7 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
       </AppBar>
       <Container>
         {items.map((item: ItemType) => <Item key={item.key} pairs={item.pairs} isShowSource={isShowSource} />)}
-        {isProgress ? <Skeleton variant="rectangular" width="100%" height={200} /> : ''}
+        {isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={200} /> : ''}
       </Container>
       <ProgressSnackbar isProgress={isProgress} handleCloseProgress={handleCloseProgress} />
       <SuccessSnackbar isSuccess={isSuccess} handleCloseSuccess={handleCloseSuccess} />
