@@ -7,6 +7,10 @@
     "message": "キーボードショートカットまたは右クリックメニューで選択テキストを DeepL 翻訳ページに送ります。",
     "description": "Extension description."
   },
+  "open_command_description": {
+    "message": "DeepL 翻訳ページを開いて選択テキストを送る",
+    "description": "Keyboard shortcut description."
+  },
   "source_language": {
     "message": "原文の言語",
     "description": "Language of the text to be translated."

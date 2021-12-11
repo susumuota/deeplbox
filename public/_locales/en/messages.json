@@ -4,8 +4,12 @@
     "description": "Extension name."
   },
   "extension_description": {
-    "message": "Open DeepL translator page and send selected text by keyboard shortcut or context menu.",
+    "message": "Open DeepL page and send selected text by keyboard shortcut or context menu.",
     "description": "Extension description."
+  },
+  "open_command_description": {
+    "message": "Open DeepL page and send selected text",
+    "description": "Keyboard shortcut description."
   },
   "source_language": {
     "message": "Source Language",

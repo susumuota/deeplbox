@@ -1,6 +1,6 @@
 # DeepLKey: DeepL Keyboard Shortcut Chrome Extension
 
-A Google Chrome extension to open DeepL translator page and send selected text by keyboard shortcut or context menu.
+A Google Chrome extension to open DeepL page and send selected text by keyboard shortcut or context menu.
 
 (Click on the image to open YouTube video)
 
