@@ -24,7 +24,7 @@
     "description": "Splits on punctuation."
   },
   "split_tooltip": {
-    "message": "This option may improve readability in long paragraphs that do not contain newlines, e.g. PDF.",
+    "message": "This option may improve the readability of long text without newlines, such as PDF.",
     "description": "Split option tooltip."
   },
   "copy_icon_tooltip": {

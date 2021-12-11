@@ -24,7 +24,7 @@
     "description": "Splits on punctuation."
   },
   "split_tooltip": {
-    "message": "句点で分割すると、改行を含まない長い段落が読み易くなる場合があります(例: PDF)。",
+    "message": "ピリオド等の句点で分割すると、 PDF などの改行を含まない長いテキストの読みやすさが向上するかもしれません。",
     "description": "Split option tooltip."
   },
   "copy_icon_tooltip": {
@@ -56,7 +56,7 @@
     "description": "Progress snackbar alert text."
   },
   "success_snackbar_alert": {
-    "message": "翻訳中...完了!",
+    "message": "翻訳完了!",
     "description": "Success snackbar alert text."
   },
   "language_auto": {
