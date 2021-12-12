@@ -4,9 +4,9 @@ A Google Chrome extension to open DeepL page and send selected text by keyboard 
 
 (Click on the image to open YouTube video)
 
-[![DeepLKey: DeepL Keyboard Shortcut Chrome Extension](https://user-images.githubusercontent.com/1632335/117237925-e3ff7900-ae66-11eb-9340-80b08d010a27.gif)](http://www.youtube.com/watch?v=gZVzj4uDTss "DeepLKey: DeepL Keyboard Shortcut Chrome Extension")
+[![DeepLKey: DeepL Keyboard Shortcut Chrome Extension](https://user-images.githubusercontent.com/1632335/145706991-cc6fd338-ed61-40c2-bf55-208a42f26f4e.gif)](https://www.youtube.com/watch?v=8mT0asEwVAU "DeepLKey: DeepL Keyboard Shortcut Chrome Extension")
 
-[DeepL's desktop apps](https://www.deepl.com/app) (e.g. DeepL for Mac) are very useful, especially sending selected text by keyboard shortcut (pressing `Command-c` twice). But unfortunately, they don't provide any way to customize appearance like font size, etc. It's a bit hard for me to use it for long time with such a small text. This Chrome extension provides a keyboard shortcut (default `Command-b`) to send selected text to [DeepL translator](https://www.deepl.com/translator) web page. It's just a web page so that you can change font size by changing web browser settings.
+This Chrome extension provides a keyboard shortcut `Command-b` (macOS) or `Alt-b` (other OS) to send selected text to [DeepL translator](https://www.deepl.com/translator) page. Also, it opens another window to show, aggregate, copy and manipulate translation and source text.
 
 ## Install
 
@@ -29,68 +29,75 @@ npm ci
 npm run build
 ```
 
-- Open Chrome's extensions setting page `chrome://extensions`
-- Turn `Developer mode` on
-- Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese)
-- Specify the dist folder `/path/to/deeplkey/dist`
+- Open Chrome's extensions setting page `chrome://extensions`.
+- Turn `Developer mode` on.
+- Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese).
+- Specify the dist folder `/path/to/deeplkey/dist`.
 
 ## Usage
 
-- Select text by mouse or keyboard
-- Press `Command-b` (macOS) or `Alt-b` (other OS)
-  - Or right click to open context menu and choose `DeepL Translate`
+- Select text by mouse or keyboard.
+- Press `Command-b` (macOS) or `Alt-b` (other OS).
+  - Or right click to open context menu and choose `DeepL Translate`.
+− Translation window will open.
 
 ## Settings
 
 ### Change keyboard shortcuts
 
-- Open extensions setting page `chrome://extensions`
-- Open menu by clicking `hamburger button` "☰" (triple bar icon) on the left of `Extensions`
-- Click `Keyboard shortcuts`
-- Click the pencil icon on the right of `Open DeepL`
+- Open extensions setting page `chrome://extensions`.
+- Open menu by clicking `hamburger button` "☰" (triple bar icon) on the left of `Extensions`.
+- Click `Keyboard shortcuts`.
+- Click the pencil icon on the right of `Open DeepL page and send selected text`.
+
+![DeeLKey keyboard shortcuts](https://user-images.githubusercontent.com/1632335/145688563-1af4bf22-9664-48cf-bc1a-cd5e58073a2b.png)
+
 - Input key stroke. Default is `Command-b` (macOS) or `Alt-b` (other OS).
 
 ### Change settings by popup dialog
 
-You can change translation language, color theme and window position by Chrome's popup dialog.
+You can change source/translation language and split on punctuation option by extension popup dialog.
 
-- Click the DeepLKey icon `D`
+- Click the DeepLKey icon `D` (if you "pinned" icon).
 
 ![DeepLKey icon](https://user-images.githubusercontent.com/1632335/118349094-8a472f00-b589-11eb-9186-331f81dc0f77.png)
 
-- Change settings by selections and buttons. See [YouTube video](http://www.youtube.com/watch?v=gZVzj4uDTss) for more details.
+- Change settings by selections and buttons.
 
-![DeepLKey popup](https://user-images.githubusercontent.com/1632335/118348869-12c4d000-b588-11eb-84e9-df807eb56967.png)
+![DeepLKey popup](https://user-images.githubusercontent.com/1632335/145688416-5728655e-b4bc-4eb2-84e8-98252f0eb6a5.png)
 
-> **_Note:_** in most cases, DeepL automatically detects source language.
+  - `Source Language` specify the language of the text to be translated.
+    > **_Note:_** in most cases, DeepL automatically detects source language.
+  - `Target Language` specify the language into which the text should be translated.
+  - `Splits on punctuation` may improve the readability of long text without newlines, such as PDF.
 
 ### Change settings by developer console
 
 Also, you can change settings by developer console.
 
-- Open extensions setting page `chrome://extensions`
-- Turn `Developer mode` on
-- Click `Service Worker` at `DeepLKey: DeepL Keyboard Shortcut`
+- Open extensions setting page `chrome://extensions`.
+- Turn `Developer mode` on.
+- Click `Service Worker` at `DeepLKey: DeepL Keyboard Shortcut`.
 
 ![DeepLKey Service Worker](https://user-images.githubusercontent.com/1632335/118350402-67207d80-b591-11eb-8c90-1adcb4c7ef8d.png)
 
-- DevTools console will appear
+- DevTools console will appear.
 
-- Use `chrome.storage.local.set` to change settings
+- Use `chrome.storage.local.set` to change settings.
 
 ```javascript
 // change target language to German
 > await chrome.storage.local.set({targetLang: 'de'})
 ```
 
-- Use `chrome.storage.local.get` to see current settings
+- Use `chrome.storage.local.get` to see current settings.
 
 ```javascript
 > await chrome.storage.local.get()
 {targetLang: 'de', ...}
 ```
 
-- Use `chrome.storage.local.clear` to clear all of the custom settings
+- Use `chrome.storage.local.clear` to clear all of the custom settings.
 
 ```javascript
 > await chrome.storage.local.clear()
