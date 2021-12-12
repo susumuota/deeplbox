@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "__MSG_extension_name__",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "__MSG_extension_description__",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplkey",

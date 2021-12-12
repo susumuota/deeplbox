@@ -128,7 +128,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar>
-          <Box mt={1}>
+          <Box mt={1.5}>
             <img src="icons/deeplkey.png" height="32" />
           </Box>
         </Toolbar>
