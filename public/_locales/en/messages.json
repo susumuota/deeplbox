@@ -27,12 +27,20 @@
     "message": "This option may improve the readability of long text without newlines, such as PDF.",
     "description": "Split option tooltip."
   },
-  "copy_icon_tooltip": {
+  "copy_all_icon_tooltip": {
     "message": "Copy All",
+    "description": "Copy all icon tooltip."
+  },
+  "copy_icon_tooltip": {
+    "message": "Copy",
     "description": "Copy icon tooltip."
   },
-  "delete_icon_tooltip": {
+  "delete_all_icon_tooltip": {
     "message": "Delete All",
+    "description": "Delete all icon tooltip."
+  },
+  "delete_icon_tooltip": {
+    "message": "Delete",
     "description": "Delete icon tooltip."
   },
   "show_source_icon_tooltip": {

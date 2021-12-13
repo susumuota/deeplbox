@@ -22,8 +22,14 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useState,
 } from 'react';
+import {
+  RecoilRoot,
+  atom,
+  useRecoilState,
+  useRecoilValue,
+  useSetRecoilState
+} from 'recoil';
 import {
   Alert,
   AppBar,
@@ -45,15 +51,40 @@ import {
 import {getConfig, setConfig} from './config';
 
 type PairType = {
-  key: number,
+  id: number,
   source: string,
   translation: string,
 }
 
 type ItemType = {
-  key: number,
+  id: number,
   pairs: PairType[],
 }
+
+const isDarkThemeState = atom({
+  key: 'isDarkThemeState',
+  default: false,
+});
+
+const isShowSourceState = atom({
+  key: 'isShowSourceState',
+  default: false,
+});
+
+const isProgressState = atom({
+  key: 'isProgressState',
+  default: true, // not false!!!
+});
+
+const isSuccessState = atom({
+  key: 'isSuccessState',
+  default: false,
+});
+
+const itemsState = atom({
+  key: 'itemsState',
+  default: [] as ItemType[],
+});
 
 const splitToPairs = (source: string, translation: string): PairType[] => {
   const ss = source.split('\n');
@@ -62,32 +93,55 @@ const splitToPairs = (source: string, translation: string): PairType[] => {
   // range(max(len(ss), len(ts)))  https://stackoverflow.com/a/10050831
   return [...Array(Math.max(ss.length, ts.length)).keys()]
     .map(i => [ss[i] || '', ts[i] || ''])
-    .filter(([s, t]) => s.trim() || t.trim())
-    .map(([s, t], i) => ({key: i, source: s, translation: t}));
+    .filter(([s, t]) => (s && s.trim()) || (t && t.trim()))
+    .map(([s, t], i) => ({id: i, source: s || '', translation: t || ''}));
 };
 
-const Pair = ({source, translation, isShowSource}: {source: string, translation: string, isShowSource: boolean}): JSX.Element => {
+const Pair = ({source, translation}: {source: string, translation: string}) => {
+  const isShowSource = useRecoilValue(isShowSourceState);
+
   return (
     <Box mb={1}>
       <Box>
         {translation}
       </Box>
-      <Box sx={{color: 'text.secondary', opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
-        {isShowSource ? source : ''}
-      </Box>
+      {isShowSource ?
+        <Box sx={{color: 'text.secondary', opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
+          {source}
+        </Box>
+        : ''}
     </Box>
   );
 };
 
-const Item = ({pairs, isShowSource}: {pairs: PairType[], isShowSource: boolean}): JSX.Element => {
+const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
+  const isShowSource = useRecoilValue(isShowSourceState);
+  const [items, setItems] = useRecoilState(itemsState);
+
+  const copyItem = useCallback(() => {
+    const toString = (pair: PairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
+    const text = pairs.map((pair: PairType) => toString(pair)).join('\n');
+    navigator.clipboard.writeText(text);
+  }, [isShowSource, pairs]);
+
+  const deleteItem = useCallback(() => {
+    const removeIndex = items.findIndex(item => item.id === id);
+    setItems(items.filter((_, index) => index !== removeIndex));
+  }, [items, id]);
+
   return (
     <Paper sx={{p: 2, mt: 3, mb: 3}} elevation={6}>
-      {pairs.map((pair: PairType) => <Pair key={pair.key} source={pair.source} translation={pair.translation} isShowSource={isShowSource} />)}
+      {pairs.map((pair: PairType) => <Pair key={pair.id} source={pair.source} translation={pair.translation} />)}
+      <Box display="flex">
+        <Box flexGrow={1}></Box>
+        <SmallIconButton title={chrome.i18n.getMessage('copy_icon_tooltip')} onClick={copyItem} iconName="copy_all" />
+        <SmallIconButton title={chrome.i18n.getMessage('delete_icon_tooltip')} onClick={deleteItem} iconName="delete" />
+      </Box>
     </Paper>
   );
 };
 
-const SmallIconButton = ({title, onClick, iconName}: {title: string, onClick: () => void, iconName: string}): JSX.Element => {
+const SmallIconButton = ({title, onClick, iconName}: {title: string, onClick: () => void, iconName: string}) => {
   return (
     <Tooltip title={title}>
       <IconButton color="inherit" onClick={onClick} size="small">
@@ -97,7 +151,90 @@ const SmallIconButton = ({title, onClick, iconName}: {title: string, onClick: ()
   );
 };
 
-const ProgressSnackbar = ({isProgress, handleCloseProgress}: {isProgress: boolean, handleCloseProgress: () => void}) => {
+const CopyButton = () => {
+  const isShowSource = useRecoilValue(isShowSourceState);
+  const items = useRecoilValue(itemsState);
+
+  const copyItems = useCallback(() => {
+    const toString = (pair: PairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
+    const text = items.map((item: ItemType) => item.pairs.map((pair: PairType) => toString(pair)).join('\n')).join('\n\n');
+    navigator.clipboard.writeText(text);
+  }, [isShowSource, items]);
+
+  return <SmallIconButton title={chrome.i18n.getMessage('copy_all_icon_tooltip')} onClick={copyItems} iconName="copy_all" />;
+};
+
+const DeleteButton = () => {
+  const setItems = useSetRecoilState(itemsState);
+
+  const deleteItems = useCallback(() => {
+    setItems([] as ItemType[]);
+  }, []);
+
+  return <SmallIconButton title={chrome.i18n.getMessage('delete_all_icon_tooltip')} onClick={deleteItems} iconName="delete" />
+};
+
+const DarkThemeButton = () => {
+  const [isDarkTheme, setDarkTheme] = useRecoilState(isDarkThemeState);
+
+  const toggleDarkTheme = useCallback(() => {
+    setDarkTheme((prev: boolean) => {
+      setConfig({isDarkTheme: !prev});
+      return !prev;
+    });
+  }, []);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      const config = await getConfig();
+      setDarkTheme(config.isDarkTheme);
+    };
+    loadConfig();
+  }, []);
+
+  return (
+    <SmallIconButton
+      title={isDarkTheme ? chrome.i18n.getMessage('light_theme_icon_tooltip') : chrome.i18n.getMessage('dark_theme_icon_tooltip')}
+      iconName={isDarkTheme ? 'mode_night' : 'light_mode'}
+      onClick={toggleDarkTheme}
+    />
+  );
+};
+
+const ShowSourceButton = () => {
+  const [isShowSource, setShowSource] = useRecoilState(isShowSourceState);
+
+  const toggleShowSource = useCallback(() => {
+    setShowSource((prev: boolean) => {
+      setConfig({isShowSource: !prev});
+      return !prev;
+    });
+  }, []);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      const config = await getConfig();
+      setShowSource(config.isShowSource);
+    };
+    loadConfig();
+  }, []);
+
+  return (
+    <SmallIconButton
+      title={isShowSource ? chrome.i18n.getMessage('hide_source_icon_tooltip') : chrome.i18n.getMessage('show_source_icon_tooltip')}
+      iconName={isShowSource ? 'check_box' : 'check_box_outline_blank'}
+      onClick={toggleShowSource}
+    />
+  );
+};
+
+const ProgressSnackbar = () => {
+  const [isProgress, setProgress] = useRecoilState(isProgressState);
+
+  const handleCloseProgress = useCallback(() => {
+    setProgress(false);
+  }, []);
+
   return (
     <Snackbar
       open={isProgress}
@@ -113,7 +250,13 @@ const ProgressSnackbar = ({isProgress, handleCloseProgress}: {isProgress: boolea
   );
 };
 
-const SuccessSnackbar = ({isSuccess, handleCloseSuccess}: {isSuccess: boolean, handleCloseSuccess: () => void}) => {
+const SuccessSnackbar = () => {
+  const [isSuccess, setSuccess] = useRecoilState(isSuccessState);
+
+  const handleCloseSuccess = useCallback(() => {
+    setSuccess(false);
+  }, []);
+
   return (
     <Snackbar
       open={isSuccess}
@@ -129,32 +272,22 @@ const SuccessSnackbar = ({isSuccess, handleCloseSuccess}: {isSuccess: boolean, h
   );
 };
 
-const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boolean, initialIsShowSource: boolean}) => {
-  const [isDarkTheme, setDarkTheme] = useState(initialIsDarkTheme);
-  const [isShowSource, setShowSource] = useState(initialIsShowSource);
-  const [isProgress, setProgress] = useState(true);
-  const [isSuccess, setSuccess] = useState(false);
-  const [items, setItems] = useState([] as ItemType[]);
+const App = () => {
+  const isDarkTheme = useRecoilValue(isDarkThemeState);
+  const [isProgress, setProgress] = useRecoilState(isProgressState);
+  const setSuccess = useSetRecoilState(isSuccessState);
+  const [items, setItems] = useRecoilState(itemsState);
 
-  const toggleDarkTheme = useCallback(() => {
-    setDarkTheme((prev: boolean) => {
-      setConfig({isDarkTheme: !prev});
-      return !prev;
-    });
-  }, [setDarkTheme, setConfig]);
-
-  const toggleShowSource = useCallback(() => {
-    setShowSource((prev: boolean) => {
-      setConfig({isShowSource: !prev});
-      return !prev;
-    });
-  }, [setShowSource, setConfig]);
-
-  const handleMessage = useCallback((request, sender, sendResponse) => {
+  const handleMessage = useCallback((request, _, sendResponse) => {
     if (request.message === 'setTranslation') {
       const pairs = splitToPairs(request.source, request.translation);
-      const item = {key: new Date().getTime(), pairs: pairs};
-      setItems(prev => [...prev, item]);
+      const id = new Date().getTime();
+      const item = {id: id, pairs: pairs};
+      setItems(prev => {
+        const newItems = [...prev, item];
+        setConfig({items: newItems});
+        return newItems;
+      });
       setProgress(false);
       setSuccess(true);
       sendResponse({message: 'translation.tsx: setTranslation: done'});
@@ -164,30 +297,17 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
       sendResponse({message: 'translation.tsx: startTranslation: done'});
     }
     return true;
-  }, [splitToPairs, setItems, setSuccess, setProgress]);
-
-  const handleCloseProgress = useCallback(() => {
-    setProgress(false);
-  }, [setProgress]);
-
-  const handleCloseSuccess = useCallback(() => {
-    setSuccess(false);
-  }, [setSuccess]);
-
-  const clearItems = useCallback(() => {
-    setItems([] as ItemType[]);
-  }, [setItems]);
-
-  const copyItems = useCallback(() => {
-    const toString = (pair: PairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
-    const text = items.map((item: ItemType) => item.pairs.map((pair: PairType) => toString(pair)).join('\n')).join('\n\n');
-    navigator.clipboard.writeText(text);
-  }, [items, isShowSource]);
+  }, []);
 
   useEffect(() => {
+    const loadConfig = async () => {
+      const config = await getConfig();
+      setItems(config.items);
+    };
+    loadConfig();
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, [handleMessage]);
+  }, []);
 
   const lightTheme = useMemo(() => createTheme({
     palette: {
@@ -217,37 +337,27 @@ const App = ({initialIsDarkTheme, initialIsShowSource}: {initialIsDarkTheme: boo
       <AppBar position="sticky">
         <Toolbar variant="dense">
           <Box flexGrow={1}></Box>
-          <SmallIconButton title={chrome.i18n.getMessage('copy_icon_tooltip')} onClick={copyItems} iconName="copy_all" />
-          <SmallIconButton title={chrome.i18n.getMessage('delete_icon_tooltip')} onClick={clearItems} iconName="delete" />
-          <SmallIconButton
-            title={isShowSource ? chrome.i18n.getMessage('hide_source_icon_tooltip') : chrome.i18n.getMessage('show_source_icon_tooltip')}
-            iconName={isShowSource ? 'check_box' : 'check_box_outline_blank'}
-            onClick={toggleShowSource}
-          />
-          <SmallIconButton
-            title={isDarkTheme ? chrome.i18n.getMessage('light_theme_icon_tooltip') : chrome.i18n.getMessage('dark_theme_icon_tooltip')}
-            iconName={isDarkTheme ? 'mode_night' : 'light_mode'}
-            onClick={toggleDarkTheme}
-          />
+          <CopyButton />
+          <DeleteButton />
+          <ShowSourceButton />
+          <DarkThemeButton />
         </Toolbar>
       </AppBar>
       <Container>
-        {items.map((item: ItemType) => <Item key={item.key} pairs={item.pairs} isShowSource={isShowSource} />)}
+        {items.map((item: ItemType) => <Item key={item.id} id={item.id} pairs={item.pairs} />)}
         {isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={200} /> : ''}
       </Container>
-      <ProgressSnackbar isProgress={isProgress} handleCloseProgress={handleCloseProgress} />
-      <SuccessSnackbar isSuccess={isSuccess} handleCloseSuccess={handleCloseSuccess} />
+      <ProgressSnackbar />
+      <SuccessSnackbar />
     </ThemeProvider>
   );
 };
 
-window.addEventListener('load', async () => {
-  const config = await getConfig();
+window.addEventListener('load', () => {
   ReactDOM.render(
-    <App
-      initialIsDarkTheme={Boolean(config.isDarkTheme)}
-      initialIsShowSource={Boolean(config.isShowSource)}
-    />,
+    <RecoilRoot>
+      <App />
+    </RecoilRoot>,
     document.getElementById('app')
   );
 });

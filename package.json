@@ -1,6 +1,6 @@
 {
   "name": "deeplkey",
-  "version": "3.2.2",
+  "version": "3.3.0",
   "description": "A Google Chrome extension to open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "private": true,
   "scripts": {
@@ -23,7 +23,8 @@
     "@emotion/styled": "^11.6.0",
     "@mui/material": "^5.2.3",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "recoil": "^0.5.2"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.168",

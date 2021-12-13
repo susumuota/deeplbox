@@ -90,10 +90,13 @@ export const DEFAULT_CONFIG: Object = deepFreeze({
   // show source text on translation.html
   isShowSource: false,
 
+  // items on translation.html
+  items: [],
+
   // global variables
   // DO NOT touch here
   deepLTabId: chrome.tabs.TAB_ID_NONE,
-  translationTabId: chrome.tabs.TAB_ID_NONE
+  translationTabId: chrome.tabs.TAB_ID_NONE,
 });
 
 // set config value
@@ -111,7 +114,7 @@ export const setConfig = (config: Object): Promise<void> => {
 // to see only custom config
 // await getConfig(null)
 export const getConfig = (defaultConfig: Object = DEFAULT_CONFIG): Promise<any> => {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     return chrome.storage.local.get(defaultConfig, resolve);
   });
 }
@@ -173,52 +176,52 @@ export const deepCopy = (object: any): any => {
 export const SOURCE_LANG_LIST: string[] = [
   'auto',
   'bg',
+  'zh',
   'cs',
   'da',
-  'de',
-  'el',
+  'nl',
   'en',
-  'es',
   'et',
   'fi',
   'fr',
+  'de',
+  'el',
   'hu',
   'it',
   'ja',
-  'lt',
   'lv',
-  'nl',
+  'lt',
   'pl',
   'pt',
   'ro',
   'ru',
   'sk',
   'sl',
+  'es',
   'sv',
-  'zh',
 ];
 
 // https://www.deepl.com/docs-api/translating-text/
 export const TARGET_LANG_LIST: string[] = [
   'auto',
   'bg',
+  'zh',
   'cs',
   'da',
-  'de',
-  'el',
-  'en-gb',
+  'nl',
   'en-us',
+  'en-gb',
   // 'en',
-  'es',
   'et',
   'fi',
   'fr',
+  'de',
+  'el',
   'hu',
   'it',
   'ja',
-  'lt',
   'lv',
-  'nl',
+  'lt',
   'pl',
   'pt-pt',
   'pt-br',
@@ -227,6 +230,6 @@ export const TARGET_LANG_LIST: string[] = [
   'ru',
   'sk',
   'sl',
+  'es',
   'sv',
-  'zh',
 ];

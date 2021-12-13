@@ -27,12 +27,20 @@
     "message": "ピリオド等の句点で分割すると、 PDF などの改行を含まない長いテキストの読みやすさが向上するかもしれません。",
     "description": "Split option tooltip."
   },
-  "copy_icon_tooltip": {
+  "copy_all_icon_tooltip": {
     "message": "全てコピー",
+    "description": "Copy all icon tooltip."
+  },
+  "copy_icon_tooltip": {
+    "message": "コピー",
     "description": "Copy icon tooltip."
   },
-  "delete_icon_tooltip": {
+  "delete_all_icon_tooltip": {
     "message": "全て削除",
+    "description": "Delete all icon tooltip."
+  },
+  "delete_icon_tooltip": {
+    "message": "削除",
     "description": "Delete icon tooltip."
   },
   "show_source_icon_tooltip": {

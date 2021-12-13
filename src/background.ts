@@ -90,7 +90,7 @@ const getSelectionByInjection = (tab: chrome.tabs.Tab): Promise<string> => {
     }, (results) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError.message);
-      } else if (results && results.length > 0 && results[0].result && results[0].result.trim()) {
+      } else if (results && results.length > 0 && results[0] && results[0].result && results[0].result.trim()) {
         resolve(results[0].result.trim());
       }
       reject('Empty window.getSelection()');
@@ -121,12 +121,23 @@ const translateText = async (source: string) => {
   // now, deepl.ts will send message to translation.tsx (and background.ts)
 }
 
+// chrome.i18n.getMessage does not work in service_worker in manifest v3
+// https://groups.google.com/a/chromium.org/g/chromium-extensions/c/dG6JeZGkN5w
+// TODO: other messages if needed
+const getMessage = (messageName: 'context_menu_title'): string => {
+  if (messageName === 'context_menu_title') {
+    return 'ja' === navigator.language ? 'DeepL 翻訳' : 'DeepL Translate';
+  } else {
+    throw 'Unknown message';
+  }
+};
+
 // initialize extension event
 // https://developer.chrome.com/docs/extensions/mv3/background_pages/#listeners
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'deepl-menu',
-    title: 'DeepL Translate',
+    title: getMessage('context_menu_title'),
     contexts: ['selection']
   });
   // must reset. old tabId should be invalid
