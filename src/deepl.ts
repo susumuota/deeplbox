@@ -26,7 +26,7 @@ if (!(source && target)) {
 // monitor source/target textarea and when its content is changed,
 // send message to translation.js (and background.js)
 // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
-const observer = new MutationObserver((mutations, obs) => {
+const observer = new MutationObserver(() => {
   if (source.textContent && source.textContent.trim() &&
       target.textContent && target.textContent.trim()) {
     chrome.runtime.sendMessage({

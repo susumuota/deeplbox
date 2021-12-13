@@ -12,10 +12,10 @@ This Chrome extension provides a keyboard shortcut `Command-b` (macOS) or `Alt-b
 
 There are 2 options to install DeepLKey. Chrome Web Store is convenient for all users. Source would be useful if you try to customize/modify features.
 
-### [Option 1] Install from Chrome Web Store
+### (Option 1) Install from Chrome Web Store
 - Install from [here](https://chrome.google.com/webstore/detail/deeplkey-deepl-keyboard-s/ompicphdlcomhddpfbpnhnejhkheeagf)
 
-### [Option 2] Install from source
+### (Option 2) Install from source
 
 - Open Terminal and type
 
@@ -124,7 +124,8 @@ npm init -y
 # Install react and react-dom
 # https://www.npmjs.com/package/react
 # https://www.npmjs.com/package/react-dom
-npm install --save react react-dom
+# https://recoiljs.org/docs/introduction/getting-started
+npm install --save react react-dom recoil
 
 # Install MUI
 # https://mui.com/getting-started/installation/#npm

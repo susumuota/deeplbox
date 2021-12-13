@@ -54,7 +54,7 @@ const LangSelect = ({configName, labelName, initialLang, langList}: {configName:
     const l = value as string;
     setLang(l);
     setConfig({[configName]: l});
-  }, [setLang, setConfig, configName]);
+  }, [configName]);
 
   const idPrefix = configName.toLowerCase();
 
@@ -103,7 +103,7 @@ const SplitSentenceCheckbox = ({initialIsSplit}: {initialIsSplit: boolean}) => {
     const c = checked as boolean;
     setSplit(c);
     setConfig({isSplit: c});
-  }, [setSplit, setConfig]);
+  }, []);
 
   return (
     <Tooltip title={chrome.i18n.getMessage('split_tooltip')}>
@@ -146,16 +146,12 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
               <SplitSentenceCheckbox initialIsSplit={initialIsSplit} />
             </Box>
             <Box mt={3}>
-              <Tooltip title="GitHub">
-                <Link mr={1} href="https://github.com/susumuota/deeplkey" target="_blank" rel="noreferrer noopener">
-                  <img src="icons/github32.png" />
-                </Link>
-              </Tooltip>
-              <Tooltip title="Chrome Web Store">
-                <Link href="https://chrome.google.com/webstore/detail/deeplkey-deepl-keyboard-s/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
-                  <ChromeWebStoreIcon />
-                </Link>
-              </Tooltip>
+              <Link mr={1} href="https://github.com/susumuota/deeplkey" target="_blank" rel="noreferrer noopener">
+                <img src="icons/github32.png" />
+              </Link>
+              <Link href="https://chrome.google.com/webstore/detail/deeplkey-deepl-keyboard-s/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
+                <ChromeWebStoreIcon />
+              </Link>
             </Box>
           </Box>
         </Paper>
