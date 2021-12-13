@@ -25,10 +25,11 @@ import {
 } from 'react';
 import {
   RecoilRoot,
+  RecoilState,
   atom,
   useRecoilState,
   useRecoilValue,
-  useSetRecoilState
+  useSetRecoilState,
 } from 'recoil';
 import {
   Alert,
@@ -46,6 +47,7 @@ import {
   Toolbar,
   Tooltip,
   createTheme,
+  Typography,
 } from '@mui/material'
 
 import {getConfig, setConfig} from './config';
@@ -95,6 +97,33 @@ const splitToPairs = (source: string, translation: string): PairType[] => {
     .map(i => [ss[i] || '', ts[i] || ''])
     .filter(([s, t]) => (s && s.trim()) || (t && t.trim()))
     .map(([s, t], i) => ({id: i, source: s || '', translation: t || ''}));
+};
+
+// https://stackoverflow.com/a/56989122
+const useConfig = <T,>(recoilState: RecoilState<T>, configName: string): void => {
+  const [state, setState] = useRecoilState(recoilState);
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      const config = await getConfig();
+      setState(config[configName]);
+    };
+    loadConfig();
+  }, []);
+
+  useEffect(() => {
+    setConfig({[configName]: state});
+  }, [state]);
+};
+
+const useToggle = (recoilState: RecoilState<boolean>): () => void => {
+  const setState = useSetRecoilState(recoilState);
+
+  const toggle = useCallback(() => {
+    setState((prev: boolean) => !prev);
+  }, []);
+
+  return toggle;
 };
 
 const Pair = ({source, translation}: {source: string, translation: string}) => {
@@ -175,22 +204,8 @@ const DeleteButton = () => {
 };
 
 const DarkThemeButton = () => {
-  const [isDarkTheme, setDarkTheme] = useRecoilState(isDarkThemeState);
-
-  const toggleDarkTheme = useCallback(() => {
-    setDarkTheme((prev: boolean) => {
-      setConfig({isDarkTheme: !prev});
-      return !prev;
-    });
-  }, []);
-
-  useEffect(() => {
-    const loadConfig = async () => {
-      const config = await getConfig();
-      setDarkTheme(config.isDarkTheme);
-    };
-    loadConfig();
-  }, []);
+  const isDarkTheme = useRecoilValue(isDarkThemeState);
+  const toggleDarkTheme = useToggle(isDarkThemeState);
 
   return (
     <SmallIconButton
@@ -202,22 +217,8 @@ const DarkThemeButton = () => {
 };
 
 const ShowSourceButton = () => {
-  const [isShowSource, setShowSource] = useRecoilState(isShowSourceState);
-
-  const toggleShowSource = useCallback(() => {
-    setShowSource((prev: boolean) => {
-      setConfig({isShowSource: !prev});
-      return !prev;
-    });
-  }, []);
-
-  useEffect(() => {
-    const loadConfig = async () => {
-      const config = await getConfig();
-      setShowSource(config.isShowSource);
-    };
-    loadConfig();
-  }, []);
+  const isShowSource = useRecoilValue(isShowSourceState);
+  const toggleShowSource = useToggle(isShowSourceState);
 
   return (
     <SmallIconButton
@@ -273,6 +274,10 @@ const SuccessSnackbar = () => {
 };
 
 const App = () => {
+  useConfig<boolean>(isDarkThemeState, 'isDarkTheme');
+  useConfig<boolean>(isShowSourceState, 'isShowSource');
+  useConfig<ItemType[]>(itemsState, 'items');
+
   const isDarkTheme = useRecoilValue(isDarkThemeState);
   const [isProgress, setProgress] = useRecoilState(isProgressState);
   const setSuccess = useSetRecoilState(isSuccessState);
@@ -283,11 +288,7 @@ const App = () => {
       const pairs = splitToPairs(request.source, request.translation);
       const id = new Date().getTime();
       const item = {id: id, pairs: pairs};
-      setItems(prev => {
-        const newItems = [...prev, item];
-        setConfig({items: newItems});
-        return newItems;
-      });
+      setItems(prev => [...prev, item]);
       setProgress(false);
       setSuccess(true);
       sendResponse({message: 'translation.tsx: setTranslation: done'});
@@ -300,11 +301,6 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const loadConfig = async () => {
-      const config = await getConfig();
-      setItems(config.items);
-    };
-    loadConfig();
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, []);
@@ -314,7 +310,7 @@ const App = () => {
       mode: 'light',
       primary: {
         main: 'rgba(21, 183, 185, 1.0)',
-        contrastText: 'rgba(255, 255, 255, 0.87)',
+        contrastText: 'rgba(255, 255, 255, 1.0)',
       },
       text: {
         secondary: 'rgba(23, 78, 166, 1.0)'
@@ -336,7 +332,7 @@ const App = () => {
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar variant="dense">
-          <Box flexGrow={1}></Box>
+          <Typography sx={{ml: 1, flexGrow: 1}}>DeepLKey</Typography>
           <CopyButton />
           <DeleteButton />
           <ShowSourceButton />
