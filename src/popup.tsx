@@ -40,6 +40,7 @@ import {
   ThemeProvider,
   Toolbar,
   Tooltip,
+  Typography,
   createTheme,
 } from '@mui/material'
 
@@ -106,7 +107,7 @@ const SplitSentenceCheckbox = ({initialIsSplit}: {initialIsSplit: boolean}) => {
   }, []);
 
   return (
-    <Tooltip title={chrome.i18n.getMessage('split_tooltip')}>
+    <Tooltip title={chrome.i18n.getMessage('split_description')}>
       <FormGroup>
         <FormControlLabel control={<Checkbox checked={isSplit} onChange={handleChange} />} label={chrome.i18n.getMessage('split_label')} />
       </FormGroup>
@@ -119,6 +120,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
     palette: {
       primary: {
         main: 'rgba(21, 183, 185, 1.0)',
+        contrastText: 'rgba(255, 255, 255, 1.0)',
       },
     },
   }), []);
@@ -128,9 +130,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar>
-          <Box mt={1.5}>
-            <img src="icons/deeplkey.png" height="32" />
-          </Box>
+          <Typography variant="h4" sx={{ml: 1, color: 'primary.contrastText', fontFamily: '"Passion One", Roboto, sans-serif'}}>DeepLKey</Typography>
         </Toolbar>
       </AppBar>
       <Container fixed>

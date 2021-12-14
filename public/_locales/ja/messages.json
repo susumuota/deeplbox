@@ -23,41 +23,61 @@
     "message": "句点で分割",
     "description": "Splits on punctuation."
   },
-  "split_tooltip": {
+  "split_description": {
     "message": "ピリオド等の句点で分割すると、 PDF などの改行を含まない長いテキストの読みやすさが向上するかもしれません。",
-    "description": "Split option tooltip."
+    "description": "Split option description."
   },
-  "copy_all_icon_tooltip": {
+  "settings_icon_label": {
+    "message": "設定",
+    "description": "Settings icon label."
+  },
+  "copy_all_icon_label": {
     "message": "全てコピー",
-    "description": "Copy all icon tooltip."
+    "description": "Copy all icon label."
   },
-  "copy_icon_tooltip": {
+  "copy_icon_label": {
     "message": "コピー",
-    "description": "Copy icon tooltip."
+    "description": "Copy icon label."
   },
-  "delete_all_icon_tooltip": {
+  "delete_all_icon_label": {
     "message": "全て削除",
-    "description": "Delete all icon tooltip."
+    "description": "Delete all icon label."
   },
-  "delete_icon_tooltip": {
+  "delete_icon_label": {
     "message": "削除",
-    "description": "Delete icon tooltip."
+    "description": "Delete icon label."
   },
-  "show_source_icon_tooltip": {
+  "filter_text": {
+    "message": "検索...",
+    "description": "Filter text."
+  },
+  "close_settings_text": {
+    "message": "設定を閉じる",
+    "description": "Close settings text."
+  },
+  "show_source_text": {
     "message": "原文を表示",
-    "description": "Show source text icon tooltip."
+    "description": "Show source text."
   },
-  "hide_source_icon_tooltip": {
+  "hide_source_text": {
     "message": "原文を非表示",
-    "description": "Hide source text icon tooltip."
+    "description": "Hide source text."
   },
-  "light_theme_icon_tooltip": {
+  "light_theme_text": {
     "message": "ライトモードに変更",
-    "description": "Light theme icon tooltip."
+    "description": "Light theme text."
   },
-  "dark_theme_icon_tooltip": {
+  "dark_theme_text": {
     "message": "ダークモードに変更",
-    "description": "Dark theme icon tooltip."
+    "description": "Dark theme text."
+  },
+  "oldest_to_newest_text": {
+    "message": "古いものから新しい順に",
+    "description": "Oldest to newest text."
+  },
+  "newest_to_oldest_text": {
+    "message": "新しいものから古い順に",
+    "description": "Newest to oldest text."
   },
   "progress_snackbar_alert": {
     "message": "翻訳中...",
