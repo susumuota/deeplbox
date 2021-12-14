@@ -16,6 +16,43 @@
 
 'use strict';
 
+export type PairType = {
+  id: number,
+  source: string,
+  translation: string,
+};
+
+export type ItemType = {
+  id: number,
+  pairs: PairType[],
+};
+
+type ConfigType = {
+  sourceLang?: string,
+  targetLang?: string,
+  urlBase?: string,
+  deepLTabParams?: {
+    createTab: chrome.tabs.CreateProperties, // MUST NOT be null
+    createWindow: chrome.windows.CreateData | null,
+    updateTab: chrome.tabs.UpdateProperties, // MUST NOT be null
+    updateWindow: chrome.windows.UpdateInfo | null,
+  },
+  translationTabParams?: {
+    createTab: chrome.tabs.CreateProperties | null,
+    createWindow: chrome.windows.CreateData | null,
+    updateTab: chrome.tabs.UpdateProperties | null,
+    updateWindow: chrome.windows.UpdateInfo | null,
+  },
+  isSplit?: boolean,
+  translationHTML?: string,
+  isDarkTheme?: boolean,
+  isShowSource?: boolean,
+  isReverse?: boolean,
+  items?: ItemType[],
+  deepLTabId?: number,
+  translationTabId?: number,
+};
+
 // deep freeze object
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#What_is_shallow_freeze
 // https://www.30secondsofcode.org/blog/s/javascript-deep-freeze-object
@@ -43,7 +80,8 @@ const deepFreeze = (object: any): any => {
 // config.translationTabParams.createWindow.type = "normal" // for example
 // setConfig({translationTabParams: config.translationTabParams})
 // await getConfig()
-export const DEFAULT_CONFIG: Object = deepFreeze({
+
+export const DEFAULT_CONFIG: ConfigType = deepFreeze({
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
@@ -90,6 +128,9 @@ export const DEFAULT_CONFIG: Object = deepFreeze({
   // show source text on translation.html
   isShowSource: false,
 
+  // reserve items
+  isReverse: false,
+
   // items on translation.html
   items: [],
 
@@ -101,7 +142,7 @@ export const DEFAULT_CONFIG: Object = deepFreeze({
 
 // set config value
 // setConfig({targetLang: 'ja'})
-export const setConfig = (config: Object): Promise<void> => {
+export const setConfig = (config: ConfigType): Promise<void> => {
   return chrome.storage.local.set(config);
 }
 
@@ -113,7 +154,7 @@ export const setConfig = (config: Object): Promise<void> => {
 //
 // to see only custom config
 // await getConfig(null)
-export const getConfig = (defaultConfig: Object = DEFAULT_CONFIG): Promise<any> => {
+export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG): Promise<any> => {
   return new Promise(resolve => {
     return chrome.storage.local.get(defaultConfig, resolve);
   });

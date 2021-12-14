@@ -23,41 +23,61 @@
     "message": "Splits on punctuation",
     "description": "Splits on punctuation."
   },
-  "split_tooltip": {
+  "split_description": {
     "message": "This option may improve the readability of long text without newlines, such as PDF.",
-    "description": "Split option tooltip."
+    "description": "Split option description."
   },
-  "copy_all_icon_tooltip": {
+  "settings_icon_label": {
+    "message": "Settings",
+    "description": "Settings icon label."
+  },
+  "copy_all_icon_label": {
     "message": "Copy All",
-    "description": "Copy all icon tooltip."
+    "description": "Copy all icon label."
   },
-  "copy_icon_tooltip": {
+  "copy_icon_label": {
     "message": "Copy",
-    "description": "Copy icon tooltip."
+    "description": "Copy icon label."
   },
-  "delete_all_icon_tooltip": {
+  "delete_all_icon_label": {
     "message": "Delete All",
-    "description": "Delete all icon tooltip."
+    "description": "Delete all icon label."
   },
-  "delete_icon_tooltip": {
+  "delete_icon_label": {
     "message": "Delete",
-    "description": "Delete icon tooltip."
+    "description": "Delete icon label."
   },
-  "show_source_icon_tooltip": {
+  "filter_text": {
+    "message": "Search",
+    "description": "Filter text."
+  },
+  "close_settings_text": {
+    "message": "Close Settings",
+    "description": "Close settings text."
+  },
+  "show_source_text": {
     "message": "Show Source Text",
-    "description": "Show source text icon tooltip."
+    "description": "Show source text."
   },
-  "hide_source_icon_tooltip": {
+  "hide_source_text": {
     "message": "Hide Source Text",
-    "description": "Hide source text icon tooltip."
+    "description": "Hide source text."
   },
-  "light_theme_icon_tooltip": {
+  "light_theme_text": {
     "message": "To Light Mode",
-    "description": "Light theme icon tooltip."
+    "description": "Light theme text."
   },
-  "dark_theme_icon_tooltip": {
+  "dark_theme_text": {
     "message": "To Dark Mode",
-    "description": "Dark theme icon tooltip."
+    "description": "Dark theme text."
+  },
+  "oldest_to_newest_text": {
+    "message": "Oldest To Newest",
+    "description": "Oldest to newest text."
+  },
+  "newest_to_oldest_text": {
+    "message": "Newest To Oldest",
+    "description": "Newest to oldest text."
   },
   "progress_snackbar_alert": {
     "message": "Translating...",

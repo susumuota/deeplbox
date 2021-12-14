@@ -1,3 +1,4 @@
+
 // -*- coding: utf-8 -*-
 
 // Copyright 2021 Susumu OTA
@@ -27,6 +28,7 @@ import {
   RecoilRoot,
   RecoilState,
   atom,
+  selector,
   useRecoilState,
   useRecoilValue,
   useSetRecoilState,
@@ -38,54 +40,91 @@ import {
   CircularProgress,
   Container,
   CssBaseline,
+  Divider,
+  Drawer,
   Icon,
   IconButton,
+  InputBase,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   Paper,
   Skeleton,
   Snackbar,
   ThemeProvider,
   Toolbar,
   Tooltip,
-  createTheme,
   Typography,
-} from '@mui/material'
+  createTheme,
+} from '@mui/material';
 
-import {getConfig, setConfig} from './config';
+import {PairType, ItemType, getConfig, setConfig} from './config';
 
-type PairType = {
-  id: number,
-  source: string,
-  translation: string,
-}
-
-type ItemType = {
-  id: number,
-  pairs: PairType[],
-}
-
-const isDarkThemeState = atom({
+const isDarkThemeState = atom<boolean>({
   key: 'isDarkThemeState',
   default: false,
 });
 
-const isShowSourceState = atom({
+const isShowSourceState = atom<boolean>({
   key: 'isShowSourceState',
   default: false,
 });
 
-const isProgressState = atom({
+const isReverseState = atom<boolean>({
+  key: 'isReverseState',
+  default: true,
+});
+
+const isDrawerState = atom<boolean>({
+  key: 'isDrawerState',
+  default: false,
+});
+
+const isProgressState = atom<boolean>({
   key: 'isProgressState',
   default: true, // not false!!!
 });
 
-const isSuccessState = atom({
+const isSuccessState = atom<boolean>({
   key: 'isSuccessState',
   default: false,
 });
 
-const itemsState = atom({
+const itemsState = atom<ItemType[]>({
   key: 'itemsState',
-  default: [] as ItemType[],
+  default: [],
+});
+
+const filterKeywordState = atom<string>({
+  key: 'filterKeywordState',
+  default: '',
+});
+
+const sortedItemsState = selector<ItemType[]>({
+  key: 'sortedItemsState',
+  get: ({get}) => {
+    const isReverse = get(isReverseState);
+    const items = get(itemsState);
+    return isReverse ? [...items].reverse() : items;
+  },
+});
+
+const filteredItemsState = selector<ItemType[]>({
+  key: 'filteredItemsState',
+  get: ({get}) => {
+    const filterKeyword = get(filterKeywordState);
+    const sortedItems = get(sortedItemsState);
+    if (!filterKeyword) return sortedItems;
+    const isShowSource = get(isShowSourceState);
+    const pattern = new RegExp(filterKeyword, 'i');
+    return sortedItems.filter(item => {
+      const hit = item.pairs.filter(p => {
+        return -1 != p.translation.search(pattern) || (isShowSource && -1 != p.source.search(pattern));
+      });
+      return hit.length > 0;
+    });
+  },
 });
 
 const splitToPairs = (source: string, translation: string): PairType[] => {
@@ -120,7 +159,7 @@ const useToggle = (recoilState: RecoilState<boolean>): () => void => {
   const setState = useSetRecoilState(recoilState);
 
   const toggle = useCallback(() => {
-    setState((prev: boolean) => !prev);
+    setState((prev) => !prev);
   }, []);
 
   return toggle;
@@ -128,6 +167,7 @@ const useToggle = (recoilState: RecoilState<boolean>): () => void => {
 
 const Pair = ({source, translation}: {source: string, translation: string}) => {
   const isShowSource = useRecoilValue(isShowSourceState);
+  const isDarkTheme = useRecoilValue(isDarkThemeState);
 
   return (
     <Box mb={1}>
@@ -135,7 +175,7 @@ const Pair = ({source, translation}: {source: string, translation: string}) => {
         {translation}
       </Box>
       {isShowSource ?
-        <Box sx={{color: 'text.secondary', opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
+        <Box sx={{color: isDarkTheme ? 'primary.main' : 'info.dark', opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
           {source}
         </Box>
         : ''}
@@ -159,12 +199,12 @@ const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
   }, [items, id]);
 
   return (
-    <Paper sx={{p: 2, mt: 3, mb: 3}} elevation={6}>
+    <Paper sx={{p: 2, mt: 3, mb: 3, position: 'relative'}} elevation={6}>
       {pairs.map((pair: PairType) => <Pair key={pair.id} source={pair.source} translation={pair.translation} />)}
-      <Box display="flex">
+      <Box display="flex" position="absolute" right={10} bottom={10} zIndex='tooltip' sx={{opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
         <Box flexGrow={1}></Box>
-        <SmallIconButton title={chrome.i18n.getMessage('copy_icon_tooltip')} onClick={copyItem} iconName="copy_all" />
-        <SmallIconButton title={chrome.i18n.getMessage('delete_icon_tooltip')} onClick={deleteItem} iconName="delete" />
+        <SmallIconButton title={chrome.i18n.getMessage('copy_icon_label')} onClick={copyItem} iconName="copy_all" />
+        <SmallIconButton title={chrome.i18n.getMessage('delete_icon_label')} onClick={deleteItem} iconName="delete" />
       </Box>
     </Paper>
   );
@@ -180,52 +220,85 @@ const SmallIconButton = ({title, onClick, iconName}: {title: string, onClick: ()
   );
 };
 
-const CopyButton = () => {
+const SettingsButton = () => {
+  const toggleDrawer = useToggle(isDrawerState);
+
+  return <SmallIconButton title={chrome.i18n.getMessage('settings_icon_label')} onClick={toggleDrawer} iconName="menu" />
+};
+
+const CopyAllButton = () => {
   const isShowSource = useRecoilValue(isShowSourceState);
-  const items = useRecoilValue(itemsState);
+  const sortedItems = useRecoilValue(sortedItemsState);
 
   const copyItems = useCallback(() => {
     const toString = (pair: PairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
-    const text = items.map((item: ItemType) => item.pairs.map((pair: PairType) => toString(pair)).join('\n')).join('\n\n');
+    const text = sortedItems.map((item: ItemType) => item.pairs.map((pair: PairType) => toString(pair)).join('\n')).join('\n\n');
     navigator.clipboard.writeText(text);
-  }, [isShowSource, items]);
+  }, [isShowSource, sortedItems]);
 
-  return <SmallIconButton title={chrome.i18n.getMessage('copy_all_icon_tooltip')} onClick={copyItems} iconName="copy_all" />;
+  return <SmallIconButton title={chrome.i18n.getMessage('copy_all_icon_label')} onClick={copyItems} iconName="copy_all" />;
 };
 
-const DeleteButton = () => {
+const DeleteAllButton = () => {
   const setItems = useSetRecoilState(itemsState);
 
   const deleteItems = useCallback(() => {
     setItems([] as ItemType[]);
   }, []);
 
-  return <SmallIconButton title={chrome.i18n.getMessage('delete_all_icon_tooltip')} onClick={deleteItems} iconName="delete" />
+  return <SmallIconButton title={chrome.i18n.getMessage('delete_all_icon_label')} onClick={deleteItems} iconName="delete" />
 };
 
-const DarkThemeButton = () => {
-  const isDarkTheme = useRecoilValue(isDarkThemeState);
-  const toggleDarkTheme = useToggle(isDarkThemeState);
-
-  return (
-    <SmallIconButton
-      title={isDarkTheme ? chrome.i18n.getMessage('light_theme_icon_tooltip') : chrome.i18n.getMessage('dark_theme_icon_tooltip')}
-      iconName={isDarkTheme ? 'mode_night' : 'light_mode'}
-      onClick={toggleDarkTheme}
-    />
-  );
-};
-
-const ShowSourceButton = () => {
+const TemporaryDrawer = () => {
+  const isDrawer = useRecoilValue(isDrawerState);
+  const toggleDrawer = useToggle(isDrawerState);
   const isShowSource = useRecoilValue(isShowSourceState);
   const toggleShowSource = useToggle(isShowSourceState);
+  const isDarkTheme = useRecoilValue(isDarkThemeState);
+  const toggleDarkTheme = useToggle(isDarkThemeState);
+  const isReverse = useRecoilValue(isReverseState);
+  const toggleReverse = useToggle(isReverseState);
 
   return (
-    <SmallIconButton
-      title={isShowSource ? chrome.i18n.getMessage('hide_source_icon_tooltip') : chrome.i18n.getMessage('show_source_icon_tooltip')}
-      iconName={isShowSource ? 'check_box' : 'check_box_outline_blank'}
-      onClick={toggleShowSource}
-    />
+    <Drawer open={isDrawer} onClose={toggleDrawer}>
+      <Box width={300}>
+        <List>
+          <ListItem button onClick={toggleDrawer}>
+            <ListItemIcon>
+              <Icon fontSize="small">close</Icon>
+            </ListItemIcon>
+            <ListItemText>
+              {chrome.i18n.getMessage('close_settings_text')}
+            </ListItemText>
+          </ListItem>
+          <Divider />
+          <ListItem button onClick={toggleShowSource}>
+            <ListItemIcon>
+              <Icon fontSize="small">{isShowSource ? 'visibility' : 'visibility_off'}</Icon>
+            </ListItemIcon>
+            <ListItemText>
+              {isShowSource ? chrome.i18n.getMessage('hide_source_text') : chrome.i18n.getMessage('show_source_text')}
+            </ListItemText>
+          </ListItem>
+          <ListItem button onClick={toggleReverse}>
+            <ListItemIcon>
+              <Icon fontSize="small">{isReverse ? 'arrow_upward' : 'arrow_downward'}</Icon>
+            </ListItemIcon>
+            <ListItemText>
+              {isReverse ? chrome.i18n.getMessage('newest_to_oldest_text') : chrome.i18n.getMessage('oldest_to_newest_text')}
+            </ListItemText>
+          </ListItem>
+          <ListItem button onClick={toggleDarkTheme}>
+            <ListItemIcon>
+              <Icon fontSize="small">{isDarkTheme ? 'mode_night' : 'light_mode'}</Icon>
+            </ListItemIcon>
+            <ListItemText>
+              {isDarkTheme ? chrome.i18n.getMessage('light_theme_text') : chrome.i18n.getMessage('dark_theme_text')}
+            </ListItemText>
+          </ListItem>
+        </List>
+      </Box>
+    </Drawer>
   );
 };
 
@@ -253,6 +326,7 @@ const ProgressSnackbar = () => {
 
 const SuccessSnackbar = () => {
   const [isSuccess, setSuccess] = useRecoilState(isSuccessState);
+  const isReverse = useRecoilValue(isReverseState);
 
   const handleCloseSuccess = useCallback(() => {
     setSuccess(false);
@@ -267,28 +341,55 @@ const SuccessSnackbar = () => {
     >
       <Alert severity="success">
         {chrome.i18n.getMessage('success_snackbar_alert')}
-        <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">arrow_downward</Icon>
+        <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">{isReverse ? 'arrow_downward' : 'arrow_upward'}</Icon>
       </Alert>
     </Snackbar>
+  );
+};
+
+const SearchBar = () => {
+  const setFilterKeyword = useSetRecoilState(filterKeywordState);
+
+  const handleChange = useCallback(({target: {value}}) => {
+    setFilterKeyword(value as string);
+  }, []);
+
+  const sx = {
+    ml: 2, mr: 2, pl: 1, pr: 1,
+    display: 'flex', alignItems: 'center', width: 200,
+    background: 'rgba(255, 255, 255, 0.1)',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.2)'
+    },
+  };
+
+  return (
+    <Paper color="inherit" elevation={2} sx={sx}>
+      <Icon fontSize="small" sx={{color: 'rgba(255, 255, 255, 0.85)'}}>search</Icon>
+      <InputBase onChange={handleChange} placeholder={chrome.i18n.getMessage('filter_text')} sx={{ml: 1, color: 'rgba(255, 255, 255, 1.0)'}} />
+    </Paper>
   );
 };
 
 const App = () => {
   useConfig<boolean>(isDarkThemeState, 'isDarkTheme');
   useConfig<boolean>(isShowSourceState, 'isShowSource');
+  useConfig<boolean>(isReverseState, 'isReverse');
   useConfig<ItemType[]>(itemsState, 'items');
 
   const isDarkTheme = useRecoilValue(isDarkThemeState);
-  const [isProgress, setProgress] = useRecoilState(isProgressState);
   const setSuccess = useSetRecoilState(isSuccessState);
-  const [items, setItems] = useRecoilState(itemsState);
+  const isReverse = useRecoilValue(isReverseState);
+  const [isProgress, setProgress] = useRecoilState(isProgressState);
+  const setItems = useSetRecoilState(itemsState);
+  const filteredItems = useRecoilValue(filteredItemsState);
 
   const handleMessage = useCallback((request, _, sendResponse) => {
     if (request.message === 'setTranslation') {
       const pairs = splitToPairs(request.source, request.translation);
       const id = new Date().getTime();
       const item = {id: id, pairs: pairs};
-      setItems(prev => [...prev, item]);
+      setItems(prev => [item, ...prev]);
       setProgress(false);
       setSuccess(true);
       sendResponse({message: 'translation.tsx: setTranslation: done'});
@@ -312,19 +413,13 @@ const App = () => {
         main: 'rgba(21, 183, 185, 1.0)',
         contrastText: 'rgba(255, 255, 255, 1.0)',
       },
-      text: {
-        secondary: 'rgba(23, 78, 166, 1.0)'
-      }
-    }
+    },
   }), []);
 
   const darkTheme = useMemo(() => createTheme({
     palette: {
       mode: 'dark',
-      text: {
-        secondary: 'rgba(155, 226, 255, 1.0)'
-      }
-    }
+    },
   }), []);
 
   return (
@@ -332,17 +427,19 @@ const App = () => {
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar variant="dense">
-          <Typography sx={{ml: 1, flexGrow: 1}}>DeepLKey</Typography>
-          <CopyButton />
-          <DeleteButton />
-          <ShowSourceButton />
-          <DarkThemeButton />
+          <SettingsButton />
+          <Typography variant="h5" sx={{ml: 1, flexGrow: 1, fontFamily: '"Passion One", "Roboto", sans-serif'}}>DeepLKey</Typography>
+          <SearchBar />
+          <CopyAllButton />
+          <DeleteAllButton />
         </Toolbar>
       </AppBar>
       <Container>
-        {items.map((item: ItemType) => <Item key={item.id} id={item.id} pairs={item.pairs} />)}
-        {isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={200} /> : ''}
+        {!isReverse && isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
+        {filteredItems.map((item: ItemType) => <Item key={item.id} id={item.id} pairs={item.pairs} />)}
+        {isReverse && isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
       </Container>
+      <TemporaryDrawer />
       <ProgressSnackbar />
       <SuccessSnackbar />
     </ThemeProvider>

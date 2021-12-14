@@ -68,7 +68,7 @@ const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab> => {
   const escaped = splitted.replace(/([\/\|\\])/g, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, config.deepLTabId, config.deepLTabParams);
-  setConfig({deepLTabId: tab.id}); // remember tab and reuse next time
+  setConfig({deepLTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE}); // remember tab and reuse next time
   return tab;
 }
 
@@ -76,7 +76,7 @@ const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab> => {
 const openTranslationTab = async (): Promise<chrome.tabs.Tab> => {
   const config = await getConfig();
   const tab = await openTab(config.translationHTML, config.translationTabId, config.translationTabParams);
-  setConfig({translationTabId: tab.id}); // remember tab and reuse next time
+  setConfig({translationTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE}); // remember tab and reuse next time
   return tab;
 }
 
@@ -112,12 +112,14 @@ const splitSentences = (text: string): string => {
 const translateText = async (source: string) => {
   await openDeepLTab(source);
   const translationTab = await openTranslationTab();
-  chrome.tabs.sendMessage(translationTab.id as number, {
-    message: 'startTranslation'
-  }, (response) => {
-    console.debug(chrome.runtime.lastError ? chrome.runtime.lastError.message :
-                  `background.ts: got message: ${response.message}`);
-  });
+  if (translationTab.id) {
+    chrome.tabs.sendMessage(translationTab.id, {
+      message: 'startTranslation'
+    }, (response) => {
+      console.debug(chrome.runtime.lastError ? chrome.runtime.lastError.message :
+                    `background.ts: got message: ${response.message}`);
+    });
+  }
   // now, deepl.ts will send message to translation.tsx (and background.ts)
 }
 
