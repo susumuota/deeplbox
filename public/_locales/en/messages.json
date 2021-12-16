@@ -27,6 +27,34 @@
     "message": "This option may improve the readability of long text without newlines, such as PDF.",
     "description": "Split option description."
   },
+  "cancel_text": {
+    "message": "Cancel",
+    "description": "Cancel text."
+  },
+  "confirm_format": {
+    "message": "Are you sure you want to $ACTION$?",
+    "description": "Confirm dialog text format.",
+    "placeholders": {
+      "action": {
+        "content": "$1",
+        "example": "Delete All"
+      }
+    }
+  },
+  "filter_stats_format": {
+    "message": "$FILTERED$ out of $TOTAL$ items",
+    "description": "Filter stats text format.",
+    "placeholders": {
+      "filtered": {
+        "content": "$1",
+        "example": "1"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
   "settings_icon_label": {
     "message": "Settings",
     "description": "Settings icon label."
@@ -48,11 +76,11 @@
     "description": "Delete icon label."
   },
   "filter_text": {
-    "message": "Search",
+    "message": "Search...",
     "description": "Filter text."
   },
   "close_settings_text": {
-    "message": "Close Settings",
+    "message": "Close",
     "description": "Close settings text."
   },
   "show_source_text": {

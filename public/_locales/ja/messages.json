@@ -27,6 +27,34 @@
     "message": "ピリオド等の句点で分割すると、 PDF などの改行を含まない長いテキストの読みやすさが向上するかもしれません。",
     "description": "Split option description."
   },
+  "cancel_text": {
+    "message": "キャンセル",
+    "description": "Cancel text."
+  },
+  "confirm_format": {
+    "message": "本当に$ACTION$しますか?",
+    "description": "Confirm dialog text format.",
+    "placeholders": {
+      "action": {
+        "content": "$1",
+        "example": "全て削除"
+      }
+    }
+  },
+  "filter_stats_format": {
+    "message": "全 $TOTAL$ 件中 $FILTERED$ 件",
+    "description": "Filter stats text format.",
+    "placeholders": {
+      "filtered": {
+        "content": "$1",
+        "example": "1"
+      },
+      "total": {
+        "content": "$2",
+        "example": "10"
+      }
+    }
+  },
   "settings_icon_label": {
     "message": "設定",
     "description": "Settings icon label."
@@ -52,7 +80,7 @@
     "description": "Filter text."
   },
   "close_settings_text": {
-    "message": "設定を閉じる",
+    "message": "閉じる",
     "description": "Close settings text."
   },
   "show_source_text": {
