@@ -129,7 +129,7 @@ export const DEFAULT_CONFIG: ConfigType = deepFreeze({
   isShowSource: false,
 
   // reserve items
-  isReverse: false,
+  isReverse: true,
 
   // items on translation.html
   items: [],

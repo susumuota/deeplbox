@@ -130,7 +130,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar>
-          <Typography variant="h4" sx={{ml: 1, color: 'primary.contrastText', fontFamily: '"Passion One", Roboto, sans-serif'}}>DeepLKey</Typography>
+          <Typography variant="h4" sx={{m: 'auto', mt: 1.2, color: 'primary.contrastText', fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepLKey</Typography>
         </Toolbar>
       </AppBar>
       <Container fixed>
