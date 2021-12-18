@@ -1,6 +1,6 @@
 {
-  "name": "deeplkey",
-  "version": "3.3.3",
+  "name": "deeplbox",
+  "version": "3.4.0",
   "description": "A Google Chrome extension to open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "private": true,
   "scripts": {
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/susumuota/deeplkey.git"
+    "url": "git+https://github.com/susumuota/deeplbox.git"
   },
   "keywords": [],
   "author": "Susumu OTA",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/susumuota/deeplkey/issues"
+    "url": "https://github.com/susumuota/deeplbox/issues"
   },
-  "homepage": "https://github.com/susumuota/deeplkey#readme",
+  "homepage": "https://github.com/susumuota/deeplbox#readme",
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",

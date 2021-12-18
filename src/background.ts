@@ -16,12 +16,18 @@
 
 'use strict';
 
-import {getConfig, setConfig, deepCopy} from './config';
+import {getConfig, setConfig} from './config';
 
+type OpenTabParamsType = {
+  readonly createTab: chrome.tabs.CreateProperties | null,
+  readonly createWindow: chrome.windows.CreateData | null,
+  readonly updateTab: chrome.tabs.UpdateProperties | null,
+  readonly updateWindow: chrome.windows.UpdateInfo | null,
+};
 
 // create or update tab (and window)
 // this function is similar to window.open
-const openTab = async (url: string, tabId: number, params: {updateTab: Object | null, updateWindow: Object | null, createTab: Object | null, createWindow: Object | null}): Promise<chrome.tabs.Tab> => {
+const openTab = async (url: string, tabId: number, params: OpenTabParamsType) => {
   // tab already exists
   if (tabId !== chrome.tabs.TAB_ID_NONE) {
     try {
@@ -60,7 +66,7 @@ const openTab = async (url: string, tabId: number, params: {updateTab: Object | 
 }
 
 // open DeepL tab
-const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab> => {
+const openDeepLTab = async (sourceText: string) => {
   const config = await getConfig();
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
   // slash, pipe and backslash need to be escaped by backslash
@@ -73,7 +79,7 @@ const openDeepLTab = async (sourceText: string): Promise<chrome.tabs.Tab> => {
 }
 
 // open translation tab
-const openTranslationTab = async (): Promise<chrome.tabs.Tab> => {
+const openTranslationTab = async () => {
   const config = await getConfig();
   const tab = await openTab(config.translationHTML, config.translationTabId, config.translationTabParams);
   setConfig({translationTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE}); // remember tab and reuse next time
@@ -82,8 +88,8 @@ const openTranslationTab = async (): Promise<chrome.tabs.Tab> => {
 
 // get selection text by injection
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
-const getSelectionByInjection = (tab: chrome.tabs.Tab): Promise<string> => {
-  return new Promise((resolve, reject) => {
+const getSelectionByInjection = (tab: chrome.tabs.Tab) => {
+  return new Promise<string>((resolve, reject) => {
     chrome.scripting.executeScript({
       target: {tabId: tab.id || chrome.tabs.TAB_ID_NONE, allFrames: true},
       func: () => (window.getSelection() || '').toString()
@@ -100,7 +106,7 @@ const getSelectionByInjection = (tab: chrome.tabs.Tab): Promise<string> => {
 
 // insert 2 newlines between sentences
 // TODO: sophisticated way
-const splitSentences = (text: string): string => {
+const splitSentences = (text: string) => {
   if (!text) return text;
   const splitted = text.replace(/([\.\?\!]+)\s+/g, '$1\n\n');
   // TODO: more abbreviations
@@ -199,11 +205,16 @@ chrome.windows.onBoundsChanged.addListener(async (window) => {
     const translationTab = await chrome.tabs.get(config.translationTabId);
     const translationWindow = await chrome.windows.get(translationTab.windowId);
     if (window.id === translationWindow.id) {
-      const params = deepCopy(config.translationTabParams);
-      params.createWindow['left'] = window.left;
-      params.createWindow['top'] = window.top;
-      params.createWindow['width'] = window.width;
-      params.createWindow['height'] = window.height;
+      const params = {
+        ...config.translationTabParams,
+        createWindow: {
+          ...config.translationTabParams.createWindow,
+          left: window.left,
+          top: window.top,
+          width: window.width,
+          height: window.height,
+        },
+      };
       setConfig({translationTabParams: params});
     }
   } catch (err) {

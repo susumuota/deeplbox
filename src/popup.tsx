@@ -42,7 +42,7 @@ import {
   Tooltip,
   Typography,
   createTheme,
-} from '@mui/material'
+} from '@mui/material';
 
 import {getConfig, setConfig, SOURCE_LANG_LIST, TARGET_LANG_LIST} from './config';
 import {ChromeWebStoreIcon} from './ChromeWebStoreIcon';
@@ -130,7 +130,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar>
-          <Typography variant="h4" sx={{m: 'auto', mt: 1.2, color: 'primary.contrastText', fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepLKey</Typography>
+          <Typography variant="h4" sx={{m: 'auto', mt: 1.2, color: 'primary.contrastText', fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepL Box</Typography>
         </Toolbar>
       </AppBar>
       <Container fixed>
@@ -146,10 +146,10 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
               <SplitSentenceCheckbox initialIsSplit={initialIsSplit} />
             </Box>
             <Box mt={3}>
-              <Link mr={1} href="https://github.com/susumuota/deeplkey" target="_blank" rel="noreferrer noopener">
+              <Link mr={1} href="https://github.com/susumuota/deeplbox" target="_blank" rel="noreferrer noopener">
                 <img src="icons/github32.png" />
               </Link>
-              <Link href="https://chrome.google.com/webstore/detail/deeplkey-deepl-keyboard-s/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
+              <Link href="https://chrome.google.com/webstore/detail/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
                 <ChromeWebStoreIcon />
               </Link>
             </Box>

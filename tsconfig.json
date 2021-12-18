@@ -7,7 +7,7 @@
   "jsx": "react",
   ```
 
-  Then, enable all of the `Type Checking` options.
+  Also, enable all of the `Type Checking` options.
 */
 
 {
