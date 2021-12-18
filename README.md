@@ -4,7 +4,7 @@ A Google Chrome extension to manage DeepL translation history, e.g. save, indexi
 
 (Click on the image to open YouTube video)
 
-[![DeepL Box: translation history management](https://user-images.githubusercontent.com/1632335/145706991-cc6fd338-ed61-40c2-bf55-208a42f26f4e.gif)](https://www.youtube.com/watch?v=8mT0asEwVAU "DeepL Box: translation history management")
+[![DeepL Box: translation history management](https://user-images.githubusercontent.com/1632335/146652448-8f979bd3-34b8-42b9-8f9d-418a25a18e96.gif)](https://www.youtube.com/watch?v=4gBO-N23fTk "DeepL Box: translation history management")
 
 This extension provides the translation history management which saves all of the previous translations, shows index of the translations, compares the source and translation sentences one by one, searches by keyword, copies to clipboard and prepares keyboard shortcut `Command-b` (macOS) or `Alt-b` (other OS) to translate.
 
