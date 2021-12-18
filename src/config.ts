@@ -17,72 +17,46 @@
 'use strict';
 
 export type PairType = {
-  id: number,
-  source: string,
-  translation: string,
+  readonly id: number,
+  readonly source: string,
+  readonly translation: string,
 };
 
 export type ItemType = {
-  id: number,
-  pairs: PairType[],
+  readonly id: number,
+  readonly pairs: PairType[],
 };
 
-type ConfigType = {
-  sourceLang?: string,
-  targetLang?: string,
-  urlBase?: string,
-  deepLTabParams?: {
-    createTab: chrome.tabs.CreateProperties, // MUST NOT be null
-    createWindow: chrome.windows.CreateData | null,
-    updateTab: chrome.tabs.UpdateProperties, // MUST NOT be null
-    updateWindow: chrome.windows.UpdateInfo | null,
+export type ConfigType = {
+  readonly sourceLang?: string,
+  readonly targetLang?: string,
+  readonly urlBase?: string,
+  readonly deepLTabParams?: {
+    readonly createTab: chrome.tabs.CreateProperties, // MUST NOT be null
+    readonly createWindow: chrome.windows.CreateData | null,
+    readonly updateTab: chrome.tabs.UpdateProperties, // MUST NOT be null
+    readonly updateWindow: chrome.windows.UpdateInfo | null,
   },
-  translationTabParams?: {
-    createTab: chrome.tabs.CreateProperties | null,
-    createWindow: chrome.windows.CreateData | null,
-    updateTab: chrome.tabs.UpdateProperties | null,
-    updateWindow: chrome.windows.UpdateInfo | null,
+  readonly translationTabParams?: {
+    readonly createTab: chrome.tabs.CreateProperties | null,
+    readonly createWindow: chrome.windows.CreateData | null,
+    readonly updateTab: chrome.tabs.UpdateProperties | null,
+    readonly updateWindow: chrome.windows.UpdateInfo | null,
   },
-  isSplit?: boolean,
-  translationHTML?: string,
-  isDarkTheme?: boolean,
-  isShowSource?: boolean,
-  isReverse?: boolean,
-  items?: ItemType[],
-  deepLTabId?: number,
-  translationTabId?: number,
+  readonly isSplit?: boolean,
+  readonly translationHTML?: string,
+  readonly isDarkTheme?: boolean,
+  readonly isShowSource?: boolean,
+  readonly isReverse?: boolean,
+  readonly isAutoScroll?: boolean,
+  readonly items?: ItemType[],
+  readonly deepLTabId?: number,
+  readonly translationTabId?: number,
 };
-
-// deep freeze object
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#What_is_shallow_freeze
-// https://www.30secondsofcode.org/blog/s/javascript-deep-freeze-object
-const deepFreeze = (object: any): any => {
-  if (object === null) return null;
-  if (object === undefined) return undefined;
-  for (const name of Object.getOwnPropertyNames(object)) {
-    const value = object[name];
-    (typeof value === 'object' ? deepFreeze : Object.freeze)(value);
-  }
-  return Object.freeze(object);
-}
 
 // default config
-//
-// edit DEFAULT_CONFIG and reload extension
-// or call setConfig on DevTools console like the following
-//
-// setConfig({targetLang: 'ja'})
-//
-// if the value is an Object (not string or number), deepCopy(DEFAULT_CONFIG) would be convenient
-// e.g. the value of DEFAULT_CONFIG.translationTabParams is an Object, then
-//
-// const config = deepCopy(DEFAULT_CONFIG)
-// config.translationTabParams.createWindow.type = "normal" // for example
-// setConfig({translationTabParams: config.translationTabParams})
-// await getConfig()
-
-export const DEFAULT_CONFIG: ConfigType = deepFreeze({
-  // DeepL settings
+const DEFAULT_CONFIG: ConfigType = {
+    // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
   sourceLang: 'auto', // 'en',
@@ -129,7 +103,10 @@ export const DEFAULT_CONFIG: ConfigType = deepFreeze({
   isShowSource: false,
 
   // reserve items
-  isReverse: true,
+  isReverse: false,
+
+  // auto scroll when a new translation arrives
+  isAutoScroll: true,
 
   // items on translation.html
   items: [],
@@ -138,11 +115,11 @@ export const DEFAULT_CONFIG: ConfigType = deepFreeze({
   // DO NOT touch here
   deepLTabId: chrome.tabs.TAB_ID_NONE,
   translationTabId: chrome.tabs.TAB_ID_NONE,
-});
+};
 
 // set config value
 // setConfig({targetLang: 'ja'})
-export const setConfig = (config: ConfigType): Promise<void> => {
+export const setConfig = (config: ConfigType) => {
   return chrome.storage.local.set(config);
 }
 
@@ -154,67 +131,19 @@ export const setConfig = (config: ConfigType): Promise<void> => {
 //
 // to see only custom config
 // await getConfig(null)
-export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG): Promise<any> => {
-  return new Promise(resolve => {
+export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG) => {
+  return new Promise<any>(resolve => {
     return chrome.storage.local.get(defaultConfig, resolve);
   });
 }
 
 // clearConfig()
-export const clearConfig = (): Promise<void> => {
+export const clearConfig = () => {
   return chrome.storage.local.clear();
 }
 
-// deep copy object
-//
-// JSON.parse(JSON.stringify(object)) sounds enough but
-// it's slow and it can NOT copy some types like function, Map, etc. for example,
-//
-// JSON.stringify(() => {}) // undefined
-//
-// so it needs to be implemented by recursive function
-//
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures
-// https://developer.mozilla.org/en-US/docs/Glossary/Primitive
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
-// https://medium.com/@pmzubar/why-json-parse-json-stringify-is-a-bad-practice-to-clone-an-object-in-javascript-b28ac5e36521
-// https://www.30secondsofcode.org/js/s/deep-clone
-// https://gist.github.com/izy521/4d394dec28054d54684269d91b16cb8a
-export const deepCopy = (object: any): any => {
-  // there are 7 primitives
-  if (object === null || object === undefined) return object;
-  switch (object.constructor.name) {
-    // primitives
-    case 'String':
-    case 'Number':
-    case 'BigInt':
-    case 'Boolean':
-    case 'Symbol':
-      return object; // primitives are immutable, so no need to clone
-    // array-like
-    // TODO: confirm WeakMap and WeakSet are impossible to clone
-    case 'Array': return object.map(deepCopy);
-    case 'Map': return new Map(Array.from(object, deepCopy));
-    case 'Set': return new Set(Array.from(object, deepCopy));
-    // other classes
-    case 'Function': return object.bind({}); // TODO: what if function have properties
-    case 'RegExp': return new RegExp(object);
-    case 'Date': return new Date(object);
-    case 'Object':
-      const clone = Object.assign({}, object); // shallow copy
-      for (const name of Object.getOwnPropertyNames(object)) {
-        clone[name] = deepCopy(object[name]);
-      }
-      return clone;
-    // TODO: any other classes which are worth to support?
-    default: // unknown
-      throw Error(`Unsupported type: ${object.constructor}`);
-      // return object; TODO: not Error but just return object?
-  }
-}
-
 // https://www.deepl.com/docs-api/translating-text/
-export const SOURCE_LANG_LIST: string[] = [
+export const SOURCE_LANG_LIST = [
   'auto',
   'bg',
   'zh',
@@ -243,7 +172,7 @@ export const SOURCE_LANG_LIST: string[] = [
 ];
 
 // https://www.deepl.com/docs-api/translating-text/
-export const TARGET_LANG_LIST: string[] = [
+export const TARGET_LANG_LIST = [
   'auto',
   'bg',
   'zh',

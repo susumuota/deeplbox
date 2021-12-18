@@ -1,10 +1,10 @@
 {
   "extension_name": {
-    "message": "DeepLKey: DeepL Keyboard Shortcut",
+    "message": "DeepL Box: Translation history management",
     "description": "Extension name."
   },
   "extension_description": {
-    "message": "Open DeepL page and send selected text by keyboard shortcut or context menu.",
+    "message": "Saves all of the previous translations, shows index of the translations, compares the source and translation sentences one by one, searches by keyword, copies to clipboard and prepares keyboard shortcut to translate.",
     "description": "Extension description."
   },
   "open_command_description": {
@@ -79,10 +79,6 @@
     "message": "Search...",
     "description": "Filter text."
   },
-  "close_settings_text": {
-    "message": "Close",
-    "description": "Close settings text."
-  },
   "show_source_text": {
     "message": "Show Source Text",
     "description": "Show source text."
@@ -106,6 +102,14 @@
   "newest_to_oldest_text": {
     "message": "Newest To Oldest",
     "description": "Newest to oldest text."
+  },
+  "enable_auto_scroll_text": {
+    "message": "Enable Auto Scroll",
+    "description": "Enable scroll text."
+  },
+  "disable_auto_scroll_text": {
+    "message": "Disable Auto Scroll",
+    "description": "Disable scroll text."
   },
   "progress_snackbar_alert": {
     "message": "Translating...",

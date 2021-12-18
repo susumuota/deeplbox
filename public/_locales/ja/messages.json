@@ -1,14 +1,14 @@
 {
   "extension_name": {
-    "message": "DeepLKey: DeepL キーボードショートカット",
+    "message": "DeepL Box: 翻訳履歴管理",
     "description": "Extension name."
   },
   "extension_description": {
-    "message": "キーボードショートカットまたは右クリックメニューで、選択中のテキストを DeepL 翻訳ページに送ります。",
+    "message": "DeepL 翻訳した文を目次付きで保存、原文と訳文の比較、キーワード検索、クリップボードへコピー、キーボードショートカット等を提供します。",
     "description": "Extension description."
   },
   "open_command_description": {
-    "message": "DeepL 翻訳ページを開いて選択テキストを送る",
+    "message": "DeepL 翻訳",
     "description": "Keyboard shortcut description."
   },
   "source_language": {
@@ -79,33 +79,37 @@
     "message": "検索...",
     "description": "Filter text."
   },
-  "close_settings_text": {
-    "message": "閉じる",
-    "description": "Close settings text."
-  },
   "show_source_text": {
-    "message": "原文を表示",
+    "message": "原文を表示する",
     "description": "Show source text."
   },
   "hide_source_text": {
-    "message": "原文を非表示",
+    "message": "原文を表示しない",
     "description": "Hide source text."
   },
   "light_theme_text": {
-    "message": "ライトモードに変更",
+    "message": "ライトモードにする",
     "description": "Light theme text."
   },
   "dark_theme_text": {
-    "message": "ダークモードに変更",
+    "message": "ダークモードにする",
     "description": "Dark theme text."
   },
   "oldest_to_newest_text": {
-    "message": "古いものから新しい順に",
+    "message": "古いものから新しい順に表示",
     "description": "Oldest to newest text."
   },
   "newest_to_oldest_text": {
-    "message": "新しいものから古い順に",
+    "message": "新しいものから古い順に表示",
     "description": "Newest to oldest text."
+  },
+  "enable_auto_scroll_text": {
+    "message": "自動スクロールを有効にする",
+    "description": "Enable scroll text."
+  },
+  "disable_auto_scroll_text": {
+    "message": "自動スクロールを無効にする",
+    "description": "Disable scroll text."
   },
   "progress_snackbar_alert": {
     "message": "翻訳中...",

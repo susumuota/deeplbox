@@ -20,8 +20,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
+  RefObject,
+  createRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from 'react';
@@ -47,7 +50,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Divider,
   Drawer,
   Icon,
   IconButton,
@@ -83,8 +85,18 @@ const isReverseState = atom<boolean>({
   default: true,
 });
 
-const isDrawerState = atom<boolean>({
-  key: 'isDrawerState',
+const isAutoScrollState = atom<boolean>({
+  key: 'isAutoScrollState',
+  default: true,
+});
+
+const isSettingsState = atom<boolean>({
+  key: 'isSettingsState',
+  default: false,
+});
+
+const isMenuState = atom<boolean>({
+  key: 'isMenuState',
   default: false,
 });
 
@@ -143,7 +155,7 @@ const filteredStatsState = selector<string>({
   },
 });
 
-const splitToPairs = (source: string, translation: string): PairType[] => {
+const splitToPairs = (source: string, translation: string) => {
   const ss = source.split('\n');
   const ts = translation.split('\n');
   console.assert(ss.length === ts.length); // is this always true?
@@ -151,11 +163,11 @@ const splitToPairs = (source: string, translation: string): PairType[] => {
   return [...Array(Math.max(ss.length, ts.length)).keys()]
     .map(i => [ss[i] || '', ts[i] || ''])
     .filter(([s, t]) => (s && s.trim()) || (t && t.trim()))
-    .map(([s, t], i) => ({id: i, source: s || '', translation: t || ''}));
+    .map(([s, t], i) => ({id: i, source: s || '', translation: t || ''} as PairType));
 };
 
 // https://stackoverflow.com/a/56989122
-const useConfig = <T,>(recoilState: RecoilState<T>, configName: string): void => {
+const useConfig = <T,>(recoilState: RecoilState<T>, configName: string) => {
   const [state, setState] = useRecoilState(recoilState);
 
   useEffect(() => {
@@ -171,7 +183,7 @@ const useConfig = <T,>(recoilState: RecoilState<T>, configName: string): void =>
   }, [state]);
 };
 
-const useToggle = (recoilState: RecoilState<boolean>): () => void => {
+const useToggle = (recoilState: RecoilState<boolean>) => {
   const setState = useSetRecoilState(recoilState);
 
   const toggle = useCallback(() => {
@@ -233,6 +245,7 @@ const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
 
   const deleteItem = useCallback(() => {
     setItems(items.filter(item => item.id !== id));
+    // TODO: avoid auto scroll
   }, [items, id]);
 
   return (
@@ -248,9 +261,15 @@ const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
 };
 
 const SettingsButton = () => {
-  const toggleDrawer = useToggle(isDrawerState);
+  const toggleSettings = useToggle(isSettingsState);
 
-  return <SmallIconButton title={chrome.i18n.getMessage('settings_icon_label')} iconName="settings" onClick={toggleDrawer} />;
+  return <SmallIconButton title={chrome.i18n.getMessage('settings_icon_label')} iconName="settings" onClick={toggleSettings} />;
+};
+
+const MenuButton = () => {
+  const toggleMenu = useToggle(isMenuState);
+
+  return <SmallIconButton title={chrome.i18n.getMessage('settings_icon_label')} iconName="menu" onClick={toggleMenu} />;
 };
 
 const CopyAllButton = () => {
@@ -324,35 +343,31 @@ const DeleteAllButton = () => {
   );
 };
 
-const TemporaryDrawer = () => {
-  const isDrawer = useRecoilValue(isDrawerState);
-  const toggleDrawer = useToggle(isDrawerState);
+const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
+  const isSettings = useRecoilValue(isSettingsState);
+  const toggleSettings = useToggle(isSettingsState);
   const isShowSource = useRecoilValue(isShowSourceState);
   const toggleShowSource = useToggle(isShowSourceState);
   const isDarkTheme = useRecoilValue(isDarkThemeState);
   const toggleDarkTheme = useToggle(isDarkThemeState);
   const isReverse = useRecoilValue(isReverseState);
   const toggleReverse = useToggle(isReverseState);
+  const isAutoScroll = useRecoilValue(isAutoScrollState);
+  const toggleAutoScroll = useToggle(isAutoScrollState);
 
   return (
-    <Drawer anchor="right" open={isDrawer} onClose={toggleDrawer}>
+    <Drawer anchor="right" open={isSettings} onClose={toggleSettings}>
       <Box width={300}>
         <List>
-          <ListItem button onClick={toggleDrawer}>
-            <ListItemIcon>
-              <Icon fontSize="small">close</Icon>
-            </ListItemIcon>
-            <ListItemText>
-              {chrome.i18n.getMessage('close_settings_text')}
-            </ListItemText>
-          </ListItem>
-          <Divider />
+          <Box height={appBarHeight}></Box>
           <ListItem button onClick={toggleShowSource}>
             <ListItemIcon>
               <Icon fontSize="small">{isShowSource ? 'visibility' : 'visibility_off'}</Icon>
             </ListItemIcon>
             <ListItemText>
-              {isShowSource ? chrome.i18n.getMessage('hide_source_text') : chrome.i18n.getMessage('show_source_text')}
+              <Typography variant="body2" noWrap>
+                {isShowSource ? chrome.i18n.getMessage('hide_source_text') : chrome.i18n.getMessage('show_source_text')}
+              </Typography>
             </ListItemText>
           </ListItem>
           <ListItem button onClick={toggleReverse}>
@@ -360,7 +375,19 @@ const TemporaryDrawer = () => {
               <Icon fontSize="small">{isReverse ? 'arrow_upward' : 'arrow_downward'}</Icon>
             </ListItemIcon>
             <ListItemText>
-              {isReverse ? chrome.i18n.getMessage('oldest_to_newest_text') : chrome.i18n.getMessage('newest_to_oldest_text')}
+              <Typography variant="body2" noWrap>
+                {isReverse ? chrome.i18n.getMessage('oldest_to_newest_text') : chrome.i18n.getMessage('newest_to_oldest_text')}
+              </Typography>
+            </ListItemText>
+          </ListItem>
+          <ListItem button onClick={toggleAutoScroll}>
+            <ListItemIcon>
+              <Icon fontSize="small">{isAutoScroll ? 'sync' : 'block'}</Icon>
+            </ListItemIcon>
+            <ListItemText>
+              <Typography variant="body2" noWrap>
+                {isAutoScroll ? chrome.i18n.getMessage('disable_auto_scroll_text') : chrome.i18n.getMessage('enable_auto_scroll_text')}
+              </Typography>
             </ListItemText>
           </ListItem>
           <ListItem button onClick={toggleDarkTheme}>
@@ -368,9 +395,47 @@ const TemporaryDrawer = () => {
               <Icon fontSize="small">{isDarkTheme ? 'mode_night' : 'light_mode'}</Icon>
             </ListItemIcon>
             <ListItemText>
-              {isDarkTheme ? chrome.i18n.getMessage('light_theme_text') : chrome.i18n.getMessage('dark_theme_text')}
+              <Typography variant="body2" noWrap>
+                {isDarkTheme ? chrome.i18n.getMessage('light_theme_text') : chrome.i18n.getMessage('dark_theme_text')}
+              </Typography>
             </ListItemText>
           </ListItem>
+        </List>
+      </Box>
+    </Drawer>
+  );
+};
+
+const MenuDrawerListItem = (({item, refObject}: {item: ItemType, refObject: RefObject<HTMLDivElement>}) => {
+  const handleScroll = useCallback(() => {
+    refObject?.current?.scrollIntoView({block: 'start', inline: 'start', behavior: 'smooth'});
+  }, [refObject]);
+
+  const text = item.pairs?.[0]?.translation?.substring(0, 50); // limit for safety
+
+  return (
+    <ListItem button onClick={handleScroll}>
+      <ListItemIcon>
+        <Icon fontSize="small">text_snippet</Icon>
+      </ListItemIcon>
+      <ListItemText>
+        <Typography variant="body2" noWrap>{text}</Typography>
+      </ListItemText>
+    </ListItem>
+  );
+});
+
+const MenuDrawer = ({appBarHeight, refObjects}: {appBarHeight: number, refObjects: RefObject<HTMLDivElement>[]}) => {
+  const isMenu = useRecoilValue(isMenuState);
+  const toggleMenu = useToggle(isMenuState);
+  const filteredItems = useRecoilValue(filteredItemsState);
+
+  return (
+    <Drawer anchor="left" open={isMenu} onClose={toggleMenu}>
+      <Box width={300}>
+        <Box height={appBarHeight}></Box>
+        <List>
+          {filteredItems.map((item, i) => <MenuDrawerListItem key={item.id} item={item} refObject={refObjects[i] as RefObject<HTMLDivElement>} />)}
         </List>
       </Box>
     </Drawer>
@@ -456,11 +521,13 @@ const App = () => {
   useConfig<boolean>(isDarkThemeState, 'isDarkTheme');
   useConfig<boolean>(isShowSourceState, 'isShowSource');
   useConfig<boolean>(isReverseState, 'isReverse');
+  useConfig<boolean>(isAutoScrollState, 'isAutoScroll');
   useConfig<ItemType[]>(itemsState, 'items');
 
   const isDarkTheme = useRecoilValue(isDarkThemeState);
   const setSuccess = useSetRecoilState(isSuccessState);
   const isReverse = useRecoilValue(isReverseState);
+  const isAutoScroll = useRecoilValue(isAutoScrollState);
   const [isProgress, setProgress] = useRecoilState(isProgressState);
   const setItems = useSetRecoilState(itemsState);
   const filteredItems = useRecoilValue(filteredItemsState);
@@ -489,6 +556,12 @@ const App = () => {
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, [handleMessage]);
 
+  const refObjects = useMemo(() => filteredItems.map(_ => createRef<HTMLDivElement>()), [filteredItems]);
+  // TODO: is useEffect enough instead of useLayoutEffect?
+  useLayoutEffect(() => {
+    isAutoScroll && refObjects?.[isReverse ? 0 : filteredItems.length - 1]?.current?.scrollIntoView({block: 'start', inline: 'start', behavior: 'smooth'});
+  }, [isAutoScroll, refObjects]);
+
   const lightTheme = useMemo(() => createTheme({
     palette: {
       mode: 'light',
@@ -507,17 +580,22 @@ const App = () => {
 
   const theme = isDarkTheme ? darkTheme : lightTheme;
 
-  // try to get AppBar height (48px) to adjust scrollbar position
+  // try to get AppBar height (48px when variant="dense") to adjust scrollbar position
+  // https://github.com/mui-org/material-ui/blob/ba2fce43a735f6085e68c2d76ab746a098488862/packages/mui-material/src/Toolbar/Toolbar.js#L41
   // TODO: find an appropriate way
-  const appBarHeight = useMemo(() => (theme.mixins.toolbar as {minHeight: number}).minHeight - parseInt(theme.spacing(1).replace('px', '')), [theme]);
+  // https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+  // console.debug(document.getElementsByClassName('MuiAppBar-root')?.[0]?.getBoundingClientRect());
+  // const appBarHeight = Math.trunc(document.getElementsByClassName('MuiAppBar-root')?.[0]?.getBoundingClientRect()?.bottom ?? 48);
+  const appBarHeight = 48;
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
       <Box sx={{height: `calc(100vh - ${appBarHeight}px)`}}> {/* to adjust scrollbar position (1/3) */}
-        <AppBar position="sticky" sx={{height: `${appBarHeight}px`}}> {/* to adjust scrollbar position (2/3) */}
+        <AppBar position="sticky" sx={{zIndex: theme.zIndex.drawer + 1, height: `${appBarHeight}px`}}> {/* to adjust scrollbar position (2/3) */}
           <Toolbar variant="dense">
-            <Typography variant="h5" sx={{mt: 0.2, color: 'rgba(255, 255, 255, 0.87)', flexGrow: 1, fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepLKey</Typography>
+            <MenuButton />
+            <Typography variant="h5" sx={{ml: 1, mt: 0.2, color: 'rgba(255, 255, 255, 0.87)', flexGrow: 1, fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepL Box</Typography>
             <Typography variant="body2">{filterKeyword.length > 0 ? filteredStats : ''}</Typography>
             <SearchBar />
             <CopyAllButton />
@@ -528,10 +606,11 @@ const App = () => {
         <Box sx={{maxHeight: '100%', overflow: 'auto'}}> {/* to adjust scrollbar position (3/3) */}
           <Container maxWidth={false}>
             {isReverse && isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
-            {filteredItems.map((item: ItemType) => <Item key={item.id} id={item.id} pairs={item.pairs} />)}
+            {filteredItems.map((item: ItemType, i: number) => <Box ref={refObjects[i] as RefObject<HTMLDivElement>} key={item.id}><Item key={item.id} id={item.id} pairs={item.pairs} /></Box>)}
             {!isReverse && isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
           </Container>
-          <TemporaryDrawer />
+          <MenuDrawer appBarHeight={appBarHeight} refObjects={refObjects} />
+          <SettingsDrawer appBarHeight={appBarHeight} />
           <ProgressSnackbar />
           <SuccessSnackbar />
         </Box>

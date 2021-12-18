@@ -4,7 +4,7 @@
 #
 # cd dist && sh ../makezip.sh && cd ..
 
-zip deeplkey-latest.zip \
+zip deeplbox-latest.zip \
   manifest.json background.js deepl.js \
   popup.html popup.js popup.js.LICENSE.txt \
   translation.html translation.js translation.js.LICENSE.txt \
