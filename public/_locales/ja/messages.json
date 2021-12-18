@@ -59,6 +59,10 @@
     "message": "設定",
     "description": "Settings icon label."
   },
+  "menu_icon_label": {
+    "message": "目次",
+    "description": "Menu icon label."
+  },
   "copy_all_icon_label": {
     "message": "全てコピー",
     "description": "Copy all icon label."

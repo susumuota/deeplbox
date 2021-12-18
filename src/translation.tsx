@@ -269,7 +269,7 @@ const SettingsButton = () => {
 const MenuButton = () => {
   const toggleMenu = useToggle(isMenuState);
 
-  return <SmallIconButton title={chrome.i18n.getMessage('settings_icon_label')} iconName="menu" onClick={toggleMenu} />;
+  return <SmallIconButton title={chrome.i18n.getMessage('menu_icon_label')} iconName="menu" onClick={toggleMenu} />;
 };
 
 const CopyAllButton = () => {

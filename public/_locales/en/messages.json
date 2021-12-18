@@ -4,7 +4,7 @@
     "description": "Extension name."
   },
   "extension_description": {
-    "message": "Saves all of the previous translations, shows index of the translations, compares the source and translation sentences one by one, searches by keyword, copies to clipboard and prepares keyboard shortcut to translate.",
+    "message": "Save previous translations, show index, compare one by one, search by keyword, copy to clipboard and provide keyboard shortcut.",
     "description": "Extension description."
   },
   "open_command_description": {
@@ -58,6 +58,10 @@
   "settings_icon_label": {
     "message": "Settings",
     "description": "Settings icon label."
+  },
+  "menu_icon_label": {
+    "message": "Index",
+    "description": "Menu icon label."
   },
   "copy_all_icon_label": {
     "message": "Copy All",
