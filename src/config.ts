@@ -47,6 +47,7 @@ export type ConfigType = {
   readonly translationHTML?: string,
   readonly isDarkTheme?: boolean,
   readonly isShowSource?: boolean,
+  readonly isTransparent?: boolean,
   readonly isReverse?: boolean,
   readonly isAutoScroll?: boolean,
   readonly items?: ItemType[],
@@ -101,6 +102,9 @@ const DEFAULT_CONFIG: ConfigType = {
 
   // show source text on translation.html
   isShowSource: false,
+
+  // show source text with transparent
+  isTransparent: false,
 
   // reserve items
   isReverse: false,
