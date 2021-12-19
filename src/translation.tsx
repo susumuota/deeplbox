@@ -24,7 +24,6 @@ import {
   createRef,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useState,
 } from 'react';
@@ -54,21 +53,26 @@ import {
   Icon,
   IconButton,
   InputBase,
+  Link,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Paper,
   Skeleton,
   Snackbar,
+  Switch,
   ThemeProvider,
   Toolbar,
   Tooltip,
   Typography,
   createTheme,
+  Divider,
 } from '@mui/material';
 
 import {PairType, ItemType, getConfig, setConfig} from './config';
+import {ChromeWebStoreIcon} from './ChromeWebStoreIcon';
 
 const isDarkThemeState = atom<boolean>({
   key: 'isDarkThemeState',
@@ -78,6 +82,11 @@ const isDarkThemeState = atom<boolean>({
 const isShowSourceState = atom<boolean>({
   key: 'isShowSourceState',
   default: false,
+});
+
+const isTransparentState = atom<boolean>({
+  key: 'isTransparentState',
+  default: true,
 });
 
 const isReverseState = atom<boolean>({
@@ -195,18 +204,16 @@ const useToggle = (recoilState: RecoilState<boolean>) => {
 
 const Pair = ({source, translation}: {source: string, translation: string}) => {
   const isShowSource = useRecoilValue(isShowSourceState);
+  const isTransparent = useRecoilValue(isTransparentState);
   const isDarkTheme = useRecoilValue(isDarkThemeState);
+
+  const opacitySx = isTransparent ? {opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}} : {};
+  const sourceBox = isShowSource ? <Box sx={{color: isDarkTheme ? 'primary.main' : 'info.dark', ...opacitySx}}>{source}</Box> : '';
 
   return (
     <Box mb={1}>
-      <Box>
-        {translation}
-      </Box>
-      {isShowSource ?
-        <Box sx={{color: isDarkTheme ? 'primary.main' : 'info.dark', opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
-          {source}
-        </Box>
-        : ''}
+      <Box>{translation}</Box>
+      {sourceBox}
     </Box>
   );
 };
@@ -245,13 +252,12 @@ const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
 
   const deleteItem = useCallback(() => {
     setItems(items.filter(item => item.id !== id));
-    // TODO: avoid auto scroll
   }, [items, id]);
 
   return (
     <Paper sx={{p: 2, mt: 3, mb: 3, position: 'relative'}} elevation={6}>
       {pairs.map((pair: PairType) => <Pair key={pair.id} source={pair.source} translation={pair.translation} />)}
-      <Box display="flex" position="absolute" right={10} bottom={10} sx={{opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
+      <Box sx={{display: 'flex', position: 'absolute', right: 10, bottom: 10, opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
         <Box flexGrow={1}></Box>
         <SmallIconButton title={chrome.i18n.getMessage('copy_icon_label')} iconName="copy_all" onClick={copyItem} />
         <SmallIconButton title={chrome.i18n.getMessage('delete_icon_label')} iconName="delete" onClick={deleteItem} />
@@ -348,6 +354,8 @@ const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
   const toggleSettings = useToggle(isSettingsState);
   const isShowSource = useRecoilValue(isShowSourceState);
   const toggleShowSource = useToggle(isShowSourceState);
+  const isTransparent = useRecoilValue(isTransparentState);
+  const toggleTransparent = useToggle(isTransparentState);
   const isDarkTheme = useRecoilValue(isDarkThemeState);
   const toggleDarkTheme = useToggle(isDarkThemeState);
   const isReverse = useRecoilValue(isReverseState);
@@ -359,46 +367,74 @@ const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
     <Drawer anchor="right" open={isSettings} onClose={toggleSettings}>
       <Box width={300}>
         <List>
-          <Box height={appBarHeight}></Box>
-          <ListItem button onClick={toggleShowSource}>
+          <Box height={appBarHeight} />
+          <ListItemButton onClick={toggleShowSource}>
             <ListItemIcon>
-              <Icon fontSize="small">{isShowSource ? 'visibility' : 'visibility_off'}</Icon>
+              <Icon fontSize="small">{isShowSource ? 'subtitles' : 'subtitles_off'}</Icon>
             </ListItemIcon>
             <ListItemText>
               <Typography variant="body2" noWrap>
-                {isShowSource ? chrome.i18n.getMessage('hide_source_text') : chrome.i18n.getMessage('show_source_text')}
+                {chrome.i18n.getMessage('show_source_text')}
               </Typography>
             </ListItemText>
-          </ListItem>
-          <ListItem button onClick={toggleReverse}>
+            <Switch checked={isShowSource} size="small" edge="end" />
+          </ListItemButton>
+          <ListItemButton disabled={!isShowSource} onClick={toggleTransparent}>
             <ListItemIcon>
-              <Icon fontSize="small">{isReverse ? 'arrow_upward' : 'arrow_downward'}</Icon>
+              <Icon fontSize="small">{isTransparent ? 'opacity' : 'water_drop'}</Icon>
+            </ListItemIcon>
+            <ListItemText sx={{ml: 2}}>
+              <Typography variant="body2" noWrap>
+                {chrome.i18n.getMessage('transparent_source_text')}
+              </Typography>
+            </ListItemText>
+            <Switch disabled={!isShowSource} checked={isTransparent} size="small" edge="end" />
+          </ListItemButton>
+          <ListItemButton onClick={toggleReverse}>
+            <ListItemIcon>
+              <Icon fontSize="small">{isReverse ? 'vertical_align_top' : 'vertical_align_bottom'}</Icon>
             </ListItemIcon>
             <ListItemText>
               <Typography variant="body2" noWrap>
-                {isReverse ? chrome.i18n.getMessage('oldest_to_newest_text') : chrome.i18n.getMessage('newest_to_oldest_text')}
+                {chrome.i18n.getMessage('newest_to_oldest_text')}
               </Typography>
             </ListItemText>
-          </ListItem>
-          <ListItem button onClick={toggleAutoScroll}>
+            <Switch checked={isReverse} size="small" edge="end" />
+          </ListItemButton>
+          <ListItemButton onClick={toggleAutoScroll}>
             <ListItemIcon>
-              <Icon fontSize="small">{isAutoScroll ? 'sync' : 'block'}</Icon>
+              <Icon fontSize="small">{isAutoScroll ? 'swipe_down_alt' : 'pause_circle_outline'}</Icon>
             </ListItemIcon>
             <ListItemText>
               <Typography variant="body2" noWrap>
-                {isAutoScroll ? chrome.i18n.getMessage('disable_auto_scroll_text') : chrome.i18n.getMessage('enable_auto_scroll_text')}
+                {chrome.i18n.getMessage('enable_auto_scroll_text')}
               </Typography>
             </ListItemText>
-          </ListItem>
-          <ListItem button onClick={toggleDarkTheme}>
+            <Switch checked={isAutoScroll} size="small" edge="end" />
+          </ListItemButton>
+          <ListItemButton onClick={toggleDarkTheme}>
             <ListItemIcon>
               <Icon fontSize="small">{isDarkTheme ? 'mode_night' : 'light_mode'}</Icon>
             </ListItemIcon>
             <ListItemText>
               <Typography variant="body2" noWrap>
-                {isDarkTheme ? chrome.i18n.getMessage('light_theme_text') : chrome.i18n.getMessage('dark_theme_text')}
+                {chrome.i18n.getMessage('dark_theme_text')}
               </Typography>
             </ListItemText>
+            <Switch checked={isDarkTheme} size="small" edge="end" />
+          </ListItemButton>
+          <Divider sx={{mt: 1, mb: 1}} />
+          <ListItem>
+            <Tooltip title="GitHub">
+              <Link sx={{mr: 1}} href="https://github.com/susumuota/deeplbox" target="_blank" rel="noreferrer noopener">
+                <img src={isDarkTheme ? 'icons/github32r.png' : 'icons/github32.png'} width="20" />
+              </Link>
+            </Tooltip>
+            <Tooltip title="Chrome Web Store">
+              <Link href="https://chrome.google.com/webstore/detail/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
+                <ChromeWebStoreIcon fontSize="medium" />
+              </Link>
+            </Tooltip>
           </ListItem>
         </List>
       </Box>
@@ -414,14 +450,14 @@ const MenuDrawerListItem = (({item, refObject}: {item: ItemType, refObject: RefO
   const text = item.pairs?.[0]?.translation?.substring(0, 50); // limit for safety
 
   return (
-    <ListItem button onClick={handleScroll}>
+    <ListItemButton onClick={handleScroll}>
       <ListItemIcon>
         <Icon fontSize="small">text_snippet</Icon>
       </ListItemIcon>
       <ListItemText>
         <Typography variant="body2" noWrap>{text}</Typography>
       </ListItemText>
-    </ListItem>
+    </ListItemButton>
   );
 });
 
@@ -430,10 +466,12 @@ const MenuDrawer = ({appBarHeight, refObjects}: {appBarHeight: number, refObject
   const toggleMenu = useToggle(isMenuState);
   const filteredItems = useRecoilValue(filteredItemsState);
 
+  console.assert(filteredItems.length === refObjects.length);
+
   return (
     <Drawer anchor="left" open={isMenu} onClose={toggleMenu}>
       <Box width={300}>
-        <Box height={appBarHeight}></Box>
+        <Box height={appBarHeight} />
         <List>
           {filteredItems.map((item, i) => <MenuDrawerListItem key={item.id} item={item} refObject={refObjects[i] as RefObject<HTMLDivElement>} />)}
         </List>
@@ -481,7 +519,7 @@ const SuccessSnackbar = () => {
     >
       <Alert severity="success">
         {chrome.i18n.getMessage('success_snackbar_alert')}
-        <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">{isReverse ? 'arrow_upward' : 'arrow_downward'}</Icon>
+        <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">{isReverse ? 'vertical_align_top' : 'vertical_align_bottom'}</Icon>
       </Alert>
     </Snackbar>
   );
@@ -520,6 +558,7 @@ const SearchBar = () => {
 const App = () => {
   useConfig<boolean>(isDarkThemeState, 'isDarkTheme');
   useConfig<boolean>(isShowSourceState, 'isShowSource');
+  useConfig<boolean>(isTransparentState, 'isTransparent');
   useConfig<boolean>(isReverseState, 'isReverse');
   useConfig<boolean>(isAutoScrollState, 'isAutoScroll');
   useConfig<ItemType[]>(itemsState, 'items');
@@ -534,14 +573,17 @@ const App = () => {
   const filteredStats = useRecoilValue(filteredStatsState);
   const filterKeyword = useRecoilValue(filterKeywordState);
 
+  const [isNeedScroll, setNeedScroll] = useState(false);
+
   const handleMessage = useCallback((request, _, sendResponse) => {
     if (request.message === 'setTranslation') {
       const pairs = splitToPairs(request.source, request.translation);
       const id = new Date().getTime();
-      const item = {id: id, pairs: pairs};
+      const item = {id: id, pairs: pairs} as ItemType;
       setItems(prev => [...prev, item]); // push
       setProgress(false);
       setSuccess(true);
+      setNeedScroll(true);
       sendResponse({message: 'translation.tsx: setTranslation: done'});
     } else if (request.message === 'startTranslation') {
       setSuccess(false);
@@ -557,10 +599,12 @@ const App = () => {
   }, [handleMessage]);
 
   const refObjects = useMemo(() => filteredItems.map(_ => createRef<HTMLDivElement>()), [filteredItems]);
+
   // TODO: is useEffect enough instead of useLayoutEffect?
-  useLayoutEffect(() => {
-    isAutoScroll && refObjects?.[isReverse ? 0 : filteredItems.length - 1]?.current?.scrollIntoView({block: 'start', inline: 'start', behavior: 'smooth'});
-  }, [isAutoScroll, refObjects]);
+  useEffect(() => {
+    isNeedScroll && isAutoScroll && refObjects?.[isReverse ? 0 : filteredItems.length - 1]?.current?.scrollIntoView({block: 'start', inline: 'start', behavior: 'smooth'});
+    setNeedScroll(false);
+  }, [isNeedScroll, isAutoScroll, refObjects]);
 
   const lightTheme = useMemo(() => createTheme({
     palette: {
@@ -581,11 +625,8 @@ const App = () => {
   const theme = isDarkTheme ? darkTheme : lightTheme;
 
   // try to get AppBar height (48px when variant="dense") to adjust scrollbar position
-  // https://github.com/mui-org/material-ui/blob/ba2fce43a735f6085e68c2d76ab746a098488862/packages/mui-material/src/Toolbar/Toolbar.js#L41
-  // TODO: find an appropriate way
-  // https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
-  // console.debug(document.getElementsByClassName('MuiAppBar-root')?.[0]?.getBoundingClientRect());
-  // const appBarHeight = Math.trunc(document.getElementsByClassName('MuiAppBar-root')?.[0]?.getBoundingClientRect()?.bottom ?? 48);
+  // https://github.com/mui-org/material-ui/blob/v5.2.4/packages/mui-material/src/Toolbar/Toolbar.js#L41
+  // TODO: how do I get this minHeight?
   const appBarHeight = 48;
 
   return (

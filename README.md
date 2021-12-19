@@ -80,7 +80,6 @@ You can change source/translation language and split on punctuation option by ex
 ## TODO
 
 - Find a way to get selected text in case `window.getSelection()` returns empty.
-- Avoid auto scroll when delete item.
 
 ## Source code
 

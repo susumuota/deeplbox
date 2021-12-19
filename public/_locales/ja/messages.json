@@ -84,36 +84,24 @@
     "description": "Filter text."
   },
   "show_source_text": {
-    "message": "原文を表示する",
+    "message": "原文を表示",
     "description": "Show source text."
   },
-  "hide_source_text": {
-    "message": "原文を表示しない",
-    "description": "Hide source text."
-  },
-  "light_theme_text": {
-    "message": "ライトモードにする",
-    "description": "Light theme text."
+  "transparent_source_text": {
+    "message": "半透明にする",
+    "description": "Show source text transparently."
   },
   "dark_theme_text": {
-    "message": "ダークモードにする",
+    "message": "ダークモード",
     "description": "Dark theme text."
   },
-  "oldest_to_newest_text": {
-    "message": "古いものから新しい順に表示",
-    "description": "Oldest to newest text."
-  },
   "newest_to_oldest_text": {
-    "message": "新しいものから古い順に表示",
+    "message": "最新を上に表示",
     "description": "Newest to oldest text."
   },
   "enable_auto_scroll_text": {
-    "message": "自動スクロールを有効にする",
+    "message": "自動スクロール",
     "description": "Enable scroll text."
-  },
-  "disable_auto_scroll_text": {
-    "message": "自動スクロールを無効にする",
-    "description": "Disable scroll text."
   },
   "progress_snackbar_alert": {
     "message": "翻訳中...",

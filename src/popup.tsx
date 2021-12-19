@@ -150,7 +150,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
                 <img src="icons/github32.png" />
               </Link>
               <Link href="https://chrome.google.com/webstore/detail/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
-                <ChromeWebStoreIcon />
+                <ChromeWebStoreIcon fontSize="large" />
               </Link>
             </Box>
           </Box>

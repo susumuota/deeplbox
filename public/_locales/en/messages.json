@@ -87,33 +87,21 @@
     "message": "Show Source Text",
     "description": "Show source text."
   },
-  "hide_source_text": {
-    "message": "Hide Source Text",
-    "description": "Hide source text."
-  },
-  "light_theme_text": {
-    "message": "To Light Mode",
-    "description": "Light theme text."
+  "transparent_source_text": {
+    "message": "Transparent Text",
+    "description": "Show source text transparently."
   },
   "dark_theme_text": {
     "message": "To Dark Mode",
     "description": "Dark theme text."
   },
-  "oldest_to_newest_text": {
-    "message": "Oldest To Newest",
-    "description": "Oldest to newest text."
-  },
   "newest_to_oldest_text": {
-    "message": "Newest To Oldest",
+    "message": "Newest to Oldest",
     "description": "Newest to oldest text."
   },
   "enable_auto_scroll_text": {
     "message": "Enable Auto Scroll",
     "description": "Enable scroll text."
-  },
-  "disable_auto_scroll_text": {
-    "message": "Disable Auto Scroll",
-    "description": "Disable scroll text."
   },
   "progress_snackbar_alert": {
     "message": "Translating...",

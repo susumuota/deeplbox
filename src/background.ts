@@ -132,8 +132,8 @@ const translateText = async (source: string) => {
 // chrome.i18n.getMessage does not work in service_worker in manifest v3
 // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/dG6JeZGkN5w
 // TODO: other messages if needed
-const getMessage = (messageName: 'context_menu_title'): string => {
-  if (messageName === 'context_menu_title') {
+const getMessage = (messageName: 'deepl_menu_title'): string => {
+  if (messageName === 'deepl_menu_title') {
     return 'ja' === navigator.language ? 'DeepL 翻訳' : 'DeepL Translate';
   } else {
     throw 'Unknown message';
@@ -145,7 +145,7 @@ const getMessage = (messageName: 'context_menu_title'): string => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'deepl-menu',
-    title: getMessage('context_menu_title'),
+    title: getMessage('deepl_menu_title'),
     contexts: ['selection']
   });
   // must reset. old tabId should be invalid
