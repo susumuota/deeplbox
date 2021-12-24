@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "__MSG_extension_name__",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "__MSG_extension_description__",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplbox",
@@ -21,6 +21,11 @@
   "content_scripts": [{
     "matches": ["https://www.deepl.com/translator", "https://www.deepl.com/*/translator"],
     "js": ["deepl.js"]
+  },
+  {
+    "matches": ["https://*/*.pdf", "http://*/*.pdf", "https://arxiv.org/pdf/*", "https://openreview.net/pdf?id=*"],
+    "all_frames": true,
+    "js": ["pdf.js"]
   }],
 
   "action": {

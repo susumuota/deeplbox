@@ -44,6 +44,7 @@ export type ConfigType = {
     readonly updateWindow: chrome.windows.UpdateInfo | null,
   },
   readonly isSplit?: boolean,
+  readonly maxSourceText?: number,
   readonly translationHTML?: string,
   readonly isDarkTheme?: boolean,
   readonly isShowSource?: boolean,
@@ -94,6 +95,9 @@ const DEFAULT_CONFIG: ConfigType = {
   // split sentences
   isSplit: false,
 
+  // maximum length of source text to avoid free trial limit. 0 or negative number means unlimited.
+  maxSourceText: 5000,
+
   // translation tab HTML
   translationHTML: 'translation.html',
 
@@ -101,10 +105,10 @@ const DEFAULT_CONFIG: ConfigType = {
   isDarkTheme: false,
 
   // show source text on translation.html
-  isShowSource: false,
+  isShowSource: true,
 
   // show source text with transparent
-  isTransparent: false,
+  isTransparent: true,
 
   // reserve items
   isReverse: false,

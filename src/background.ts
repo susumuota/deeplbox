@@ -69,9 +69,10 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
 const openDeepLTab = async (sourceText: string) => {
   const config = await getConfig();
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
+  const truncated = config.maxSourceText > 0 ? splitted.substring(0, config.maxSourceText) : splitted;
   // slash, pipe and backslash need to be escaped by backslash
   // TODO: other characters?
-  const escaped = splitted.replace(/([\/\|\\])/g, '\\$1');
+  const escaped = truncated.replace(/([\/\|\\])/g, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, config.deepLTabId, config.deepLTabParams);
   setConfig({deepLTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE}); // remember tab and reuse next time
@@ -86,21 +87,54 @@ const openTranslationTab = async () => {
   return tab;
 }
 
+// injection function which will be executed in specific tab (not background.ts)
+const injectionFunction = () => {
+  const selection = window.getSelection();
+  if (!selection) return '';
+  const selectionText = selection.toString().trim();
+  if (selectionText) return selectionText;
+  const hover = Array.from(document.querySelectorAll(':hover')).pop();
+  if (!hover) return '';
+  const hoverText = hover.textContent?.trim();
+  if (!hoverText) return '';
+  const range = new Range();
+  range.selectNode(hover);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  const rangeText = selection.toString().trim();
+  // selection.removeAllRanges(); // TODO: this can reduce clicks but make user hard to know what happened
+  return rangeText;
+}
+
 // get selection text by injection
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
-const getSelectionByInjection = (tab: chrome.tabs.Tab) => {
+const getSelectionByInjection = async (tabId: number) => {
   return new Promise<string>((resolve, reject) => {
     chrome.scripting.executeScript({
-      target: {tabId: tab.id || chrome.tabs.TAB_ID_NONE, allFrames: true},
-      func: () => (window.getSelection() || '').toString()
+      target: {tabId: tabId, allFrames: true},
+      func: injectionFunction,
     }, (results) => {
       if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError.message);
-      } else if (results && results.length > 0 && results[0] && results[0].result && results[0].result.trim()) {
-        resolve(results[0].result.trim());
+        return reject(chrome.runtime.lastError.message);
       }
-      reject('Empty window.getSelection()');
+      if (!results) {
+        return reject('Could not get any selection text');
+      }
+      for (const r of results) {
+        const text = r.result?.trim();
+        if (text) return resolve(text);
+      }
+      return reject('Could not get any selection text');
     });
+  });
+}
+
+const getSelectionByMessage = async (tabId: number) => {
+  chrome.tabs.sendMessage(tabId, {
+    message: 'getSelection',
+  }, (response) => {
+    console.debug(chrome.runtime.lastError?.message ??
+      `background.ts: got message: ${response.message}`);
   });
 }
 
@@ -122,8 +156,8 @@ const translateText = async (source: string) => {
     chrome.tabs.sendMessage(translationTab.id, {
       message: 'startTranslation'
     }, (response) => {
-      console.debug(chrome.runtime.lastError ? chrome.runtime.lastError.message :
-                    `background.ts: got message: ${response.message}`);
+      console.debug(chrome.runtime.lastError?.message ??
+        `background.ts: got message: ${response.message}`);
     });
   }
   // now, deepl.ts will send message to translation.tsx (and background.ts)
@@ -151,29 +185,21 @@ chrome.runtime.onInstalled.addListener(() => {
   // must reset. old tabId should be invalid
   setConfig({deepLTabId: chrome.tabs.TAB_ID_NONE});
   setConfig({translationTabId: chrome.tabs.TAB_ID_NONE});
-  chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
   return true;
 });
 
 // context menu event
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, _) => {
   if (info.menuItemId === 'deepl-menu') {
     try {
-      if (tab) {
-        translateText(await getSelectionByInjection(tab));
-        chrome.action.setBadgeText({text: ''});
-      } else {
-        throw 'Invalid tab';
-      }
+      if (!info || !info.selectionText) throw 'Invalid info';
+      translateText(info.selectionText);
+      chrome.action.setBadgeBackgroundColor({color: '#0000FF'});
+      chrome.action.setBadgeText({text: 'C'});
     } catch (err) {
       console.debug(err);
-      if (info.selectionText) {
-        translateText(info.selectionText);
-        chrome.action.setBadgeText({text: ''});
-      } else {
-        console.debug(info);
-        chrome.action.setBadgeText({text: 'X'});
-      }
+      chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
+      chrome.action.setBadgeText({text: 'X'});
     }
   }
   return true;
@@ -183,40 +209,59 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === 'deepl-open') {
     try {
-      translateText(await getSelectionByInjection(tab));
-      chrome.action.setBadgeText({text: ''});
+      if (!tab || !tab.id) throw 'Invalid tab';
+      translateText(await getSelectionByInjection(tab.id));
+      chrome.action.setBadgeBackgroundColor({color: '#0000FF'});
+      chrome.action.setBadgeText({text: 'K'});
     } catch (err) {
       console.debug(err);
+      if (tab && tab.id) getSelectionByMessage(tab.id);
+      chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
       chrome.action.setBadgeText({text: 'X'});
     }
   }
   return true;
 });
 
+// message event
+chrome.runtime.onMessage.addListener(async (request, _, sendResponse) => {
+  if (request.message === 'setSelection') {
+    try {
+      const text = request.selectedText.trim();
+      if (!text) throw 'Could not get any selection text';
+      translateText(text.replace(/\n/g, ' '));
+      chrome.action.setBadgeBackgroundColor({color: '#0000FF'});
+      chrome.action.setBadgeText({text: 'M'});
+    } catch (err) {
+      console.debug(err);
+      chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
+      chrome.action.setBadgeText({text: 'X'});
+    }
+    sendResponse({message: 'background.ts: setSelection: done'});
+  }
+  return true;
+});
+
+// window move/resize event
 chrome.windows.onBoundsChanged.addListener(async (window) => {
   const config = await getConfig();
-  if (!config.translationTabParams.createWindow) {
-    return true;
-  }
-  if (config.translationTabId === chrome.tabs.TAB_ID_NONE) {
-    return true;
-  }
+  if (!config.translationTabParams.createWindow) return true;
+  if (config.translationTabId === chrome.tabs.TAB_ID_NONE) return true;
   try {
     const translationTab = await chrome.tabs.get(config.translationTabId);
     const translationWindow = await chrome.windows.get(translationTab.windowId);
-    if (window.id === translationWindow.id) {
-      const params = {
-        ...config.translationTabParams,
-        createWindow: {
-          ...config.translationTabParams.createWindow,
-          left: window.left,
-          top: window.top,
-          width: window.width,
-          height: window.height,
-        },
-      };
-      setConfig({translationTabParams: params});
-    }
+    if (window.id !== translationWindow.id) return true;
+    const params = {
+      ...config.translationTabParams,
+      createWindow: {
+        ...config.translationTabParams.createWindow,
+        left: window.left,
+        top: window.top,
+        width: window.width,
+        height: window.height,
+      },
+    };
+    setConfig({translationTabParams: params});
   } catch (err) {
     console.debug(err);
   }

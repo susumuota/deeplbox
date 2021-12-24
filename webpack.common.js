@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     background: './src/background.ts',
     deepl: './src/deepl.ts',
+    pdf: './src/pdf.ts',
     popup: './src/popup.tsx',
     translation: './src/translation.tsx',
   },
