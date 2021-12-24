@@ -403,7 +403,7 @@ const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
           </ListItemButton>
           <ListItemButton onClick={toggleAutoScroll}>
             <ListItemIcon>
-              <Icon fontSize="small">{isAutoScroll ? 'swipe_down_alt' : 'pause_circle_outline'}</Icon>
+              <Icon fontSize="small">{isAutoScroll ? 'swipe_down_alt' : 'pause_circle'}</Icon>
             </ListItemIcon>
             <ListItemText>
               <Typography variant="body2" noWrap>
@@ -513,7 +513,7 @@ const SuccessSnackbar = () => {
   return (
     <Snackbar
       open={isSuccess}
-      autoHideDuration={5000}
+      autoHideDuration={1000}
       onClose={handleCloseSuccess}
       anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
     >

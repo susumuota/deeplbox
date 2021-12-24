@@ -34,8 +34,8 @@ const observer = new MutationObserver(() => {
       source: source.textContent.trim(),
       translation: target.textContent.trim()
     }, (response) => {
-      console.debug(chrome.runtime.lastError ? chrome.runtime.lastError.message :
-                    `deepl.ts: got message: ${response.message}`);
+      console.debug(chrome.runtime.lastError?.message ??
+        `deepl.ts: got message: ${response.message}`);
     });
   }
 });

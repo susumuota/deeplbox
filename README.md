@@ -74,7 +74,7 @@ You can change source/translation language and split on punctuation option by ex
 
 ## Limitations
 
-- In certain pages (e.g. Kaggle Notebooks), keyboard shortcut cannot get selected text because `window.getSelection()` returns empty. In that case, try context menu instead.
+- Keyboard shortcut does not work for local PDF files. In that case, use context menu instead.
 - When you use context menu, Chrome removes newlines from selected text because `info.selectionText` removes newlines. See [Linebreaks/newlines missing from chrome.contextMenus selectionText](https://bugs.chromium.org/p/chromium/issues/detail?id=116429)
 
 ## TODO
