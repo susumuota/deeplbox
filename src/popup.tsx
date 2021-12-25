@@ -44,7 +44,7 @@ import {
   createTheme,
 } from '@mui/material';
 
-import {getConfig, setConfig, SOURCE_LANG_LIST, TARGET_LANG_LIST} from './config';
+import {getConfig, setConfig, DEFAULT_CONFIG, SOURCE_LANG_LIST, TARGET_LANG_LIST} from './config';
 import {ChromeWebStoreIcon} from './ChromeWebStoreIcon';
 
 
@@ -164,9 +164,9 @@ window.addEventListener('load', async () => {
   const config = await getConfig();
   ReactDOM.render(
     <App
-      initialSourceLang={config.sourceLang}
-      initialTargetLang={config.targetLang}
-      initialIsSplit={config.isSplit}
+      initialSourceLang={config.sourceLang ?? DEFAULT_CONFIG.sourceLang ?? 'auto'}
+      initialTargetLang={config.targetLang ?? DEFAULT_CONFIG.targetLang ?? 'auto'}
+      initialIsSplit={config.isSplit ?? DEFAULT_CONFIG.isSplit ?? false}
     />,
     document.getElementById('app')
   );

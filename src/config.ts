@@ -57,7 +57,7 @@ export type ConfigType = {
 };
 
 // default config
-const DEFAULT_CONFIG: ConfigType = {
+export const DEFAULT_CONFIG: ConfigType = {
     // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
@@ -96,7 +96,8 @@ const DEFAULT_CONFIG: ConfigType = {
   isSplit: false,
 
   // maximum length of source text to avoid free trial limit. 0 or negative number means unlimited.
-  maxSourceText: 5000,
+  //maxSourceText: 5000,
+  maxSourceText: -1,
 
   // translation tab HTML
   translationHTML: 'translation.html',
@@ -140,7 +141,7 @@ export const setConfig = (config: ConfigType) => {
 // to see only custom config
 // await getConfig(null)
 export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG) => {
-  return new Promise<any>(resolve => {
+  return new Promise<ConfigType>(resolve => {
     return chrome.storage.local.get(defaultConfig, resolve);
   });
 }

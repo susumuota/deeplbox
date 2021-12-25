@@ -71,7 +71,7 @@ import {
   Divider,
 } from '@mui/material';
 
-import {PairType, ItemType, getConfig, setConfig} from './config';
+import {PairType, ItemType, ConfigType, getConfig, setConfig} from './config';
 import {ChromeWebStoreIcon} from './ChromeWebStoreIcon';
 
 const isDarkThemeState = atom<boolean>({
@@ -111,7 +111,7 @@ const isMenuState = atom<boolean>({
 
 const isProgressState = atom<boolean>({
   key: 'isProgressState',
-  default: true, // not false!!!
+  default: false,
 });
 
 const isSuccessState = atom<boolean>({
@@ -170,19 +170,19 @@ const splitToPairs = (source: string, translation: string) => {
   console.assert(ss.length === ts.length); // is this always true?
   // range(max(len(ss), len(ts)))  https://stackoverflow.com/a/10050831
   return [...Array(Math.max(ss.length, ts.length)).keys()]
-    .map(i => [ss[i] || '', ts[i] || ''])
+    .map(i => [ss[i] ?? '', ts[i] ?? ''])
     .filter(([s, t]) => (s && s.trim()) || (t && t.trim()))
-    .map(([s, t], i) => ({id: i, source: s || '', translation: t || ''} as PairType));
+    .map(([s, t], i) => ({id: i, source: s ?? '', translation: t ?? ''} as PairType));
 };
 
 // https://stackoverflow.com/a/56989122
-const useConfig = <T,>(recoilState: RecoilState<T>, configName: string) => {
+const useConfig = <T,>(recoilState: RecoilState<T>, configName: keyof ConfigType) => {
   const [state, setState] = useRecoilState(recoilState);
 
   useEffect(() => {
     const loadConfig = async () => {
       const config = await getConfig();
-      setState(config[configName]);
+      setState(config[configName] as unknown as T);
     };
     loadConfig();
   }, []);
@@ -575,7 +575,7 @@ const App = () => {
 
   const [isNeedScroll, setNeedScroll] = useState(false);
 
-  const handleMessage = useCallback((request, _, sendResponse) => {
+  const handleMessage = useCallback((request: {message: 'setTranslation' | 'startTranslation', source: string, translation: string}, _, sendResponse: (response: {message: string}) => void) => {
     if (request.message === 'setTranslation') {
       const pairs = splitToPairs(request.source, request.translation);
       const id = new Date().getTime();
@@ -598,7 +598,7 @@ const App = () => {
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, [handleMessage]);
 
-  const refObjects = useMemo(() => filteredItems.map(_ => createRef<HTMLDivElement>()), [filteredItems]);
+  const refObjects = useMemo(() => filteredItems.map(() => createRef<HTMLDivElement>()), [filteredItems]);
 
   // TODO: is useEffect enough instead of useLayoutEffect?
   useEffect(() => {

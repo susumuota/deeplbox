@@ -16,32 +16,63 @@
 
 'use strict';
 
-// get selected text via PDFium's PDFScriptingAPI
-// send 'getSelectedText' message then receive 'getSelectedTextReply' message
+// Get selected text via PDFScriptingAPI of default Chrome's PDF viewer (PDFium).
+//
+// If you send 'getSelectedText' message to PDFScriptingAPI,
+// then it will send back 'getSelectedTextReply' message with 'selectedText'
+//
+// PDFScriptingAPI is accessible via postMessage.
+// There are several APIs like 'getSelectedText', 'selectAll', etc.
+//
 // https://source.chromium.org/chromium/chromium/src/+/master:chrome/browser/resources/pdf/pdf_scripting_api.js
-const PDFIUM_ORIGIN = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai';
+// https://stackoverflow.com/a/61076939
+//
+// It needs the window object of the PDF viewer to call postMessage.
+// The problem is that there is no direct method to get the window.
+// But there is a workaround using window.frames, frameElement and embed element.
+// See details at [note 1] of this post.
+//
+// https://github.com/whatwg/html/issues/7140#issue-1013085041
+//
+// Also, see API docs.
+//
+// https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#syntax
+// https://developer.mozilla.org/en-US/docs/Web/API/Window/frames#syntax
+//
+// TODO: this code does not work on local PDF (file:///*.pdf) because of cross-origin limitation
 
-window.addEventListener('message', (event) => {
-  if (event.origin === PDFIUM_ORIGIN && event.data.type === 'getSelectedTextReply') {
+const PDF_ORIGIN = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai';
+
+const pdfEmbed = document.querySelector('embed');
+const pdfWindow = (() => {
+  try {
+    // TODO: sometimes this got error
+    return Array.from(window.frames).find(f => f.frameElement === pdfEmbed);
+  } catch (err) {
+    console.debug(err);
+    return window.frames[0];
+  }
+})();
+
+if (!(pdfEmbed && pdfWindow)) throw 'Invalid PDFScriptingAPI';
+
+chrome.runtime.onMessage.addListener((request: {message: string}, _, sendResponse: (response: {message: string}) => void) => {
+  if (request.message === 'getSelection') {
+    pdfWindow.postMessage({type: 'getSelectedText'}, PDF_ORIGIN);
+    sendResponse({message: 'pdf.ts: getSelection: done'});
+  }
+  return true;
+});
+
+// PDFScriptingAPI will send back 'getSelectedTextReply' if it receives 'getSelectedText'
+window.addEventListener('message', (event: MessageEvent<{type: string, selectedText: string}>) => {
+  if (event.origin === PDF_ORIGIN && event.data.type === 'getSelectedTextReply') {
     chrome.runtime.sendMessage({
       message: 'setSelection',
       selectedText: event.data.selectedText,
-    }, (response) => {
+    }, (response: {message: string}) => {
       console.debug(chrome.runtime.lastError?.message ??
         `pdf.ts: got message: ${response.message}`);
     });
   }
 }, false);
-
-chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
-  if (request.message === 'getSelection' && window.frames[0]?.postMessage) {
-    // PDFium plugin is accessible via postMessage but it's not window.postMessage but embed.postMessage
-    // document.querySelector('embed').postMessage does not work but window.frames[0].postMessage works
-    // see details at this post [note 1]
-    // https://github.com/whatwg/html/issues/7140#issue-1013085041
-    // TODO: this code does not work on local PDF (file:///*.pdf)
-    window.frames[0].postMessage({type: 'getSelectedText'}, PDFIUM_ORIGIN);
-    sendResponse({message: 'pdf.ts: getSelection: done'});
-  }
-  return true;
-});
