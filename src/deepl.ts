@@ -19,9 +19,7 @@
 const source = document.querySelector('#source-dummydiv');
 const target = document.querySelector('#target-dummydiv');
 
-if (!(source && target)) {
-  throw 'Could not find #source-dummydiv or #target-dummydiv.';
-}
+if (!(source && target)) throw 'Could not find #source-dummydiv or #target-dummydiv.';
 
 // monitor source/target textarea and when its content is changed,
 // send message to translation.js (and background.js)
@@ -33,7 +31,7 @@ const observer = new MutationObserver(() => {
       message: 'setTranslation',
       source: source.textContent.trim(),
       translation: target.textContent.trim()
-    }, (response) => {
+    }, (response: {message: string}) => {
       console.debug(chrome.runtime.lastError?.message ??
         `deepl.ts: got message: ${response.message}`);
     });

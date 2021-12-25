@@ -79,7 +79,8 @@ You can change source/translation language and split on punctuation option by ex
 
 ## TODO
 
-- Find a way to get selected text in case `window.getSelection()` returns empty.
+- Support keyboard shortcut for local PDF files.
+- Detect paragraphs in PDF document (is there any convenient way?).
 
 ## Source code
 
