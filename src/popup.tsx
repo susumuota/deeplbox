@@ -14,15 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
-import React from 'react';
-import ReactDOM from 'react-dom';
-import {
+import React, {
   useCallback,
   useMemo,
   useState,
 } from 'react';
+
+import ReactDOM from 'react-dom';
+
 import {
   AppBar,
   Box,
@@ -44,17 +43,23 @@ import {
   createTheme,
 } from '@mui/material';
 
-import {getConfig, setConfig, DEFAULT_CONFIG, SOURCE_LANG_LIST, TARGET_LANG_LIST} from './config';
-import {ChromeWebStoreIcon} from './ChromeWebStoreIcon';
+import {
+  DEFAULT_CONFIG,
+  SOURCE_LANG_LIST,
+  TARGET_LANG_LIST,
+  getConfig,
+  setConfig,
+} from './config';
 
+import ChromeWebStoreIcon from './ChromeWebStoreIcon';
 
-const LangSelect = ({configName, labelName, initialLang, langList}: {configName: 'sourceLang' | 'targetLang', labelName: string, initialLang: string, langList: string[]}) => {
+function LangSelect({ configName, labelName, initialLang, langList }: { configName: 'sourceLang' | 'targetLang', labelName: string, initialLang: string, langList: string[] }) {
   const [lang, setLang] = useState(initialLang);
 
-  const handleChange = useCallback(({target: {value}}) => {
+  const handleChange = useCallback(({ target: { value } }) => {
     const l = value as string;
     setLang(l);
-    setConfig({[configName]: l});
+    setConfig({ [configName]: l });
   }, [configName]);
 
   const idPrefix = configName.toLowerCase();
@@ -69,13 +74,13 @@ const LangSelect = ({configName, labelName, initialLang, langList}: {configName:
         label={labelName}
         onChange={handleChange}
       >
-        {langList.map(lang => <MenuItem key={lang} value={lang}>{chrome.i18n.getMessage(`language_${lang.replace('-', '_')}`)}</MenuItem>)}
+        {langList.map((l) => <MenuItem key={l} value={l}>{chrome.i18n.getMessage(`language_${l.replace('-', '_')}`)}</MenuItem>)}
       </Select>
     </FormControl>
   );
-};
+}
 
-const SourceLangSelect = ({initialSourceLang}: {initialSourceLang: string}) => {
+function SourceLangSelect({ initialSourceLang }: { initialSourceLang: string }) {
   return (
     <LangSelect
       configName="sourceLang"
@@ -84,9 +89,9 @@ const SourceLangSelect = ({initialSourceLang}: {initialSourceLang: string}) => {
       langList={SOURCE_LANG_LIST}
     />
   );
-};
+}
 
-const TargetLangSelect = ({initialTargetLang}: {initialTargetLang: string}) => {
+function TargetLangSelect({ initialTargetLang }: { initialTargetLang: string }) {
   return (
     <LangSelect
       configName="targetLang"
@@ -95,15 +100,15 @@ const TargetLangSelect = ({initialTargetLang}: {initialTargetLang: string}) => {
       langList={TARGET_LANG_LIST}
     />
   );
-};
+}
 
-const SplitSentenceCheckbox = ({initialIsSplit}: {initialIsSplit: boolean}) => {
+function SplitSentenceCheckbox({ initialIsSplit }: { initialIsSplit: boolean }) {
   const [isSplit, setSplit] = useState(initialIsSplit);
 
-  const handleChange = useCallback(({target: {checked}}) => {
+  const handleChange = useCallback(({ target: { checked } }) => {
     const c = checked as boolean;
     setSplit(c);
-    setConfig({isSplit: c});
+    setConfig({ isSplit: c });
   }, []);
 
   return (
@@ -113,9 +118,10 @@ const SplitSentenceCheckbox = ({initialIsSplit}: {initialIsSplit: boolean}) => {
       </FormGroup>
     </Tooltip>
   );
-};
+}
 
-const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSourceLang: string, initialTargetLang: string, initialIsSplit: boolean}) => {
+// eslint-disable-next-line max-len
+function App({ initialSourceLang, initialTargetLang, initialIsSplit }: { initialSourceLang: string, initialTargetLang: string, initialIsSplit: boolean }) {
   const theme = useMemo(() => createTheme({
     palette: {
       primary: {
@@ -125,12 +131,19 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
     },
   }), []);
 
+  const typographySx = {
+    m: 'auto',
+    mt: 1.2,
+    color: 'primary.contrastText',
+    fontFamily: '"Bowlby One SC", "Roboto", sans-serif',
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppBar position="sticky">
         <Toolbar>
-          <Typography variant="h4" sx={{m: 'auto', mt: 1.2, color: 'primary.contrastText', fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepL Box</Typography>
+          <Typography variant="h4" sx={typographySx}>DeepL Box</Typography>
         </Toolbar>
       </AppBar>
       <Container fixed>
@@ -147,7 +160,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
             </Box>
             <Box mt={3}>
               <Link mr={1} href="https://github.com/susumuota/deeplbox" target="_blank" rel="noreferrer noopener">
-                <img src="icons/github32.png" />
+                <img src="icons/github32.png" alt="GitHub" />
               </Link>
               <Link href="https://chrome.google.com/webstore/detail/ompicphdlcomhddpfbpnhnejhkheeagf" target="_blank" rel="noreferrer noopener">
                 <ChromeWebStoreIcon fontSize="large" />
@@ -158,7 +171,7 @@ const App = ({initialSourceLang, initialTargetLang, initialIsSplit}: {initialSou
       </Container>
     </ThemeProvider>
   );
-};
+}
 
 window.addEventListener('load', async () => {
   const config = await getConfig();
@@ -168,6 +181,6 @@ window.addEventListener('load', async () => {
       initialTargetLang={config.targetLang ?? DEFAULT_CONFIG.targetLang ?? 'auto'}
       initialIsSplit={config.isSplit ?? DEFAULT_CONFIG.isSplit ?? false}
     />,
-    document.getElementById('app')
+    document.getElementById('app'),
   );
 });

@@ -1,4 +1,3 @@
-
 // -*- coding: utf-8 -*-
 
 // Copyright 2021 Susumu OTA
@@ -15,11 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
-import React from 'react';
-import ReactDOM from 'react-dom';
-import {
+import React, {
   RefObject,
   createRef,
   useCallback,
@@ -27,6 +22,9 @@ import {
   useMemo,
   useState,
 } from 'react';
+
+import ReactDOM from 'react-dom';
+
 import {
   RecoilRoot,
   RecoilState,
@@ -36,6 +34,7 @@ import {
   useRecoilValue,
   useSetRecoilState,
 } from 'recoil';
+
 import {
   Alert,
   AppBar,
@@ -71,8 +70,15 @@ import {
   Divider,
 } from '@mui/material';
 
-import {PairType, ItemType, ConfigType, getConfig, setConfig} from './config';
-import {ChromeWebStoreIcon} from './ChromeWebStoreIcon';
+import {
+  ConfigType,
+  ItemType,
+  PairType,
+  getConfig,
+  setConfig,
+} from './config';
+
+import ChromeWebStoreIcon from './ChromeWebStoreIcon';
 
 const isDarkThemeState = atom<boolean>({
   key: 'isDarkThemeState',
@@ -131,7 +137,7 @@ const filterKeywordState = atom<string>({
 
 const sortedItemsState = selector<ItemType[]>({
   key: 'sortedItemsState',
-  get: ({get}) => {
+  get: ({ get }) => {
     const isReverse = get(isReverseState);
     const items = get(itemsState);
     return isReverse ? [...items].reverse() : items;
@@ -140,15 +146,17 @@ const sortedItemsState = selector<ItemType[]>({
 
 const filteredItemsState = selector<ItemType[]>({
   key: 'filteredItemsState',
-  get: ({get}) => {
+  get: ({ get }) => {
     const filterKeyword = get(filterKeywordState);
     const sortedItems = get(sortedItemsState);
     if (!filterKeyword) return sortedItems;
     const isShowSource = get(isShowSourceState);
     const pattern = new RegExp(filterKeyword, 'i');
-    return sortedItems.filter(item => {
-      const hit = item.pairs.filter(p => {
-        return -1 != p.translation.search(pattern) || (isShowSource && -1 != p.source.search(pattern));
+    return sortedItems.filter((item) => {
+      const hit = item.pairs.filter((p) => {
+        const tHit = p.translation.search(pattern) !== -1;
+        const sHit = isShowSource && p.source.search(pattern) !== -1;
+        return tHit || sHit;
       });
       return hit.length > 0;
     });
@@ -157,7 +165,7 @@ const filteredItemsState = selector<ItemType[]>({
 
 const filteredStatsState = selector<string>({
   key: 'filteredStatsState',
-  get: ({get}) => {
+  get: ({ get }) => {
     const items = get(itemsState);
     const filteredItems = get(filteredItemsState);
     return chrome.i18n.getMessage('filter_stats_format', [filteredItems.length, items.length]);
@@ -170,12 +178,13 @@ const splitToPairs = (source: string, translation: string) => {
   console.assert(ss.length === ts.length); // is this always true?
   // range(max(len(ss), len(ts)))  https://stackoverflow.com/a/10050831
   return [...Array(Math.max(ss.length, ts.length)).keys()]
-    .map(i => [ss[i] ?? '', ts[i] ?? ''])
+    .map((i) => [ss[i] ?? '', ts[i] ?? ''])
     .filter(([s, t]) => (s && s.trim()) || (t && t.trim()))
-    .map(([s, t], i) => ({id: i, source: s ?? '', translation: t ?? ''} as PairType));
+    .map(([s, t], i) => ({ id: i, source: s ?? '', translation: t ?? '' } as PairType));
 };
 
 // https://stackoverflow.com/a/56989122
+// eslint-disable-next-line @typescript-eslint/comma-dangle
 const useConfig = <T,>(recoilState: RecoilState<T>, configName: keyof ConfigType) => {
   const [state, setState] = useRecoilState(recoilState);
 
@@ -188,7 +197,7 @@ const useConfig = <T,>(recoilState: RecoilState<T>, configName: keyof ConfigType
   }, []);
 
   useEffect(() => {
-    setConfig({[configName]: state});
+    setConfig({ [configName]: state });
   }, [state]);
 };
 
@@ -202,13 +211,13 @@ const useToggle = (recoilState: RecoilState<boolean>) => {
   return toggle;
 };
 
-const Pair = ({source, translation}: {source: string, translation: string}) => {
+function Pair({ source, translation }: { source: string, translation: string }) {
   const isShowSource = useRecoilValue(isShowSourceState);
   const isTransparent = useRecoilValue(isTransparentState);
   const isDarkTheme = useRecoilValue(isDarkThemeState);
 
-  const opacitySx = isTransparent ? {opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}} : {};
-  const sourceBox = isShowSource ? <Box sx={{color: isDarkTheme ? 'primary.main' : 'info.dark', ...opacitySx}}>{source}</Box> : '';
+  const opacitySx = isTransparent ? { opacity: 0.1, transition: 'all 0.5s', '&:hover': { opacity: 1 } } : {};
+  const sourceBox = isShowSource ? <Box sx={{ color: isDarkTheme ? 'primary.main' : 'info.dark', ...opacitySx }}>{source}</Box> : '';
 
   return (
     <Box mb={1}>
@@ -216,9 +225,10 @@ const Pair = ({source, translation}: {source: string, translation: string}) => {
       {sourceBox}
     </Box>
   );
-};
+}
 
-const SmallIconButton = ({title, iconName, onClick}: {title: string, iconName: string, onClick: () => void}) => {
+// eslint-disable-next-line max-len
+function SmallIconButton({ title, iconName, onClick }: { title: string, iconName: string, onClick: () => void }) {
   return (
     <Tooltip title={title}>
       <IconButton color="inherit" onClick={onClick} size="small">
@@ -226,9 +236,9 @@ const SmallIconButton = ({title, iconName, onClick}: {title: string, iconName: s
       </IconButton>
     </Tooltip>
   );
-};
+}
 
-const DisabledSmallIconButton = ({title, iconName}: {title: string, iconName: string}) => {
+function DisabledSmallIconButton({ title, iconName }: { title: string, iconName: string }) {
   return (
     <Tooltip title={title}>
       <Box>
@@ -238,9 +248,9 @@ const DisabledSmallIconButton = ({title, iconName}: {title: string, iconName: st
       </Box>
     </Tooltip>
   );
-};
+}
 
-const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
+function Item({ id, pairs }: { id: number, pairs: PairType[] }) {
   const isShowSource = useRecoilValue(isShowSourceState);
   const [items, setItems] = useRecoilState(itemsState);
 
@@ -251,34 +261,35 @@ const Item = ({id, pairs}: {id: number, pairs: PairType[]}) => {
   }, [isShowSource, pairs]);
 
   const deleteItem = useCallback(() => {
-    setItems(items.filter(item => item.id !== id));
+    setItems(items.filter((item) => item.id !== id));
   }, [items, id]);
 
   return (
-    <Paper sx={{p: 2, mt: 3, mb: 3, position: 'relative'}} elevation={6}>
+    <Paper sx={{ p: 2, mt: 3, mb: 3, position: 'relative' }} elevation={6}>
+      {/* eslint-disable-next-line max-len */}
       {pairs.map((pair: PairType) => <Pair key={pair.id} source={pair.source} translation={pair.translation} />)}
-      <Box sx={{display: 'flex', position: 'absolute', right: 10, bottom: 10, opacity: 0.1, transition: 'all 0.5s', '&:hover': {opacity: 1}}}>
-        <Box flexGrow={1}></Box>
+      <Box sx={{ display: 'flex', position: 'absolute', right: 10, bottom: 10, opacity: 0.1, transition: 'all 0.5s', '&:hover': { opacity: 1 } }}>
+        <Box flexGrow={1} />
         <SmallIconButton title={chrome.i18n.getMessage('copy_icon_label')} iconName="copy_all" onClick={copyItem} />
         <SmallIconButton title={chrome.i18n.getMessage('delete_icon_label')} iconName="delete" onClick={deleteItem} />
       </Box>
     </Paper>
   );
-};
+}
 
-const SettingsButton = () => {
+function SettingsButton() {
   const toggleSettings = useToggle(isSettingsState);
 
   return <SmallIconButton title={chrome.i18n.getMessage('settings_icon_label')} iconName="settings" onClick={toggleSettings} />;
-};
+}
 
-const MenuButton = () => {
+function MenuButton() {
   const toggleMenu = useToggle(isMenuState);
 
   return <SmallIconButton title={chrome.i18n.getMessage('menu_icon_label')} iconName="menu" onClick={toggleMenu} />;
-};
+}
 
-const CopyAllButton = () => {
+function CopyAllButton() {
   const isShowSource = useRecoilValue(isShowSourceState);
   const filteredItems = useRecoilValue(filteredItemsState);
 
@@ -293,9 +304,10 @@ const CopyAllButton = () => {
   ) : (
     <DisabledSmallIconButton title={chrome.i18n.getMessage('copy_all_icon_label')} iconName="copy_all" />
   );
-};
+}
 
-const ConfirmDialogButton = ({title, contentText, iconName, confirmText, cancelText, onClick}: {title: string, contentText: string, iconName: string, confirmText: string, cancelText: string, onClick: () => void}) => {
+// eslint-disable-next-line max-len
+function ConfirmDialogButton({ title, contentText, iconName, confirmText, cancelText, onClick } : { title: string, contentText: string, iconName: string, confirmText: string, cancelText: string, onClick: () => void }) {
   const [isOpen, setOpen] = useState<boolean>(false);
 
   const handleOpen = useCallback(() => {
@@ -326,9 +338,9 @@ const ConfirmDialogButton = ({title, contentText, iconName, confirmText, cancelT
       </Dialog>
     </Box>
   );
-};
+}
 
-const DeleteAllButton = () => {
+function DeleteAllButton() {
   const [items, setItems] = useRecoilState(itemsState);
 
   const deleteItems = useCallback(() => {
@@ -347,9 +359,9 @@ const DeleteAllButton = () => {
   ) : (
     <DisabledSmallIconButton title={chrome.i18n.getMessage('delete_all_icon_label')} iconName="delete" />
   );
-};
+}
 
-const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
+function SettingsDrawer({ appBarHeight }: { appBarHeight: number }) {
   const isSettings = useRecoilValue(isSettingsState);
   const toggleSettings = useToggle(isSettingsState);
   const isShowSource = useRecoilValue(isShowSourceState);
@@ -383,7 +395,7 @@ const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
             <ListItemIcon>
               <Icon fontSize="small">{isTransparent ? 'opacity' : 'water_drop'}</Icon>
             </ListItemIcon>
-            <ListItemText sx={{ml: 2}}>
+            <ListItemText sx={{ ml: 2 }}>
               <Typography variant="body2" noWrap>
                 {chrome.i18n.getMessage('transparent_source_text')}
               </Typography>
@@ -423,11 +435,11 @@ const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
             </ListItemText>
             <Switch checked={isDarkTheme} size="small" edge="end" />
           </ListItemButton>
-          <Divider sx={{mt: 1, mb: 1}} />
+          <Divider sx={{ mt: 1, mb: 1 }} />
           <ListItem>
             <Tooltip title="GitHub">
-              <Link sx={{mr: 1}} href="https://github.com/susumuota/deeplbox" target="_blank" rel="noreferrer noopener">
-                <img src={isDarkTheme ? 'icons/github32r.png' : 'icons/github32.png'} width="20" />
+              <Link sx={{ mr: 1 }} href="https://github.com/susumuota/deeplbox" target="_blank" rel="noreferrer noopener">
+                <img src={isDarkTheme ? 'icons/github32r.png' : 'icons/github32.png'} width="20" alt="GitHub" />
               </Link>
             </Tooltip>
             <Tooltip title="Chrome Web Store">
@@ -440,11 +452,12 @@ const SettingsDrawer = ({appBarHeight}: {appBarHeight: number}) => {
       </Box>
     </Drawer>
   );
-};
+}
 
-const MenuDrawerListItem = (({item, refObject}: {item: ItemType, refObject: RefObject<HTMLDivElement>}) => {
+// eslint-disable-next-line max-len
+function MenuDrawerListItem({ item, refObject }: { item: ItemType, refObject: RefObject<HTMLDivElement> }) {
   const handleScroll = useCallback(() => {
-    refObject?.current?.scrollIntoView({block: 'start', inline: 'start', behavior: 'smooth'});
+    refObject?.current?.scrollIntoView({ block: 'start', inline: 'start', behavior: 'smooth' });
   }, [refObject]);
 
   const text = item.pairs?.[0]?.translation?.substring(0, 50); // limit for safety
@@ -459,9 +472,10 @@ const MenuDrawerListItem = (({item, refObject}: {item: ItemType, refObject: RefO
       </ListItemText>
     </ListItemButton>
   );
-});
+}
 
-const MenuDrawer = ({appBarHeight, refObjects}: {appBarHeight: number, refObjects: RefObject<HTMLDivElement>[]}) => {
+// eslint-disable-next-line max-len
+function MenuDrawer({ appBarHeight, refObjects }: { appBarHeight: number, refObjects: RefObject<HTMLDivElement>[] }) {
   const isMenu = useRecoilValue(isMenuState);
   const toggleMenu = useToggle(isMenuState);
   const filteredItems = useRecoilValue(filteredItemsState);
@@ -473,14 +487,15 @@ const MenuDrawer = ({appBarHeight, refObjects}: {appBarHeight: number, refObject
       <Box width={300}>
         <Box height={appBarHeight} />
         <List>
+          {/* eslint-disable-next-line max-len */}
           {filteredItems.map((item, i) => <MenuDrawerListItem key={item.id} item={item} refObject={refObjects[i] as RefObject<HTMLDivElement>} />)}
         </List>
       </Box>
     </Drawer>
   );
-};
+}
 
-const ProgressSnackbar = () => {
+function ProgressSnackbar() {
   const [isProgress, setProgress] = useRecoilState(isProgressState);
 
   const handleCloseProgress = useCallback(() => {
@@ -492,17 +507,17 @@ const ProgressSnackbar = () => {
       open={isProgress}
       autoHideDuration={null}
       onClose={handleCloseProgress}
-      anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
     >
       <Alert severity="info">
         {chrome.i18n.getMessage('progress_snackbar_alert')}
-        <CircularProgress size='1rem' sx={{ml: 1, verticalAlign: 'middle'}} />
+        <CircularProgress size="1rem" sx={{ ml: 1, verticalAlign: 'middle' }} />
       </Alert>
     </Snackbar>
   );
-};
+}
 
-const SuccessSnackbar = () => {
+function SuccessSnackbar() {
   const [isSuccess, setSuccess] = useRecoilState(isSuccessState);
   const isReverse = useRecoilValue(isReverseState);
 
@@ -515,29 +530,34 @@ const SuccessSnackbar = () => {
       open={isSuccess}
       autoHideDuration={1000}
       onClose={handleCloseSuccess}
-      anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
     >
       <Alert severity="success">
         {chrome.i18n.getMessage('success_snackbar_alert')}
-        <Icon sx={{ml: 1, verticalAlign: 'middle'}} fontSize="small">{isReverse ? 'vertical_align_top' : 'vertical_align_bottom'}</Icon>
+        <Icon sx={{ ml: 1, verticalAlign: 'middle' }} fontSize="small">{isReverse ? 'vertical_align_top' : 'vertical_align_bottom'}</Icon>
       </Alert>
     </Snackbar>
   );
-};
+}
 
-const SearchBar = () => {
+function SearchBar() {
   const setFilterKeyword = useSetRecoilState(filterKeywordState);
 
-  const handleChange = useCallback(({target: {value}}) => {
+  const handleChange = useCallback(({ target: { value } }) => {
     setFilterKeyword(value as string);
   }, []);
 
   const paperSx = {
-    ml: 2, mr: 2, pl: 1, pr: 1,
-    display: 'flex', alignItems: 'center', width: 160,
+    ml: 2,
+    mr: 2,
+    pl: 1,
+    pr: 1,
+    display: 'flex',
+    alignItems: 'center',
+    width: 160,
     background: 'rgba(255, 255, 255, 0.1)',
     '&:hover': {
-      background: 'rgba(255, 255, 255, 0.2)'
+      background: 'rgba(255, 255, 255, 0.2)',
     },
   };
 
@@ -549,13 +569,13 @@ const SearchBar = () => {
 
   return (
     <Paper color="inherit" elevation={0} sx={paperSx}>
-      <Icon fontSize="small" sx={{color: 'rgba(255, 255, 255, 0.87)'}}>search</Icon>
+      <Icon fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.87)' }}>search</Icon>
       <InputBase type="search" onChange={handleChange} placeholder={chrome.i18n.getMessage('filter_text')} sx={inputBaseSx} />
     </Paper>
   );
-};
+}
 
-const App = () => {
+function App() {
   useConfig<boolean>(isDarkThemeState, 'isDarkTheme');
   useConfig<boolean>(isShowSourceState, 'isShowSource');
   useConfig<boolean>(isTransparentState, 'isTransparent');
@@ -575,20 +595,20 @@ const App = () => {
 
   const [isNeedScroll, setNeedScroll] = useState(false);
 
-  const handleMessage = useCallback((request: {message: 'setTranslation' | 'startTranslation', source: string, translation: string}, _, sendResponse: (response: {message: string}) => void) => {
+  const handleMessage = useCallback((request: { message: 'setTranslation' | 'startTranslation', source: string, translation: string }, _, sendResponse: (response: { message: string }) => void) => {
     if (request.message === 'setTranslation') {
       const pairs = splitToPairs(request.source, request.translation);
       const id = new Date().getTime();
-      const item = {id: id, pairs: pairs} as ItemType;
-      setItems(prev => [...prev, item]); // push
+      const item = { id, pairs } as ItemType;
+      setItems((prev) => [...prev, item]); // push
       setProgress(false);
       setSuccess(true);
       setNeedScroll(true);
-      sendResponse({message: 'translation.tsx: setTranslation: done'});
+      sendResponse({ message: 'translation.tsx: setTranslation: done' });
     } else if (request.message === 'startTranslation') {
       setSuccess(false);
       setProgress(true);
-      sendResponse({message: 'translation.tsx: startTranslation: done'});
+      sendResponse({ message: 'translation.tsx: startTranslation: done' });
     }
     return true;
   }, []);
@@ -598,11 +618,14 @@ const App = () => {
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, [handleMessage]);
 
+  // eslint-disable-next-line max-len
   const refObjects = useMemo(() => filteredItems.map(() => createRef<HTMLDivElement>()), [filteredItems]);
 
   // TODO: is useEffect enough instead of useLayoutEffect?
   useEffect(() => {
-    isNeedScroll && isAutoScroll && refObjects?.[isReverse ? 0 : filteredItems.length - 1]?.current?.scrollIntoView({block: 'start', inline: 'start', behavior: 'smooth'});
+    if (isNeedScroll && isAutoScroll) {
+      refObjects?.[isReverse ? 0 : filteredItems.length - 1]?.current?.scrollIntoView({ block: 'start', inline: 'start', behavior: 'smooth' });
+    }
     setNeedScroll(false);
   }, [isNeedScroll, isAutoScroll, refObjects]);
 
@@ -629,14 +652,22 @@ const App = () => {
   // TODO: how do I get this minHeight?
   const appBarHeight = 48;
 
+  const typographySx = {
+    ml: 1,
+    mt: 0.2,
+    color: 'rgba(255, 255, 255, 0.87)',
+    flexGrow: 1,
+    fontFamily: '"Bowlby One SC", "Roboto", sans-serif',
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
-      <Box sx={{height: `calc(100vh - ${appBarHeight}px)`}}> {/* to adjust scrollbar position (1/3) */}
-        <AppBar position="sticky" sx={{zIndex: theme.zIndex.drawer + 1, height: `${appBarHeight}px`}}> {/* to adjust scrollbar position (2/3) */}
+      <Box sx={{ height: `calc(100vh - ${appBarHeight}px)` }}>
+        <AppBar position="sticky" sx={{ zIndex: theme.zIndex.drawer + 1, height: `${appBarHeight}px` }}>
           <Toolbar variant="dense">
             <MenuButton />
-            <Typography variant="h5" sx={{ml: 1, mt: 0.2, color: 'rgba(255, 255, 255, 0.87)', flexGrow: 1, fontFamily: '"Bowlby One SC", "Roboto", sans-serif'}}>DeepL Box</Typography>
+            <Typography variant="h5" sx={typographySx}>DeepL Box</Typography>
             <Typography variant="body2">{filterKeyword.length > 0 ? filteredStats : ''}</Typography>
             <SearchBar />
             <CopyAllButton />
@@ -644,11 +675,12 @@ const App = () => {
             <SettingsButton />
           </Toolbar>
         </AppBar>
-        <Box sx={{maxHeight: '100%', overflow: 'auto'}}> {/* to adjust scrollbar position (3/3) */}
+        <Box sx={{ maxHeight: '100%', overflow: 'auto' }}>
           <Container maxWidth={false}>
-            {isReverse && isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
+            {isReverse && isProgress ? <Skeleton sx={{ mt: 3, mb: 3 }} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
+            {/* eslint-disable-next-line max-len */}
             {filteredItems.map((item: ItemType, i: number) => <Box ref={refObjects[i] as RefObject<HTMLDivElement>} key={item.id}><Item key={item.id} id={item.id} pairs={item.pairs} /></Box>)}
-            {!isReverse && isProgress ? <Skeleton sx={{mt: 3, mb: 3}} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
+            {!isReverse && isProgress ? <Skeleton sx={{ mt: 3, mb: 3 }} variant="rectangular" animation="wave" width="100%" height={100} /> : ''}
           </Container>
           <MenuDrawer appBarHeight={appBarHeight} refObjects={refObjects} />
           <SettingsDrawer appBarHeight={appBarHeight} />
@@ -658,13 +690,13 @@ const App = () => {
       </Box>
     </ThemeProvider>
   );
-};
+}
 
 window.addEventListener('load', () => {
   ReactDOM.render(
     <RecoilRoot>
       <App />
     </RecoilRoot>,
-    document.getElementById('app')
+    document.getElementById('app'),
   );
 });
