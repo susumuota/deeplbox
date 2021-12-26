@@ -14,8 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
 // Get selected text via PDFScriptingAPI of default Chrome's PDF viewer (PDFium).
 //
 // If you send 'getSelectedText' message to PDFScriptingAPI,
@@ -47,32 +45,33 @@ const pdfEmbed = document.querySelector('embed');
 const pdfWindow = (() => {
   try {
     // TODO: sometimes this got error
-    return Array.from(window.frames).find(f => f.frameElement === pdfEmbed);
+    return Array.from(window.frames).find((f) => f.frameElement === pdfEmbed);
   } catch (err) {
     console.debug(err);
     return window.frames[0];
   }
 })();
 
-if (!(pdfEmbed && pdfWindow)) throw 'Invalid PDFScriptingAPI';
+if (!(pdfEmbed && pdfWindow)) throw Error('Invalid PDFScriptingAPI');
 
-chrome.runtime.onMessage.addListener((request: {message: string}, _, sendResponse: (response: {message: string}) => void) => {
+// send 'getSelectedText' message to PDFScriptingAPI
+// eslint-disable-next-line max-len
+chrome.runtime.onMessage.addListener((request: { message: 'getSelection' }, _, sendResponse: (response: { message: string }) => void) => {
   if (request.message === 'getSelection') {
-    pdfWindow.postMessage({type: 'getSelectedText'}, PDF_ORIGIN);
-    sendResponse({message: 'pdf.ts: getSelection: done'});
+    pdfWindow.postMessage({ type: 'getSelectedText' }, PDF_ORIGIN);
+    sendResponse({ message: 'pdf.ts: getSelection: done' });
   }
   return true;
 });
 
 // PDFScriptingAPI will send back 'getSelectedTextReply' if it receives 'getSelectedText'
-window.addEventListener('message', (event: MessageEvent<{type: string, selectedText: string}>) => {
+window.addEventListener('message', (event: MessageEvent<{ type: string, selectedText: string }>) => {
   if (event.origin === PDF_ORIGIN && event.data.type === 'getSelectedTextReply') {
     chrome.runtime.sendMessage({
       message: 'setSelection',
       selectedText: event.data.selectedText,
-    }, (response: {message: string}) => {
-      console.debug(chrome.runtime.lastError?.message ??
-        `pdf.ts: got message: ${response.message}`);
+    }, (response: { message: string }) => {
+      console.debug(chrome.runtime.lastError?.message ?? `pdf.ts: got message: ${response.message}`);
     });
   }
 }, false);

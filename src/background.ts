@@ -14,9 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
-import {getConfig, setConfig, DEFAULT_CONFIG} from './config';
+import {
+  DEFAULT_CONFIG,
+  getConfig,
+  setConfig,
+} from './config';
 
 type OpenTabParamsType = {
   readonly createTab: chrome.tabs.CreateProperties | null,
@@ -36,7 +38,7 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
       const currentTab = await chrome.tabs.get(tabId);
       // update tab
       if (params.updateTab) {
-        const updatedTab = await chrome.tabs.update(tabId, {...params.updateTab, url: url});
+        const updatedTab = await chrome.tabs.update(tabId, { ...params.updateTab, url });
         if (params.updateWindow) {
           chrome.windows.update(updatedTab.windowId, params.updateWindow);
         }
@@ -55,42 +57,54 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
   // no tab exists
   // first time or tab was closed by user
   if (params.createTab) {
-    const createdTab = await chrome.tabs.create({...params.createTab, url: url});
+    const createdTab = await chrome.tabs.create({ ...params.createTab, url });
     if (params.createWindow) {
-      chrome.windows.create({...params.createWindow, tabId: createdTab.id});
+      chrome.windows.create({ ...params.createWindow, tabId: createdTab.id });
     }
     return createdTab;
   }
   // something is wrong at params
-  throw 'background.ts: Invalid openTab params';
-}
+  throw new Error('background.ts: Invalid openTab params');
+};
+
+// insert 2 newlines between sentences
+// TODO: sophisticated way
+const splitSentences = (text: string) => {
+  if (!text) return text;
+  const splitted = text.replace(/([.?!]+)\s+/g, '$1\n\n');
+  // TODO: more abbreviations
+  const fixed = splitted.replace(/(\n\d+\.|^\d+\.|et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|\smin\.|Fig\.|\sfig\.|Figure\.|Figure \d+\.|Table\.|Table \d+\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|\spp\.|\spt\.|\sft\.|\slb\.|\sgal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
+  return fixed;
+};
 
 // open DeepL tab
 const openDeepLTab = async (sourceText: string) => {
   const config = await getConfig();
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
-  const truncated = config.maxSourceText && config.maxSourceText > 0 ? splitted.substring(0, config.maxSourceText) : splitted;
+  const truncated = config.maxSourceText && config.maxSourceText > 0
+    ? splitted.substring(0, config.maxSourceText) : splitted;
   // slash, pipe and backslash need to be escaped by backslash
   // TODO: other characters?
   const escaped = truncated.replace(/([/|\\])/g, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const deepLTabId = config.deepLTabId ?? DEFAULT_CONFIG.deepLTabId ?? chrome.tabs.TAB_ID_NONE;
-  if (!config.deepLTabParams) throw 'background.ts: Invalid config.deepLTabParams';
+  if (!config.deepLTabParams) throw Error('background.ts: Invalid config.deepLTabParams');
   const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, deepLTabId, config.deepLTabParams);
-  setConfig({deepLTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE}); // remember tab and reuse next time
+  setConfig({ deepLTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE });
   return tab;
-}
+};
 
 // open translation tab
 const openTranslationTab = async () => {
   const config = await getConfig();
-  if (!config.translationHTML) throw 'background.ts: Invalid config.translationHTML';
-  const translationTabId = config.translationTabId ?? DEFAULT_CONFIG.translationTabId ?? chrome.tabs.TAB_ID_NONE;
-  if (!config.translationTabParams) throw 'background.ts: Invalid config.translationTabParams';
+  if (!config.translationHTML) throw Error('background.ts: Invalid config.translationHTML');
+  const translationTabId = config.translationTabId
+    ?? DEFAULT_CONFIG.translationTabId ?? chrome.tabs.TAB_ID_NONE;
+  if (!config.translationTabParams) throw Error('background.ts: Invalid config.translationTabParams');
   const tab = await openTab(config.translationHTML, translationTabId, config.translationTabParams);
-  setConfig({translationTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE}); // remember tab and reuse next time
+  setConfig({ translationTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE });
   return tab;
-}
+};
 
 // injection function which will be executed in specific tab (not background.ts)
 const injectionFunction = () => {
@@ -107,57 +121,46 @@ const injectionFunction = () => {
   selection.removeAllRanges();
   selection.addRange(range);
   const rangeText = selection.toString().trim();
-  // selection.removeAllRanges(); // TODO: this can reduce clicks but make user hard to know what happened
+  // TODO: this can reduce clicks but make user hard to know what happened
+  // selection.removeAllRanges();
   return rangeText;
-}
+};
 
 // get selection text by injection
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
-const getSelectionByInjection = async (tabId: number) => {
-  return new Promise<string>((resolve, reject) => {
-    chrome.scripting.executeScript({
-      target: {tabId: tabId, allFrames: true},
-      func: injectionFunction,
-    }, (results) => {
-      if (chrome.runtime.lastError) return reject(chrome.runtime.lastError.message);
-      for (const r of results) {
-        const text = r.result?.trim();
-        if (text) return resolve(text);
-      }
-      return reject('background.ts: Could not get any selection text (injection)');
-    });
+const getSelectionByInjection = async (tabId: number) => new Promise<string>((resolve, reject) => {
+  chrome.scripting.executeScript({
+    target: { tabId, allFrames: true },
+    func: injectionFunction,
+  }, (results) => {
+    if (chrome.runtime.lastError) reject(Error(chrome.runtime.lastError.message));
+    const hit = results.find((r) => r.result.trim());
+    if (hit) resolve(hit.result.trim());
+    reject(new Error('background.ts: Could not get any selection text (injection)'));
   });
-}
+});
 
 const getSelectionByMessage = async (tabId: number) => {
   chrome.tabs.sendMessage(tabId, {
     message: 'getSelection',
-  }, (response: {message: string}) => {
-    console.debug(chrome.runtime.lastError?.message ??
-      `background.ts: got message: ${response.message}`);
+  }, (response: { message: string }) => {
+    console.debug(chrome.runtime.lastError?.message ?? `background.ts: got message: ${response.message}`);
   });
-}
-
-// insert 2 newlines between sentences
-// TODO: sophisticated way
-const splitSentences = (text: string) => {
-  if (!text) return text;
-  const splitted = text.replace(/([.?!]+)\s+/g, '$1\n\n');
-  // TODO: more abbreviations
-  const fixed = splitted.replace(/(\n\d+\.|^\d+\.|et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|\smin\.|Fig\.|\sfig\.|Figure\.|Figure \d+\.|Table\.|Table \d+\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|\spp\.|\spt\.|\sft\.|\slb\.|\sgal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
-  return fixed;
-}
+};
 
 // heuristic method to remove new lines between 2 plain sentences.
-// it should remove new line after a plain sentence if next sentence is also plain text. e.g. "This is a something\nlike object".
-// it should not remove new line after chapter title which text is started by capital case. e.g. "Abstract\nWe explore something".
-// if it is less capital word (calculated by `capitalRatio`), it should be a plain sentence, not a chapter title.
+// it should remove new line after a plain sentence if next sentence is also plain text.
+//   e.g. "This is a something\nlike object".
+// it should not remove new line after chapter title which text is started by capital case.
+//   e.g. "Abstract\nWe explore something".
+// if it is less capital word (calculated by `capitalRatio`),
+// it should be a plain sentence, not a chapter title.
 // TODO: sophisticated way
 const removeNewlines = (text: string) => {
   const capitalRatio = (sentence: string) => {
-    const words = sentence.split(' ').filter(t => !t.match(/\d+|\(\d\)/)); // remove numbers
-    return words.filter(t => t.match(/^[A-Z].*/)).length / words.length; // ratio of of capital words
-  }
+    const words = sentence.split(' ').filter((t) => !t.match(/\(?\d+\)?/)); // remove numbers
+    return words.filter((t) => t.match(/[A-Z].*/)).length / words.length; // ratio of of capital words
+  };
   const sentences = text.split('\n');
   const crs = sentences.map(capitalRatio);
   return sentences
@@ -175,35 +178,35 @@ const removeNewlines = (text: string) => {
 // send startTranslation message to translation.html
 const sendStartTranslation = (tabId: number) => {
   chrome.tabs.sendMessage(tabId, {
-    message: 'startTranslation'
-  }, (response: {message: string}) => {
-    console.debug(chrome.runtime.lastError?.message ??
-      `background.ts: got message: ${response.message}`);
+    message: 'startTranslation',
+  }, (response: { message: string }) => {
+    console.debug(chrome.runtime.lastError?.message ?? `background.ts: got message: ${response.message}`);
   });
-}
+};
 
 // translate source text
 const translateText = async (source: string) => {
-  await openDeepLTab(source); // now, deepl.ts will send message to translation.tsx (and background.ts)
+  await openDeepLTab(source);
+  // now, deepl.ts will send message to translation.tsx (and background.ts)
   const tab = await openTranslationTab();
   // TODO: 1000 ms is just enough for my PC
   return tab.status !== 'complete' ? setTimeout(() => tab.id && sendStartTranslation(tab.id), 1000) : tab.id && sendStartTranslation(tab.id);
-}
+};
 
 // chrome.i18n.getMessage does not work in service_worker in manifest v3
 // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/dG6JeZGkN5w
 // TODO: other messages if needed
 const i18nGetMessage = (messageName: 'deepl_menu_title'): string => {
   if (messageName === 'deepl_menu_title') {
-    return 'ja' === navigator.language ? 'DeepL 翻訳' : 'DeepL Translate';
+    return navigator.language === 'ja' ? 'DeepL 翻訳' : 'DeepL Translate';
   }
-  throw 'background.ts: Unknown message';
+  throw Error('background.ts: Unknown message');
 };
 
 const setBadge = (color: '#FF0000' | '#0000FF', text: 'C' | 'K' | 'M' | 'X') => {
-  chrome.action.setBadgeBackgroundColor({color: color});
-  chrome.action.setBadgeText({text: text});
-}
+  chrome.action.setBadgeBackgroundColor({ color });
+  chrome.action.setBadgeText({ text });
+};
 
 // initialize extension event
 // https://developer.chrome.com/docs/extensions/mv3/background_pages/#listeners
@@ -211,11 +214,11 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'deepl-menu',
     title: i18nGetMessage('deepl_menu_title'),
-    contexts: ['selection']
+    contexts: ['selection'],
   });
   // must reset. old tabId should be invalid
-  setConfig({deepLTabId: chrome.tabs.TAB_ID_NONE});
-  setConfig({translationTabId: chrome.tabs.TAB_ID_NONE});
+  setConfig({ deepLTabId: chrome.tabs.TAB_ID_NONE });
+  setConfig({ translationTabId: chrome.tabs.TAB_ID_NONE });
   return true;
 });
 
@@ -223,7 +226,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info) => {
   if (info.menuItemId !== 'deepl-menu') return true;
   try {
-    if (!info || !info.selectionText) throw 'background.ts: Invalid info';
+    if (!info || !info.selectionText) throw Error('background.ts: Invalid info');
     translateText(info.selectionText);
     setBadge('#0000FF', 'C');
   } catch (err) {
@@ -235,9 +238,10 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
+  console.debug(command, tab);
   if (command !== 'deepl-open') return true;
   try {
-    if (!tab || !tab.id) throw 'background.ts: Invalid tab';
+    if (!tab || !tab.id) throw Error('background.ts: Invalid tab');
     translateText(await getSelectionByInjection(tab.id));
     setBadge('#0000FF', 'K');
   } catch (err) {
@@ -249,11 +253,11 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 });
 
 // message event
-chrome.runtime.onMessage.addListener(async (request: {message: 'setSelection', selectedText: string}, _, sendResponse: (response: {message: string}) => void) => {
+chrome.runtime.onMessage.addListener(async (request: { message: 'setSelection', selectedText: string }, _, sendResponse: (response: { message: string }) => void) => {
   if (request.message !== 'setSelection') return true;
   try {
     const text = request.selectedText.trim();
-    if (!text) throw 'background.ts: Could not get any selection text (message)';
+    if (!text) throw Error('background.ts: Could not get any selection text (message)');
     const removed = removeNewlines(text);
     translateText(removed);
     setBadge('#0000FF', 'M');
@@ -261,7 +265,7 @@ chrome.runtime.onMessage.addListener(async (request: {message: 'setSelection', s
     console.debug(err);
     setBadge('#FF0000', 'X');
   }
-  sendResponse({message: 'background.ts: setSelection: done'});
+  sendResponse({ message: 'background.ts: setSelection: done' });
   return true;
 });
 
@@ -284,7 +288,7 @@ chrome.windows.onBoundsChanged.addListener(async (window) => {
         height: window.height,
       },
     };
-    setConfig({translationTabParams: params});
+    setConfig({ translationTabParams: params });
   } catch (err) {
     console.debug(err);
   }

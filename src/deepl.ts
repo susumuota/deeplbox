@@ -14,27 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
 const source = document.querySelector('#source-dummydiv');
 const target = document.querySelector('#target-dummydiv');
 
-if (!(source && target)) throw 'Could not find #source-dummydiv or #target-dummydiv.';
+if (!(source && target)) throw Error('Could not find #source-dummydiv or #target-dummydiv.');
 
 // monitor source/target textarea and when its content is changed,
 // send message to translation.js (and background.js)
 // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
 const observer = new MutationObserver(() => {
-  if (source.textContent && source.textContent.trim() &&
-      target.textContent && target.textContent.trim()) {
+  if (source.textContent && source.textContent.trim()
+      && target.textContent && target.textContent.trim()) {
     chrome.runtime.sendMessage({
       message: 'setTranslation',
       source: source.textContent.trim(),
-      translation: target.textContent.trim()
-    }, (response: {message: string}) => {
-      console.debug(chrome.runtime.lastError?.message ??
-        `deepl.ts: got message: ${response.message}`);
+      translation: target.textContent.trim(),
+    }, (response: { message: string }) => {
+      console.debug(chrome.runtime.lastError?.message ?? `deepl.ts: got message: ${response.message}`);
     });
   }
 });
-observer.observe(target, {childList: true});
+observer.observe(target, { childList: true });

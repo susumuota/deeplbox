@@ -14,8 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-'use strict';
-
 export type PairType = {
   readonly id: number,
   readonly source: string,
@@ -58,7 +56,7 @@ export type ConfigType = {
 
 // default config
 export const DEFAULT_CONFIG: ConfigType = {
-    // DeepL settings
+  // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
   sourceLang: 'auto', // 'en',
@@ -85,18 +83,22 @@ export const DEFAULT_CONFIG: ConfigType = {
   translationTabParams: {
     createTab: { active: false },
     createWindow: {
-      width: 1080, height: 1080, top: 0, left: 0,
-      type: 'popup', focused: true
+      width: 1080,
+      height: 1080,
+      top: 0,
+      left: 0,
+      type: 'popup',
+      focused: true,
     },
     updateTab: null,
-    updateWindow: { focused: true }
+    updateWindow: { focused: true },
   },
 
   // split sentences
   isSplit: false,
 
   // maximum length of source text to avoid free trial limit. 0 or negative number means unlimited.
-  //maxSourceText: 5000,
+  // maxSourceText: 5000,
   maxSourceText: -1,
 
   // translation tab HTML
@@ -128,9 +130,7 @@ export const DEFAULT_CONFIG: ConfigType = {
 
 // set config value
 // setConfig({targetLang: 'ja'})
-export const setConfig = (config: ConfigType) => {
-  return chrome.storage.local.set(config);
-}
+export const setConfig = (config: ConfigType) => chrome.storage.local.set(config);
 
 // get config value
 // https://developer.chrome.com/docs/extensions/reference/storage/#type-StorageArea
@@ -140,16 +140,11 @@ export const setConfig = (config: ConfigType) => {
 //
 // to see only custom config
 // await getConfig(null)
-export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG) => {
-  return new Promise<ConfigType>(resolve => {
-    return chrome.storage.local.get(defaultConfig, resolve);
-  });
-}
+// eslint-disable-next-line max-len
+export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG): Promise<ConfigType> => chrome.storage.local.get(defaultConfig);
 
 // clearConfig()
-export const clearConfig = () => {
-  return chrome.storage.local.clear();
-}
+export const clearConfig = () => chrome.storage.local.clear();
 
 // https://www.deepl.com/docs-api/translating-text/
 export const SOURCE_LANG_LIST = [
