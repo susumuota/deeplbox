@@ -2,7 +2,7 @@
   "manifest_version": 3,
 
   "name": "__MSG_extension_name__",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "__MSG_extension_description__",
   "author": "Susumu OTA",
   "homepage_url": "https://github.com/susumuota/deeplbox",

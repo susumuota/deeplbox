@@ -39,14 +39,10 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
       // update tab
       if (params.updateTab) {
         const updatedTab = await chrome.tabs.update(tabId, { ...params.updateTab, url });
-        if (params.updateWindow) {
-          chrome.windows.update(updatedTab.windowId, params.updateWindow);
-        }
+        if (params.updateWindow) chrome.windows.update(updatedTab.windowId, params.updateWindow);
         return updatedTab;
       }
-      if (params.updateWindow) {
-        chrome.windows.update(currentTab.windowId, params.updateWindow);
-      }
+      if (params.updateWindow) chrome.windows.update(currentTab.windowId, params.updateWindow);
       // no need to update tab
       return currentTab;
     } catch (err) {
@@ -58,9 +54,8 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
   // first time or tab was closed by user
   if (params.createTab) {
     const createdTab = await chrome.tabs.create({ ...params.createTab, url });
-    if (params.createWindow) {
-      chrome.windows.create({ ...params.createWindow, tabId: createdTab.id });
-    }
+    // eslint-disable-next-line max-len
+    if (params.createWindow) chrome.windows.create({ ...params.createWindow, tabId: createdTab.id });
     return createdTab;
   }
   // something is wrong at params
@@ -69,15 +64,18 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
 
 // insert 2 newlines between sentences
 // TODO: sophisticated way
+const SPLIT_PATTERN_EN = /([.?!]+)\s+/g;
+// TODO: more abbreviations
+const ABBREVIATIONS_PATTERN_EN = /(et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|\smin\.|Fig\.|\sfig\.|Figure\.|Figure \d+\.|Table\.|Table \d+\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|\spp\.|\spt\.|\sft\.|\slb\.|\sgal\.|P\.S\.|p\.s\.|a\.k\.a\.|vs\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.|\n(\d+\.)+|^(\d+\.)+)\n\n/g;
 const splitSentences = (text: string) => {
   if (!text) return text;
-  const splitted = text.replace(/([.?!]+)\s+/g, '$1\n\n');
-  // TODO: more abbreviations
-  const fixed = splitted.replace(/(\n\d+\.|^\d+\.|et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|\smin\.|Fig\.|\sfig\.|Figure\.|Figure \d+\.|Table\.|Table \d+\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|\spp\.|\spt\.|\sft\.|\slb\.|\sgal\.|P\.S\.|p\.s\.|a\.k\.a\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.)\n\n/g, '$1 ');
+  const splitted = text.replace(SPLIT_PATTERN_EN, '$1\n\n');
+  const fixed = splitted.replace(ABBREVIATIONS_PATTERN_EN, '$1 ');
   return fixed;
 };
 
 // open DeepL tab
+const ESCAPE_PATTERN = /([/|\\])/g;
 const openDeepLTab = async (sourceText: string) => {
   const config = await getConfig();
   const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
@@ -85,7 +83,7 @@ const openDeepLTab = async (sourceText: string) => {
     ? splitted.substring(0, config.maxSourceText) : splitted;
   // slash, pipe and backslash need to be escaped by backslash
   // TODO: other characters?
-  const escaped = truncated.replace(/([/|\\])/g, '\\$1');
+  const escaped = truncated.replace(ESCAPE_PATTERN, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const deepLTabId = config.deepLTabId ?? DEFAULT_CONFIG.deepLTabId ?? chrome.tabs.TAB_ID_NONE;
   if (!config.deepLTabParams) throw Error('background.ts: Invalid config.deepLTabParams');
@@ -133,10 +131,11 @@ const getSelectionByInjection = async (tabId: number) => new Promise<string>((re
     target: { tabId, allFrames: true },
     func: injectionFunction,
   }, (results) => {
-    if (chrome.runtime.lastError) reject(Error(chrome.runtime.lastError.message));
+    if (chrome.runtime.lastError) return reject(Error(chrome.runtime.lastError.message));
+    if (!results) return reject(new Error('background.ts: Empty results (injection)'));
     const hit = results.find((r) => r.result.trim());
-    if (hit) resolve(hit.result.trim());
-    reject(new Error('background.ts: Could not get any selection text (injection)'));
+    if (hit) return resolve(hit.result.trim());
+    return reject(new Error('background.ts: Could not get any selection text (injection)'));
   });
 });
 
@@ -148,29 +147,34 @@ const getSelectionByMessage = async (tabId: number) => {
   });
 };
 
-// heuristic method to remove new lines between 2 plain sentences.
-// it should remove new line after a plain sentence if next sentence is also plain text.
-//   e.g. "This is a something\nlike object".
-// it should not remove new line after chapter title which text is started by capital case.
-//   e.g. "Abstract\nWe explore something".
-// if it is less capital word (calculated by `capitalRatio`),
-// it should be a plain sentence, not a chapter title.
+// heuristic method to remove new lines between 2 sentences.
+// if it's title text, leave new lines.
+// if it's a regular sentence and next sentence is also a regular sentence, remove new line.
 // TODO: sophisticated way
+// title pattern to detect title which needs to add new lines both before and after title
+// e.g. "regular sentence.\n2.1. Title text\nregular sentence."
+const TITLE_PATTERN = /^((\d+\.)+|[IVX]+(\.\d+)*)\s+[A-Z].*[^.]$/;
+// exclude words which are written in lower case on title
+// TODO: more words
+const EXCLUDE_PATTERN = /^(a|an|the|by|in|on|at|to|of|as|for|via|over|with|without|from|into|upon|under|between|through|or|and|not|[(-]?[\d.]+[),]?|[*∗])$/;
+const CAPITAL_PATTERN = /^[A-Z].*$/;
 const removeNewlines = (text: string) => {
+  const isTitle = (sentence: string) => !!sentence.match(TITLE_PATTERN);
   const capitalRatio = (sentence: string) => {
-    const words = sentence.split(' ').filter((t) => !t.match(/\(?\d+\)?/)); // remove numbers
-    return words.filter((t) => t.match(/[A-Z].*/)).length / words.length; // ratio of of capital words
+    const words = sentence.split(' ').filter((t) => !t.match(EXCLUDE_PATTERN));
+    if (words.length === 0) return 0.0;
+    return words.filter((t) => t.match(CAPITAL_PATTERN)).length / words.length;
   };
   const sentences = text.split('\n');
   const crs = sentences.map(capitalRatio);
   return sentences
-    .flatMap((sentence, i) => { // ES2019
+    .flatMap((sentence, i) => { // flatMap is ES2019
+      if (isTitle(sentence)) return [sentence, '\n'];
+      if (isTitle(sentences[i + 1] ?? '')) return [sentence, '\n'];
       const crCurrent = crs[i] ?? 0.0;
       const crNext = crs[i + 1] ?? 0.0;
-      // if the sentence includes less capital words,
-      // it should be a plain sentence, not a chapter title.
-      // if there are 2 plain sentences, replace newline to space between them.
-      return [sentence, (crCurrent < 0.5 && crNext < 0.5) ? ' ' : '\n'];
+      // remove new line between 2 regular sentences (regular sentence === capital ratio is small)
+      return [sentence, (crCurrent < 0.66 && crNext < 0.66) ? ' ' : '\n'];
     })
     .join('');
 };
@@ -238,7 +242,6 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 
 // keyboard shortcut event
 chrome.commands.onCommand.addListener(async (command, tab) => {
-  console.debug(command, tab);
   if (command !== 'deepl-open') return true;
   try {
     if (!tab || !tab.id) throw Error('background.ts: Invalid tab');
