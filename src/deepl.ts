@@ -17,21 +17,27 @@
 const source = document.querySelector('#source-dummydiv');
 const target = document.querySelector('#target-dummydiv');
 
-if (!(source && target)) throw Error('Could not find #source-dummydiv or #target-dummydiv.');
+if (!(source && target)) throw new Error('Could not find #source-dummydiv or #target-dummydiv.');
 
-// monitor source/target textarea and when its content is changed,
-// send message to translation.js (and background.js)
+// monitor source/target textarea
+// when its content is changed, send message to translation.tsx
 // https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
 const observer = new MutationObserver(() => {
-  if (source.textContent && source.textContent.trim()
-      && target.textContent && target.textContent.trim()) {
-    chrome.runtime.sendMessage({
-      message: 'setTranslation',
-      source: source.textContent.trim(),
-      translation: target.textContent.trim(),
-    }, (response: { message: string }) => {
-      console.debug(chrome.runtime.lastError?.message ?? `deepl.ts: got message: ${response.message}`);
-    });
-  }
+  if (!(source.textContent?.trim() && target.textContent?.trim())) return;
+  // send message to translation.tsx
+  chrome.runtime.sendMessage({
+    message: 'setTranslation',
+    source: source.textContent.trim(),
+    translation: target.textContent.trim(),
+  }, (response: { message: string }) => {
+    console.debug(chrome.runtime.lastError?.message ?? `deepl.ts: got message: ${response.message}`);
+  });
 });
+
 observer.observe(target, { childList: true });
+
+// reset tabId
+window.addEventListener('beforeunload', () => {
+  // use -1 instead of TAB_ID_NONE because chrome.tabs is not accessible in content scripts
+  chrome.storage.local.set({ deepLTabId: -1 }); // chrome.tabs.TAB_ID_NONE
+}, false);
