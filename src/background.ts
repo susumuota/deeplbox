@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import tokenizer from 'sbd';
+
 import {
   DEFAULT_CONFIG,
   getConfig,
@@ -36,22 +38,22 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
       // ensure tab exists
       // chrome.tabs.get throws error if there is no tab with tabId
       const currentTab = await chrome.tabs.get(tabId);
-      // update tab
+      console.assert(tabId === currentTab.id);
       if (params.updateTab) {
         const updatedTab = await chrome.tabs.update(tabId, { ...params.updateTab, url });
+        console.assert(currentTab.id === updatedTab.id);
         if (params.updateWindow) chrome.windows.update(updatedTab.windowId, params.updateWindow);
         return updatedTab;
       }
       if (params.updateWindow) chrome.windows.update(currentTab.windowId, params.updateWindow);
-      // no need to update tab
       return currentTab;
     } catch (err) {
-      // maybe tab was closed by user
+      // maybe tab was closed by user or extension was reloaded
       console.debug(err);
     }
   }
   // no tab exists
-  // first time or tab was closed by user
+  // first time or tab was closed by user or extension was reloaded
   if (params.createTab) {
     const createdTab = await chrome.tabs.create({ ...params.createTab, url });
     // eslint-disable-next-line max-len
@@ -62,16 +64,23 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
   throw new Error('background.ts: Invalid openTab params');
 };
 
-// insert 2 newlines between sentences
-// TODO: sophisticated way
-const SPLIT_PATTERN_EN = /([.?!]+)\s+/g;
-// TODO: more abbreviations
-const ABBREVIATIONS_PATTERN_EN = /(et al\.|e\.g\.|i\.e\.|ibid\.|cf\.|n\.b\.|etc\.|\smin\.|Fig\.|\sfig\.|Figure\.|Figure \d+\.|Table\.|Table \d+\.|No\.|B\.C\.|A\.D\.|B\.C\.E\.|C\.E\.|approx\.|\spp\.|\spt\.|\sft\.|\slb\.|\sgal\.|P\.S\.|p\.s\.|a\.k\.a\.|vs\.|Mr\.|Mrs\.|Ms\.|Dr\.|Ph\.D\.|St\.|U\.S\.|U\.K\.|Ave\.|Apt\.|a\.m\.|p\.m\.|\n(\d+\.)+|^(\d+\.)+)\n\n/g;
+// insert a newline between sentences
+const FIX_SECTION_PATTERN = /^(\d+|[A-Z])\.(\d+\.)*$/; // section or appendix
+const FIX_CAPTION_PATTERN = /(Figure|Table)\s+\d+\.$/; // caption
 const splitSentences = (text: string) => {
   if (!text) return text;
-  const splitted = text.replace(SPLIT_PATTERN_EN, '$1\n\n');
-  const fixed = splitted.replace(ABBREVIATIONS_PATTERN_EN, '$1 ');
-  return fixed;
+  const sentences = tokenizer.sentences(text, { newline_boundaries: true }); // sbd
+  return sentences
+    .flatMap((sentence) => { // flatMap is ES2019
+      // fix caption and section
+      if (sentence.match(FIX_SECTION_PATTERN)
+          || sentence.match(FIX_CAPTION_PATTERN)) {
+        console.debug('splitSentences: fix sentence:', [sentence]);
+        return [sentence, ' '];
+      }
+      return [sentence, '\n'];
+    })
+    .join('');
 };
 
 // open DeepL tab
@@ -86,8 +95,12 @@ const openDeepLTab = async (sourceText: string) => {
   const escaped = truncated.replace(ESCAPE_PATTERN, '\\$1');
   const encoded = encodeURIComponent(escaped);
   const deepLTabId = config.deepLTabId ?? DEFAULT_CONFIG.deepLTabId ?? chrome.tabs.TAB_ID_NONE;
-  if (!config.deepLTabParams) throw Error('background.ts: Invalid config.deepLTabParams');
-  const tab = await openTab(`${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`, deepLTabId, config.deepLTabParams);
+  if (!config.deepLTabParams) throw new Error('background.ts: Invalid config.deepLTabParams');
+  const tab = await openTab(
+    `${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`,
+    deepLTabId,
+    config.deepLTabParams,
+  );
   setConfig({ deepLTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE });
   return tab;
 };
@@ -95,10 +108,10 @@ const openDeepLTab = async (sourceText: string) => {
 // open translation tab
 const openTranslationTab = async () => {
   const config = await getConfig();
-  if (!config.translationHTML) throw Error('background.ts: Invalid config.translationHTML');
+  if (!config.translationHTML) throw new Error('background.ts: Invalid config.translationHTML');
   const translationTabId = config.translationTabId
     ?? DEFAULT_CONFIG.translationTabId ?? chrome.tabs.TAB_ID_NONE;
-  if (!config.translationTabParams) throw Error('background.ts: Invalid config.translationTabParams');
+  if (!config.translationTabParams) throw new Error('background.ts: Invalid config.translationTabParams');
   const tab = await openTab(config.translationHTML, translationTabId, config.translationTabParams);
   setConfig({ translationTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE });
   return tab;
@@ -131,7 +144,7 @@ const getSelectionByInjection = async (tabId: number) => new Promise<string>((re
     target: { tabId, allFrames: true },
     func: injectionFunction,
   }, (results) => {
-    if (chrome.runtime.lastError) return reject(Error(chrome.runtime.lastError.message));
+    if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
     if (!results) return reject(new Error('background.ts: Empty results (injection)'));
     const hit = results.find((r) => r.result.trim());
     if (hit) return resolve(hit.result.trim());
@@ -147,34 +160,39 @@ const getSelectionByMessage = async (tabId: number) => {
   });
 };
 
-// heuristic method to remove new lines between 2 sentences.
-// if it's title text, leave new lines.
-// if it's a regular sentence and next sentence is also a regular sentence, remove new line.
-// TODO: sophisticated way
-// title pattern to detect title which needs to add new lines both before and after title
-// e.g. "regular sentence.\n2.1. Title text\nregular sentence."
-const TITLE_PATTERN = /^((\d+\.)+|[IVX]+(\.\d+)*)\s+[A-Z].*[^.]$/;
-// exclude words which are written in lower case on title
-// TODO: more words
+// heuristic method to remove newline between 2 texts.
+// if it's a section text, leave newline.
+// if it's a regular text and next sentence is also a regular text, remove newline.
+const SECTION_PATTERN = /^((\d+\.)+|[IVX]+(\.\d+)*)\s+[A-Z].*[^.]$/;
+const isSection = (sentence: string) => !!sentence.match(SECTION_PATTERN);
+const CAPTION_PATTERN = /^(Figure|Table)\s+\d+[.:].*$/;
+const isCaption = (sentence: string) => !!sentence.match(CAPTION_PATTERN);
 const EXCLUDE_PATTERN = /^(a|an|the|by|in|on|at|to|of|as|for|via|over|with|without|from|into|upon|under|between|through|or|and|not|[(-]?[\d.]+[),]?|[*∗])$/;
 const CAPITAL_PATTERN = /^[A-Z].*$/;
+// how much sentence includes capital letters
+const capitalRatio = (sentence: string) => {
+  const words = sentence.split(' ').filter((t) => !t.match(EXCLUDE_PATTERN));
+  if (words.length === 0) return 0.0;
+  return words.filter((t) => t.match(CAPITAL_PATTERN)).length / words.length;
+};
 const removeNewlines = (text: string) => {
-  const isTitle = (sentence: string) => !!sentence.match(TITLE_PATTERN);
-  const capitalRatio = (sentence: string) => {
-    const words = sentence.split(' ').filter((t) => !t.match(EXCLUDE_PATTERN));
-    if (words.length === 0) return 0.0;
-    return words.filter((t) => t.match(CAPITAL_PATTERN)).length / words.length;
-  };
   const sentences = text.split('\n');
   const crs = sentences.map(capitalRatio);
   return sentences
     .flatMap((sentence, i) => { // flatMap is ES2019
-      if (isTitle(sentence)) return [sentence, '\n'];
-      if (isTitle(sentences[i + 1] ?? '')) return [sentence, '\n'];
-      const crCurrent = crs[i] ?? 0.0;
-      const crNext = crs[i + 1] ?? 0.0;
-      // remove new line between 2 regular sentences (regular sentence === capital ratio is small)
-      return [sentence, (crCurrent < 0.66 && crNext < 0.66) ? ' ' : '\n'];
+      if (isSection(sentence)) return [sentence, '\n']; // current sentence is a section
+      const nextSentence = sentences[i + 1] ?? '';
+      if (isSection(nextSentence)) return [sentence, '\n']; // next sentence is a section
+      if (isCaption(nextSentence)) return [sentence, '\n']; // next sentence is a caption. not current!!!
+      const currentCr = crs[i] ?? 0.0; // how much current sentence includes capital letters
+      const nextCr = crs[i + 1] ?? 0.0; // how much next sentence includes capital letters
+      // remove newline between 2 regular sentences (regular sentence === capital ratio is small)
+      if (currentCr < 0.66 && nextCr < 0.66) return [sentence, ' '];
+      // console.debug(
+      //   'removeNewLines: should be a section (capital ratio >= 0.66):',
+      //   [currentCr, sentence, nextCr, nextSentence],
+      // );
+      return [sentence, '\n'];
     })
     .join('');
 };
@@ -191,7 +209,7 @@ const sendStartTranslation = (tabId: number) => {
 // translate source text
 const translateText = async (source: string) => {
   await openDeepLTab(source);
-  // now, deepl.ts will send message to translation.tsx (and background.ts)
+  // now, deepl.ts will send message to translation.tsx
   const tab = await openTranslationTab();
   // TODO: 1000 ms is just enough for my PC
   return tab.status !== 'complete' ? setTimeout(() => tab.id && sendStartTranslation(tab.id), 1000) : tab.id && sendStartTranslation(tab.id);
@@ -199,15 +217,14 @@ const translateText = async (source: string) => {
 
 // chrome.i18n.getMessage does not work in service_worker in manifest v3
 // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/dG6JeZGkN5w
-// TODO: other messages if needed
 const i18nGetMessage = (messageName: 'deepl_menu_title'): string => {
   if (messageName === 'deepl_menu_title') {
     return navigator.language === 'ja' ? 'DeepL 翻訳' : 'DeepL Translate';
   }
-  throw Error('background.ts: Unknown message');
+  throw new Error('background.ts: Unknown message');
 };
 
-const setBadge = (color: '#FF0000' | '#0000FF', text: 'C' | 'K' | 'M' | 'X') => {
+const setBadge = (color: '#FF0000' | '#0000FF', text: 'C' | 'I' | 'M' | 'X') => {
   chrome.action.setBadgeBackgroundColor({ color });
   chrome.action.setBadgeText({ text });
 };
@@ -230,7 +247,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info) => {
   if (info.menuItemId !== 'deepl-menu') return true;
   try {
-    if (!info || !info.selectionText) throw Error('background.ts: Invalid info');
+    if (!info || !info.selectionText) throw new Error('background.ts: Invalid info');
     translateText(info.selectionText);
     setBadge('#0000FF', 'C');
   } catch (err) {
@@ -244,11 +261,11 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command !== 'deepl-open') return true;
   try {
-    if (!tab || !tab.id) throw Error('background.ts: Invalid tab');
+    if (!tab || !tab.id) throw new Error('background.ts: Invalid tab');
     translateText(await getSelectionByInjection(tab.id));
-    setBadge('#0000FF', 'K');
+    setBadge('#0000FF', 'I');
   } catch (err) {
-    console.debug(err);
+    // console.debug(err); // it's too frequent to show
     if (tab && tab.id) getSelectionByMessage(tab.id);
     setBadge('#FF0000', 'X');
   }
@@ -258,9 +275,10 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 // message event
 chrome.runtime.onMessage.addListener(async (request: { message: 'setSelection', selectedText: string }, _, sendResponse: (response: { message: string }) => void) => {
   if (request.message !== 'setSelection') return true;
+  // receive message from pdf.ts
   try {
     const text = request.selectedText.trim();
-    if (!text) throw Error('background.ts: Could not get any selection text (message)');
+    if (!text) throw new Error('background.ts: Could not get any selection text (message)');
     const removed = removeNewlines(text);
     translateText(removed);
     setBadge('#0000FF', 'M');

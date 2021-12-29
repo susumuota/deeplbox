@@ -217,12 +217,12 @@ function Pair({ source, translation }: { source: string, translation: string }) 
   const isDarkTheme = useRecoilValue(isDarkThemeState);
 
   const opacitySx = isTransparent ? { opacity: 0.1, transition: 'all 0.5s', '&:hover': { opacity: 1 } } : {};
-  const sourceBox = isShowSource ? <Box sx={{ color: isDarkTheme ? 'primary.main' : 'info.dark', ...opacitySx }}>{source}</Box> : '';
+  const boxSx = { color: isDarkTheme ? 'primary.main' : 'info.dark', ...opacitySx };
 
   return (
     <Box mb={1}>
       <Box>{translation}</Box>
-      {sourceBox}
+      {isShowSource ? <Box sx={boxSx}>{source}</Box> : ''}
     </Box>
   );
 }
@@ -621,7 +621,6 @@ function App() {
   // eslint-disable-next-line max-len
   const refObjects = useMemo(() => filteredItems.map(() => createRef<HTMLDivElement>()), [filteredItems]);
 
-  // TODO: is useEffect enough instead of useLayoutEffect?
   useEffect(() => {
     if (isNeedScroll && isAutoScroll) {
       refObjects?.[isReverse ? 0 : filteredItems.length - 1]?.current?.scrollIntoView({ block: 'start', inline: 'start', behavior: 'smooth' });
@@ -700,3 +699,8 @@ window.addEventListener('load', () => {
     document.getElementById('app'),
   );
 });
+
+// reset tabId
+window.addEventListener('beforeunload', () => {
+  setConfig({ translationTabId: chrome.tabs.TAB_ID_NONE });
+}, false);
