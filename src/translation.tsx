@@ -76,6 +76,8 @@ import {
   PairType,
   getConfig,
   setConfig,
+  isSection,
+  capitalRatio,
 } from './config';
 
 import ChromeWebStoreIcon from './ChromeWebStoreIcon';
@@ -172,6 +174,12 @@ const filteredStatsState = selector<string>({
   },
 });
 
+/**
+ * Splits source text and translation text by newlines.
+ * @param source Source text.
+ * @param translation Translation text.
+ * @returns Array of PairType which includes each of source and translation pairs.
+ */
 const splitToPairs = (source: string, translation: string) => {
   const ss = source.split('\n');
   const ts = translation.split('\n');
@@ -183,6 +191,28 @@ const splitToPairs = (source: string, translation: string) => {
     .map(([s, t], i) => ({ id: i, source: s ?? '', translation: t ?? '' } as PairType));
 };
 
+const getDetailsMarkdown = (summary: string, details: string) => (
+  `<details><summary>${summary}</summary>${details}</details>`
+);
+
+const pairToString = (pair: PairType, isShowSource: boolean, isTransparent: boolean) => {
+  if (isSection(pair.source) || capitalRatio(pair.source) >= 0.66) {
+    return ['## ', pair.translation, isShowSource ? ['  ', pair.source] : '', '\n'].flat().join('');
+  }
+  if (!isShowSource) return [pair.translation, '\n'].join('');
+  return [
+    pair.translation,
+    '\n',
+    isTransparent ? getDetailsMarkdown(chrome.i18n.getMessage('show_source_text'), pair.source) : ['> ', pair.source],
+    '\n',
+  ].flat().join('');
+};
+
+/**
+ * Hook to save recoil state to config.
+ * @param recoilState Recoil state to be saved.
+ * @param configName Config name. e.g. `targetLang`
+ */
 // https://stackoverflow.com/a/56989122
 // eslint-disable-next-line @typescript-eslint/comma-dangle
 const useConfig = <T,>(recoilState: RecoilState<T>, configName: keyof ConfigType) => {
@@ -201,6 +231,11 @@ const useConfig = <T,>(recoilState: RecoilState<T>, configName: keyof ConfigType
   }, [state]);
 };
 
+/**
+ * Hook to toggle recoil state.
+ * @param recoilState Recoil state to toggle.
+ * @returns Callback to toggle.
+ */
 const useToggle = (recoilState: RecoilState<boolean>) => {
   const setState = useSetRecoilState(recoilState);
 
@@ -252,13 +287,13 @@ function DisabledSmallIconButton({ title, iconName }: { title: string, iconName:
 
 function Item({ id, pairs }: { id: number, pairs: PairType[] }) {
   const isShowSource = useRecoilValue(isShowSourceState);
+  const isTransparent = useRecoilValue(isTransparentState);
   const [items, setItems] = useRecoilState(itemsState);
 
   const copyItem = useCallback(() => {
-    const toString = (pair: PairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
-    const text = pairs.map((pair: PairType) => toString(pair)).join('\n');
+    const text = pairs.map((pair: PairType) => pairToString(pair, isShowSource, isTransparent)).join('\n');
     navigator.clipboard.writeText(text);
-  }, [isShowSource, pairs]);
+  }, [isShowSource, isTransparent, pairs]);
 
   const deleteItem = useCallback(() => {
     setItems(items.filter((item) => item.id !== id));
@@ -291,13 +326,13 @@ function MenuButton() {
 
 function CopyAllButton() {
   const isShowSource = useRecoilValue(isShowSourceState);
+  const isTransparent = useRecoilValue(isTransparentState);
   const filteredItems = useRecoilValue(filteredItemsState);
 
   const copyItems = useCallback(() => {
-    const toString = (pair: PairType) => (isShowSource ? [pair.translation, pair.source].join('\n') : pair.translation);
-    const text = filteredItems.map((item: ItemType) => item.pairs.map((pair: PairType) => toString(pair)).join('\n')).join('\n\n');
+    const text = filteredItems.map((item: ItemType) => item.pairs.map((pair: PairType) => pairToString(pair, isShowSource, isTransparent)).join('\n')).join('\n\n');
     navigator.clipboard.writeText(text);
-  }, [isShowSource, filteredItems]);
+  }, [isShowSource, isTransparent, filteredItems]);
 
   return filteredItems.length > 0 ? (
     <SmallIconButton title={chrome.i18n.getMessage('copy_all_icon_label')} iconName="copy_all" onClick={copyItems} />

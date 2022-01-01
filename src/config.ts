@@ -14,17 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/** Pair of source and translation. */
 export type PairType = {
   readonly id: number,
   readonly source: string,
   readonly translation: string,
 };
 
+/** Item which includes source and translation paris. */
 export type ItemType = {
   readonly id: number,
   readonly pairs: PairType[],
 };
 
+/** Config type. */
 export type ConfigType = {
   readonly sourceLang?: string,
   readonly targetLang?: string,
@@ -54,7 +57,7 @@ export type ConfigType = {
   readonly translationTabId?: number,
 };
 
-// default config
+/** Default config. */
 export const DEFAULT_CONFIG: ConfigType = {
   // DeepL settings
   //
@@ -128,25 +131,34 @@ export const DEFAULT_CONFIG: ConfigType = {
   translationTabId: chrome.tabs.TAB_ID_NONE,
 };
 
-// set config value
-// setConfig({targetLang: 'ja'})
+/**
+ * Set config value.
+ * e.g. `setConfig({targetLang: 'ja'})`
+ * @param config config object. e.g. `{targetLang: 'ja'}`
+ */
 export const setConfig = (config: ConfigType) => chrome.storage.local.set(config);
 
-// get config value
-// https://developer.chrome.com/docs/extensions/reference/storage/#type-StorageArea
-//
-// to see default + custom config
-// await getConfig()
-//
-// to see only custom config
-// await getConfig(null)
+/**
+ * Get config value.
+ *
+ * e.g. To get default + custom config, `await getConfig()`.
+ *
+ * e.g. To get only custom config, `await getConfig(null)`.
+ *
+ * See https://developer.chrome.com/docs/extensions/reference/storage/#type-StorageArea
+ * @param defaultConfig
+ * @returns
+ */
 // eslint-disable-next-line max-len
 export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG): Promise<ConfigType> => chrome.storage.local.get(defaultConfig);
 
-// clearConfig()
+/** Clear all of the config. */
 export const clearConfig = () => chrome.storage.local.clear();
 
-// https://www.deepl.com/docs-api/translating-text/
+/**
+ * DeepL's source language list.
+ * See https://www.deepl.com/docs-api/translating-text/
+ */
 export const SOURCE_LANG_LIST = [
   'auto',
   'bg',
@@ -175,7 +187,10 @@ export const SOURCE_LANG_LIST = [
   'sv',
 ];
 
-// https://www.deepl.com/docs-api/translating-text/
+/**
+ * DeepL's target language list.
+ * See https://www.deepl.com/docs-api/translating-text/
+ */
 export const TARGET_LANG_LIST = [
   'auto',
   'bg',
@@ -185,7 +200,7 @@ export const TARGET_LANG_LIST = [
   'nl',
   'en-us',
   'en-gb',
-  // 'en',
+  // 'en', // not recommended
   'et',
   'fi',
   'fr',
@@ -199,7 +214,7 @@ export const TARGET_LANG_LIST = [
   'pl',
   'pt-pt',
   'pt-br',
-  // 'pt',
+  // 'pt', // not recommended
   'ro',
   'ru',
   'sk',
@@ -207,3 +222,22 @@ export const TARGET_LANG_LIST = [
   'es',
   'sv',
 ];
+
+const EXCLUDE_PATTERN = /^(a|an|the|by|in|on|at|to|of|as|for|via|over|with|without|from|into|upon|under|between|through|or|and|not|[(-]?[\d.]+[),]?|[*∗])$/;
+const CAPITAL_PATTERN = /^[A-Z].*$/;
+/**
+ * How much sentence includes capital letters.
+ * @param sentence sentence to be counted capital letters.
+ * @returns ratio of how much capital letters included.
+ */
+export const capitalRatio = (sentence: string) => {
+  const words = sentence.split(' ').filter((w) => !w.match(EXCLUDE_PATTERN));
+  if (words.length === 0) return 0.0;
+  return words.filter((w) => w.match(CAPITAL_PATTERN)).length / words.length;
+};
+
+const SECTION_PATTERN = /^((\d+\.)+|[IVX]+(\.\d+)*)\s+[A-Z].*[^.]$/;
+export const isSection = (sentence: string) => !!sentence.match(SECTION_PATTERN);
+
+const CAPTION_PATTERN = /^(Figure|Table)\s+\d+[.:].*$/;
+export const isCaption = (sentence: string) => !!sentence.match(CAPTION_PATTERN);

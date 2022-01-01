@@ -39,9 +39,12 @@
 //
 // TODO: this code does not work on local PDF (file:///*.pdf) because of cross-origin limitation
 
+/** PDF viewer plugin origin. */
 const PDF_ORIGIN = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai';
 
+/** `embed` element of PDF viewer. */
 const pdfEmbed = document.querySelector('embed');
+/** `Window` object of frame which includes PDF viewer. */
 const pdfWindow = (() => {
   try {
     // TODO: sometimes this got error
@@ -54,7 +57,7 @@ const pdfWindow = (() => {
 
 if (!(pdfEmbed && pdfWindow)) throw new Error('Invalid PDFScriptingAPI');
 
-// send 'getSelectedText' message to PDFScriptingAPI
+// send `getSelectedText` message to PDFScriptingAPI
 // eslint-disable-next-line max-len
 chrome.runtime.onMessage.addListener((request: { message: 'getSelection' }, _, sendResponse: (response: { message: string }) => void) => {
   if (request.message !== 'getSelection') return true;
@@ -63,7 +66,7 @@ chrome.runtime.onMessage.addListener((request: { message: 'getSelection' }, _, s
   return true;
 });
 
-// PDFScriptingAPI will send back 'getSelectedTextReply' if it receives 'getSelectedText'
+// PDFScriptingAPI will send back `getSelectedTextReply` when it receives `getSelectedText`
 window.addEventListener('message', (event: MessageEvent<{ type: string, selectedText: string }>) => {
   if (!(event.origin === PDF_ORIGIN && event.data.type === 'getSelectedTextReply')) return;
   // send message to background.ts
