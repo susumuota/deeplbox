@@ -19,9 +19,11 @@ const target = document.querySelector('#target-dummydiv');
 
 if (!(source && target)) throw new Error('Could not find #source-dummydiv or #target-dummydiv.');
 
-// monitor source/target textarea
-// when its content is changed, send message to translation.tsx
-// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+/**
+ * Monitor source/target textarea.
+ * When its content is changed, send `setTranslation` message to `translation.tsx`.
+ * See https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+ */
 const observer = new MutationObserver(() => {
   if (!(source.textContent?.trim() && target.textContent?.trim())) return;
   // send message to translation.tsx
@@ -35,9 +37,3 @@ const observer = new MutationObserver(() => {
 });
 
 observer.observe(target, { childList: true });
-
-// reset tabId
-window.addEventListener('beforeunload', () => {
-  // use -1 instead of TAB_ID_NONE because chrome.tabs is not accessible in content scripts
-  chrome.storage.local.set({ deepLTabId: -1 }); // chrome.tabs.TAB_ID_NONE
-}, false);

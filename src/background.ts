@@ -14,14 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// sentence boundary disambiguation
 import tokenizer from 'sbd';
 
 import {
   DEFAULT_CONFIG,
   getConfig,
   setConfig,
+  isSection,
+  isCaption,
+  capitalRatio,
 } from './config';
 
+/** Parameters to create/update tab/window. */
 type OpenTabParamsType = {
   readonly createTab: chrome.tabs.CreateProperties | null,
   readonly createWindow: chrome.windows.CreateData | null,
@@ -29,8 +34,7 @@ type OpenTabParamsType = {
   readonly updateWindow: chrome.windows.UpdateInfo | null,
 };
 
-// create or update tab (and window)
-// this function is similar to window.open
+/** Create or update tab (and window). */
 const openTab = async (url: string, tabId: number, params: OpenTabParamsType) => {
   // tab already exists
   if (tabId !== chrome.tabs.TAB_ID_NONE) {
@@ -64,10 +68,10 @@ const openTab = async (url: string, tabId: number, params: OpenTabParamsType) =>
   throw new Error('background.ts: Invalid openTab params');
 };
 
-// insert a newline between sentences
 const FIX_SECTION_PATTERN = /^(\d+|[A-Z])\.(\d+\.)*$/; // section or appendix
 const FIX_CAPTION_PATTERN = /(Figure|Table)\s+\d+\.$/; // caption
-const splitSentences = (text: string) => {
+/** Insert newlines between sentences. */
+const insertNewlines = (text: string) => {
   if (!text) return text;
   const sentences = tokenizer.sentences(text, { newline_boundaries: true }); // sbd
   return sentences
@@ -83,13 +87,13 @@ const splitSentences = (text: string) => {
     .join('');
 };
 
-// open DeepL tab
 const ESCAPE_PATTERN = /([/|\\])/g;
+/** Open DeepL tab. */
 const openDeepLTab = async (sourceText: string) => {
   const config = await getConfig();
-  const splitted = config.isSplit ? splitSentences(sourceText) : sourceText;
+  const inserted = config.isSplit ? insertNewlines(sourceText) : sourceText;
   const truncated = config.maxSourceText && config.maxSourceText > 0
-    ? splitted.substring(0, config.maxSourceText) : splitted;
+    ? inserted.substring(0, config.maxSourceText) : inserted;
   // slash, pipe and backslash need to be escaped by backslash
   // TODO: other characters?
   const escaped = truncated.replace(ESCAPE_PATTERN, '\\$1');
@@ -105,7 +109,7 @@ const openDeepLTab = async (sourceText: string) => {
   return tab;
 };
 
-// open translation tab
+/** Open translation tab. */
 const openTranslationTab = async () => {
   const config = await getConfig();
   if (!config.translationHTML) throw new Error('background.ts: Invalid config.translationHTML');
@@ -117,7 +121,7 @@ const openTranslationTab = async () => {
   return tab;
 };
 
-// injection function which will be executed in specific tab (not background.ts)
+/** Injection function which will be executed in specific tab (not background.ts). */
 const injectionFunction = () => {
   const selection = window.getSelection();
   if (!selection) return '';
@@ -137,8 +141,10 @@ const injectionFunction = () => {
   return rangeText;
 };
 
-// get selection text by injection
-// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
+/**
+ * Get selected text by injection.
+ * See https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#executing-arbitrary-strings
+ */
 const getSelectionByInjection = async (tabId: number) => new Promise<string>((resolve, reject) => {
   chrome.scripting.executeScript({
     target: { tabId, allFrames: true },
@@ -152,6 +158,7 @@ const getSelectionByInjection = async (tabId: number) => new Promise<string>((re
   });
 });
 
+/** Send `getSelection` message to `pdf.ts` to get selected text. */
 const getSelectionByMessage = async (tabId: number) => {
   chrome.tabs.sendMessage(tabId, {
     message: 'getSelection',
@@ -160,44 +167,32 @@ const getSelectionByMessage = async (tabId: number) => {
   });
 };
 
-// heuristic method to remove newline between 2 texts.
-// if it's a section text, leave newline.
-// if it's a regular text and next sentence is also a regular text, remove newline.
-const SECTION_PATTERN = /^((\d+\.)+|[IVX]+(\.\d+)*)\s+[A-Z].*[^.]$/;
-const isSection = (sentence: string) => !!sentence.match(SECTION_PATTERN);
-const CAPTION_PATTERN = /^(Figure|Table)\s+\d+[.:].*$/;
-const isCaption = (sentence: string) => !!sentence.match(CAPTION_PATTERN);
-const EXCLUDE_PATTERN = /^(a|an|the|by|in|on|at|to|of|as|for|via|over|with|without|from|into|upon|under|between|through|or|and|not|[(-]?[\d.]+[),]?|[*∗])$/;
-const CAPITAL_PATTERN = /^[A-Z].*$/;
-// how much sentence includes capital letters
-const capitalRatio = (sentence: string) => {
-  const words = sentence.split(' ').filter((t) => !t.match(EXCLUDE_PATTERN));
-  if (words.length === 0) return 0.0;
-  return words.filter((t) => t.match(CAPITAL_PATTERN)).length / words.length;
-};
+/**
+ * Heuristic method to remove newline between 2 texts.
+ * If it's a section text, leave newline.
+ * If it's a regular text and next sentence is also a regular text, remove newline.
+ * @param text text to be removed newlines.
+ * @returns text which is removed some newlines.
+ */
 const removeNewlines = (text: string) => {
   const sentences = text.split('\n');
-  const crs = sentences.map(capitalRatio);
+  const capitalRatios = sentences.map(capitalRatio);
   return sentences
     .flatMap((sentence, i) => { // flatMap is ES2019
       if (isSection(sentence)) return [sentence, '\n']; // current sentence is a section
       const nextSentence = sentences[i + 1] ?? '';
       if (isSection(nextSentence)) return [sentence, '\n']; // next sentence is a section
       if (isCaption(nextSentence)) return [sentence, '\n']; // next sentence is a caption. not current!!!
-      const currentCr = crs[i] ?? 0.0; // how much current sentence includes capital letters
-      const nextCr = crs[i + 1] ?? 0.0; // how much next sentence includes capital letters
+      const currentCapitalRatio = capitalRatios[i] ?? 0.0;
+      const nextCapitalRatio = capitalRatios[i + 1] ?? 0.0;
       // remove newline between 2 regular sentences (regular sentence === capital ratio is small)
-      if (currentCr < 0.66 && nextCr < 0.66) return [sentence, ' '];
-      // console.debug(
-      //   'removeNewLines: should be a section (capital ratio >= 0.66):',
-      //   [currentCr, sentence, nextCr, nextSentence],
-      // );
+      if (currentCapitalRatio < 0.66 && nextCapitalRatio < 0.66) return [sentence, ' '];
       return [sentence, '\n'];
     })
     .join('');
 };
 
-// send startTranslation message to translation.html
+/** Send `startTranslation` message to `translation.tsx`. */
 const sendStartTranslation = (tabId: number) => {
   chrome.tabs.sendMessage(tabId, {
     message: 'startTranslation',
@@ -206,17 +201,26 @@ const sendStartTranslation = (tabId: number) => {
   });
 };
 
-// translate source text
+/** Translate source text. */
 const translateText = async (source: string) => {
   await openDeepLTab(source);
   // now, deepl.ts will send message to translation.tsx
   const tab = await openTranslationTab();
-  // TODO: 1000 ms is just enough for my PC
-  return tab.status !== 'complete' ? setTimeout(() => tab.id && sendStartTranslation(tab.id), 1000) : tab.id && sendStartTranslation(tab.id);
+  if (!tab.id) return;
+  if (tab.status !== 'complete') {
+    // wait for 1000 ms, then send
+    // TODO: 1000 ms is enough for my PC
+    setTimeout(() => tab.id && sendStartTranslation(tab.id), 1000);
+  } else {
+    sendStartTranslation(tab.id);
+  }
 };
 
-// chrome.i18n.getMessage does not work in service_worker in manifest v3
-// https://groups.google.com/a/chromium.org/g/chromium-extensions/c/dG6JeZGkN5w
+/**
+ * Get i18n message.
+ * `chrome.i18n.getMessage` does not work in `service_worker` in manifest v3.
+ * See https://groups.google.com/a/chromium.org/g/chromium-extensions/c/dG6JeZGkN5w
+ */
 const i18nGetMessage = (messageName: 'deepl_menu_title'): string => {
   if (messageName === 'deepl_menu_title') {
     return navigator.language === 'ja' ? 'DeepL 翻訳' : 'DeepL Translate';
@@ -224,7 +228,8 @@ const i18nGetMessage = (messageName: 'deepl_menu_title'): string => {
   throw new Error('background.ts: Unknown message');
 };
 
-const setBadge = (color: '#FF0000' | '#0000FF', text: 'C' | 'I' | 'M' | 'X') => {
+/** Set badge color and text. */
+const setBadge = (color: '#FF0000' | '#0000FF', text: 'C' | 'I' | 'P' | 'X') => {
   chrome.action.setBadgeBackgroundColor({ color });
   chrome.action.setBadgeText({ text });
 };
@@ -249,7 +254,7 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   try {
     if (!info || !info.selectionText) throw new Error('background.ts: Invalid info');
     translateText(info.selectionText);
-    setBadge('#0000FF', 'C');
+    setBadge('#0000FF', 'C'); // context menu
   } catch (err) {
     console.debug(err);
     setBadge('#FF0000', 'X');
@@ -263,7 +268,7 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   try {
     if (!tab || !tab.id) throw new Error('background.ts: Invalid tab');
     translateText(await getSelectionByInjection(tab.id));
-    setBadge('#0000FF', 'I');
+    setBadge('#0000FF', 'I'); // injection
   } catch (err) {
     // console.debug(err); // it's too frequent to show
     if (tab && tab.id) getSelectionByMessage(tab.id);
@@ -281,7 +286,7 @@ chrome.runtime.onMessage.addListener(async (request: { message: 'setSelection', 
     if (!text) throw new Error('background.ts: Could not get any selection text (message)');
     const removed = removeNewlines(text);
     translateText(removed);
-    setBadge('#0000FF', 'M');
+    setBadge('#0000FF', 'P'); // pdf
   } catch (err) {
     console.debug(err);
     setBadge('#FF0000', 'X');
