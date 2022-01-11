@@ -1,4 +1,5 @@
 const path = require('path');
+// eslint-disable-next-line import/no-extraneous-dependencies
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
@@ -14,7 +15,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: {
       keep: /^\.gitignore$/,
-    }
+    },
   },
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
