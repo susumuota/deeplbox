@@ -58,7 +58,7 @@ export type ConfigType = {
 };
 
 /** Default config. */
-export const DEFAULT_CONFIG: ConfigType = {
+const DEFAULT_CONFIG: ConfigType = {
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
@@ -135,22 +135,23 @@ export const DEFAULT_CONFIG: ConfigType = {
  * Set config value.
  * e.g. `setConfig({targetLang: 'ja'})`
  * @param config config object. e.g. `{targetLang: 'ja'}`
+ * @return void Promise.
  */
 export const setConfig = (config: ConfigType) => chrome.storage.local.set(config);
 
 /**
- * Get config value.
+ * Get config items.
  *
  * e.g. To get default + custom config, `await getConfig()`.
  *
  * e.g. To get only custom config, `await getConfig(null)`.
  *
  * See https://developer.chrome.com/docs/extensions/reference/storage/#type-StorageArea
- * @param defaultConfig
- * @returns
+ * @param defaultConfig default config items or config keys or null.
+ * @return Promise of config items.
  */
 // eslint-disable-next-line max-len
-export const getConfig = (defaultConfig: ConfigType = DEFAULT_CONFIG): Promise<ConfigType> => chrome.storage.local.get(defaultConfig);
+export const getConfig = (defaultConfig: ConfigType | null = DEFAULT_CONFIG): Promise<ConfigType> => chrome.storage.local.get(defaultConfig);
 
 /** Clear all of the config. */
 export const clearConfig = () => chrome.storage.local.clear();
@@ -228,7 +229,7 @@ const CAPITAL_PATTERN = /^[A-Z].*$/;
 /**
  * How much sentence includes capital letters.
  * @param sentence sentence to be counted capital letters.
- * @returns ratio of how much capital letters included.
+ * @return ratio of how much capital letters included.
  */
 export const capitalRatio = (sentence: string) => {
   const words = sentence.split(' ').filter((w) => !w.match(EXCLUDE_PATTERN));

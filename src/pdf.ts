@@ -44,6 +44,7 @@ const PDF_ORIGIN = 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai';
 
 /** `embed` element of PDF viewer. */
 const pdfEmbed = document.querySelector('embed');
+
 /** `Window` object of frame which includes PDF viewer. */
 const pdfWindow = (() => {
   try {
@@ -51,7 +52,7 @@ const pdfWindow = (() => {
     return Array.from(window.frames).find((f) => f.frameElement === pdfEmbed);
   } catch (err) {
     console.debug(err);
-    return window.frames[0];
+    return window.frames[0]; // it should be 0th
   }
 })();
 

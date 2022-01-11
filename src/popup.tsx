@@ -44,7 +44,6 @@ import {
 } from '@mui/material';
 
 import {
-  DEFAULT_CONFIG,
   SOURCE_LANG_LIST,
   TARGET_LANG_LIST,
   getConfig,
@@ -177,9 +176,9 @@ window.addEventListener('load', async () => {
   const config = await getConfig();
   ReactDOM.render(
     <App
-      initialSourceLang={config.sourceLang ?? DEFAULT_CONFIG.sourceLang ?? 'auto'}
-      initialTargetLang={config.targetLang ?? DEFAULT_CONFIG.targetLang ?? 'auto'}
-      initialIsSplit={config.isSplit ?? DEFAULT_CONFIG.isSplit ?? false}
+      initialSourceLang={config.sourceLang ?? 'auto'}
+      initialTargetLang={config.targetLang ?? 'auto'}
+      initialIsSplit={config.isSplit ?? false}
     />,
     document.getElementById('app'),
   );

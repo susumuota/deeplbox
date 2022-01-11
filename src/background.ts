@@ -18,7 +18,6 @@
 import tokenizer from 'sbd';
 
 import {
-  DEFAULT_CONFIG,
   getConfig,
   setConfig,
   isSection,
@@ -98,7 +97,7 @@ const openDeepLTab = async (sourceText: string) => {
   // TODO: other characters?
   const escaped = truncated.replace(ESCAPE_PATTERN, '\\$1');
   const encoded = encodeURIComponent(escaped);
-  const deepLTabId = config.deepLTabId ?? DEFAULT_CONFIG.deepLTabId ?? chrome.tabs.TAB_ID_NONE;
+  const deepLTabId = config.deepLTabId ?? chrome.tabs.TAB_ID_NONE;
   if (!config.deepLTabParams) throw new Error('background.ts: Invalid config.deepLTabParams');
   const tab = await openTab(
     `${config.urlBase}#${config.sourceLang}/${config.targetLang}/${encoded}`,
@@ -113,8 +112,7 @@ const openDeepLTab = async (sourceText: string) => {
 const openTranslationTab = async () => {
   const config = await getConfig();
   if (!config.translationHTML) throw new Error('background.ts: Invalid config.translationHTML');
-  const translationTabId = config.translationTabId
-    ?? DEFAULT_CONFIG.translationTabId ?? chrome.tabs.TAB_ID_NONE;
+  const translationTabId = config.translationTabId ?? chrome.tabs.TAB_ID_NONE;
   if (!config.translationTabParams) throw new Error('background.ts: Invalid config.translationTabParams');
   const tab = await openTab(config.translationHTML, translationTabId, config.translationTabParams);
   setConfig({ translationTabId: tab.id ? tab.id : chrome.tabs.TAB_ID_NONE });
@@ -168,26 +166,26 @@ const getSelectionByMessage = async (tabId: number) => {
 };
 
 /**
- * Heuristic method to remove newline between 2 texts.
+ * Heuristic function to concat sentences by removing newline between 2 texts.
  * If it's a section text, leave newline.
  * If it's a regular text and next sentence is also a regular text, remove newline.
- * @param text text to be removed newlines.
- * @returns text which is removed some newlines.
+ * @param text text which will be concatenated sentences
+ * @return text which is concatenated sentences
  */
-const removeNewlines = (text: string) => {
+const concatSentences = (text: string) => {
   const sentences = text.split('\n');
   const capitalRatios = sentences.map(capitalRatio);
   return sentences
-    .flatMap((sentence, i) => { // flatMap is ES2019
-      if (isSection(sentence)) return [sentence, '\n']; // current sentence is a section
+    .flatMap((currentSentence, i) => { // flatMap is ES2019
+      if (isSection(currentSentence)) return [currentSentence, '\n']; // current sentence is a section
       const nextSentence = sentences[i + 1] ?? '';
-      if (isSection(nextSentence)) return [sentence, '\n']; // next sentence is a section
-      if (isCaption(nextSentence)) return [sentence, '\n']; // next sentence is a caption. not current!!!
+      if (isSection(nextSentence)) return [currentSentence, '\n']; // next sentence is a section
+      if (isCaption(nextSentence)) return [currentSentence, '\n']; // next sentence is a caption. not current!!!
       const currentCapitalRatio = capitalRatios[i] ?? 0.0;
       const nextCapitalRatio = capitalRatios[i + 1] ?? 0.0;
       // remove newline between 2 regular sentences (regular sentence === capital ratio is small)
-      if (currentCapitalRatio < 0.66 && nextCapitalRatio < 0.66) return [sentence, ' '];
-      return [sentence, '\n'];
+      if (currentCapitalRatio < 0.66 && nextCapitalRatio < 0.66) return [currentSentence, ' '];
+      return [currentSentence, '\n'];
     })
     .join('');
 };
@@ -206,7 +204,7 @@ const translateText = async (source: string) => {
   await openDeepLTab(source);
   // now, deepl.ts will send message to translation.tsx
   const tab = await openTranslationTab();
-  if (!tab.id) return;
+  if (!tab.id) throw new Error('background.ts: Invalid translation tab');
   if (tab.status !== 'complete') {
     // wait for 1000 ms, then send
     // TODO: 1000 ms is enough for my PC
@@ -229,9 +227,9 @@ const i18nGetMessage = (messageName: 'deepl_menu_title'): string => {
 };
 
 /** Set badge color and text. */
-const setBadge = (color: '#FF0000' | '#0000FF', text: 'C' | 'I' | 'P' | 'X') => {
-  chrome.action.setBadgeBackgroundColor({ color });
-  chrome.action.setBadgeText({ text });
+const setBadge = (text: 'C' | 'I' | 'P' | 'X') => {
+  chrome.action.setBadgeBackgroundColor({ color: text === 'X' ? '#FF0000' : '#0000FF' });
+  chrome.action.setBadgeText({ text }); // C: context menu, I: injection, P: pdf, X: error
 };
 
 // initialize extension event
@@ -254,10 +252,10 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   try {
     if (!info || !info.selectionText) throw new Error('background.ts: Invalid info');
     translateText(info.selectionText);
-    setBadge('#0000FF', 'C'); // context menu
+    setBadge('C'); // context menu
   } catch (err) {
     console.debug(err);
-    setBadge('#FF0000', 'X');
+    setBadge('X');
   }
   return true;
 });
@@ -268,11 +266,11 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
   try {
     if (!tab || !tab.id) throw new Error('background.ts: Invalid tab');
     translateText(await getSelectionByInjection(tab.id));
-    setBadge('#0000FF', 'I'); // injection
+    setBadge('I'); // injection
   } catch (err) {
     // console.debug(err); // it's too frequent to show
     if (tab && tab.id) getSelectionByMessage(tab.id);
-    setBadge('#FF0000', 'X');
+    setBadge('X');
   }
   return true;
 });
@@ -284,12 +282,12 @@ chrome.runtime.onMessage.addListener(async (request: { message: 'setSelection', 
   try {
     const text = request.selectedText.trim();
     if (!text) throw new Error('background.ts: Could not get any selection text (message)');
-    const removed = removeNewlines(text);
-    translateText(removed);
-    setBadge('#0000FF', 'P'); // pdf
+    const concatenated = concatSentences(text);
+    translateText(concatenated);
+    setBadge('P'); // pdf
   } catch (err) {
     console.debug(err);
-    setBadge('#FF0000', 'X');
+    setBadge('X');
   }
   sendResponse({ message: 'background.ts: setSelection: done' });
   return true;

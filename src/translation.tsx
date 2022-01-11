@@ -170,7 +170,10 @@ const filteredStatsState = selector<string>({
   get: ({ get }) => {
     const items = get(itemsState);
     const filteredItems = get(filteredItemsState);
-    return chrome.i18n.getMessage('filter_stats_format', [filteredItems.length, items.length]);
+    return chrome.i18n.getMessage(
+      'filter_stats_format',
+      [filteredItems.length.toString(), items.length.toString()],
+    );
   },
 });
 
@@ -300,10 +303,10 @@ function Item({ id, pairs }: { id: number, pairs: PairType[] }) {
   }, [items, id]);
 
   return (
-    <Paper sx={{ p: 2, mt: 3, mb: 3, position: 'relative' }} elevation={6}>
+    <Paper sx={{ p: 2, mt: 3, mb: 3, position: 'relative', overflow: 'auto' }} elevation={6}>
       {/* eslint-disable-next-line max-len */}
       {pairs.map((pair: PairType) => <Pair key={pair.id} source={pair.source} translation={pair.translation} />)}
-      <Box sx={{ display: 'flex', position: 'absolute', right: 10, bottom: 10, opacity: 0.1, transition: 'all 0.5s', '&:hover': { opacity: 1 } }}>
+      <Box sx={{ display: 'flex', position: 'absolute', right: 10, top: 10, opacity: 0.1, transition: 'all 0.5s', '&:hover': { opacity: 1 } }}>
         <Box flexGrow={1} />
         <SmallIconButton title={chrome.i18n.getMessage('copy_icon_label')} iconName="copy_all" onClick={copyItem} />
         <SmallIconButton title={chrome.i18n.getMessage('delete_icon_label')} iconName="delete" onClick={deleteItem} />
