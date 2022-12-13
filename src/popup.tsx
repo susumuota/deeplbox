@@ -20,7 +20,7 @@ import React, {
   useState,
 } from 'react';
 
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import {
   AppBar,
@@ -55,10 +55,9 @@ import ChromeWebStoreIcon from './ChromeWebStoreIcon';
 function LangSelect({ configName, labelName, initialLang, langList }: { configName: 'sourceLang' | 'targetLang', labelName: string, initialLang: string, langList: string[] }) {
   const [lang, setLang] = useState(initialLang);
 
-  const handleChange = useCallback(({ target: { value } }) => {
-    const l = value as string;
-    setLang(l);
-    setConfig({ [configName]: l });
+  const handleChange = useCallback(({ target: { value } }: { target: { value: string } }) => {
+    setLang(value);
+    setConfig({ [configName]: value });
   }, [configName]);
 
   const idPrefix = configName.toLowerCase();
@@ -104,10 +103,9 @@ function TargetLangSelect({ initialTargetLang }: { initialTargetLang: string }) 
 function SplitSentenceCheckbox({ initialIsSplit }: { initialIsSplit: boolean }) {
   const [isSplit, setSplit] = useState(initialIsSplit);
 
-  const handleChange = useCallback(({ target: { checked } }) => {
-    const c = checked as boolean;
-    setSplit(c);
-    setConfig({ isSplit: c });
+  const handleChange = useCallback(({ target: { checked } }: { target: { checked: boolean } }) => {
+    setSplit(checked);
+    setConfig({ isSplit: checked });
   }, []);
 
   return (
@@ -174,12 +172,13 @@ function App({ initialSourceLang, initialTargetLang, initialIsSplit }: { initial
 
 window.addEventListener('load', async () => {
   const config = await getConfig();
-  ReactDOM.render(
+  const container = document.getElementById('app');
+  const root = createRoot(container!);
+  root.render(
     <App
       initialSourceLang={config.sourceLang ?? 'auto'}
       initialTargetLang={config.targetLang ?? 'auto'}
       initialIsSplit={config.isSplit ?? false}
     />,
-    document.getElementById('app'),
   );
 });
