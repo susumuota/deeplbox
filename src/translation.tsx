@@ -23,7 +23,7 @@ import React, {
   useState,
 } from 'react';
 
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import {
   RecoilRoot,
@@ -40,7 +40,6 @@ import {
   AppBar,
   Box,
   Button,
-  CircularProgress,
   Container,
   CssBaseline,
   Dialog,
@@ -52,6 +51,7 @@ import {
   Icon,
   IconButton,
   InputBase,
+  LinearProgress,
   Link,
   List,
   ListItem,
@@ -124,6 +124,11 @@ const isProgressState = atom<boolean>({
 
 const isSuccessState = atom<boolean>({
   key: 'isSuccessState',
+  default: false,
+});
+
+const isNeedScrollState = atom<boolean>({
+  key: 'isNeedScrollState',
   default: false,
 });
 
@@ -549,7 +554,7 @@ function ProgressSnackbar() {
     >
       <Alert severity="info">
         {chrome.i18n.getMessage('progress_snackbar_alert')}
-        <CircularProgress size="1rem" sx={{ ml: 1, verticalAlign: 'middle' }} />
+        <LinearProgress />
       </Alert>
     </Snackbar>
   );
@@ -581,8 +586,8 @@ function SuccessSnackbar() {
 function SearchBar() {
   const setFilterKeyword = useSetRecoilState(filterKeywordState);
 
-  const handleChange = useCallback(({ target: { value } }) => {
-    setFilterKeyword(value as string);
+  const handleChange = useCallback(({ target: { value } }: { target: { value: string } }) => {
+    setFilterKeyword(value);
   }, []);
 
   const paperSx = {
@@ -626,14 +631,13 @@ function App() {
   const isReverse = useRecoilValue(isReverseState);
   const isAutoScroll = useRecoilValue(isAutoScrollState);
   const [isProgress, setProgress] = useRecoilState(isProgressState);
+  const [isNeedScroll, setNeedScroll] = useRecoilState(isNeedScrollState);
   const setItems = useSetRecoilState(itemsState);
   const filteredItems = useRecoilValue(filteredItemsState);
   const filteredStats = useRecoilValue(filteredStatsState);
   const filterKeyword = useRecoilValue(filterKeywordState);
 
-  const [isNeedScroll, setNeedScroll] = useState(false);
-
-  const handleMessage = useCallback((request: { message: 'setTranslation' | 'startTranslation', source: string, translation: string }, _, sendResponse: (response: { message: string }) => void) => {
+  const handleMessage = useCallback((request: { message: 'setTranslation' | 'startTranslation', source: string, translation: string }, _: any, sendResponse: (response: { message: string }) => void) => {
     if (request.message === 'setTranslation') {
       const pairs = splitToPairs(request.source, request.translation);
       const id = new Date().getTime();
@@ -730,12 +734,9 @@ function App() {
 }
 
 window.addEventListener('load', () => {
-  ReactDOM.render(
-    <RecoilRoot>
-      <App />
-    </RecoilRoot>,
-    document.getElementById('app'),
-  );
+  const container = document.getElementById('app');
+  const root = createRoot(container!);
+  root.render(<RecoilRoot><App /></RecoilRoot>);
 });
 
 // reset tabId
