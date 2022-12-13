@@ -23,8 +23,9 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "no-console": ["off"],
-        "object-curly-newline": ["off"],
-        "react/jsx-first-prop-new-line": ["off"]
+        "no-console": "off",
+        "object-curly-newline": "off",
+        "react/jsx-first-prop-new-line": "off",
+        "@typescript-eslint/space-before-blocks": "off" // TODO
     }
 }
