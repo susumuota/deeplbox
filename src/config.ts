@@ -174,10 +174,13 @@ export const SOURCE_LANG_LIST = [
   'de',
   'el',
   'hu',
+  'id',
   'it',
   'ja',
+  'ko',
   'lv',
   'lt',
+  'nb',
   'pl',
   'pt',
   'ro',
@@ -186,6 +189,8 @@ export const SOURCE_LANG_LIST = [
   'sl',
   'es',
   'sv',
+  'tr',
+  'uk',
 ];
 
 /**
@@ -208,10 +213,13 @@ export const TARGET_LANG_LIST = [
   'de',
   'el',
   'hu',
+  'id',
   'it',
   'ja',
+  'ko',
   'lv',
   'lt',
+  'nb',
   'pl',
   'pt-pt',
   'pt-br',
@@ -222,6 +230,8 @@ export const TARGET_LANG_LIST = [
   'sl',
   'es',
   'sv',
+  'tr',
+  'uk',
 ];
 
 const EXCLUDE_PATTERN = /^(a|an|the|by|in|on|at|to|of|as|for|via|over|with|without|from|into|upon|under|between|through|or|and|not|[(-]?[\d.]+[),]?|[*∗])$/;

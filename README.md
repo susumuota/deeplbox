@@ -22,8 +22,7 @@ There are 2 options to install DeepL Box. Chrome Web Store is convenient for all
 
 ```sh
 # install latest stable version of Node.js and npm if needed
-node -v  # v16.13.1
-npm -v   # 8.1.2
+node -v  # v18.14.2
 git clone https://github.com/susumuota/deeplbox.git
 cd deeplbox
 npm ci
@@ -32,7 +31,7 @@ npm run build
 
 - Open Chrome's extensions setting page `chrome://extensions`.
 - Turn `Developer mode` on.
-- Click `Load unpacked` (`パッケージ化されていない拡張機能を読み込む` in Japanese).
+- Click `Load unpacked`.
 - Specify the dist folder `/path/to/deeplbox/dist`.
 
 ## Usage

@@ -167,6 +167,10 @@
     "message": "ハンガリー語",
     "description": "Language name."
   },
+  "language_id": {
+    "message": "インドネシア語",
+    "description": "Language name."
+  },
   "language_it": {
     "message": "イタリア語",
     "description": "Language name."
@@ -175,12 +179,20 @@
     "message": "日本語",
     "description": "Language name."
   },
+  "language_ko": {
+    "message": "韓国語",
+    "description": "Language name."
+  },
   "language_lt": {
     "message": "リトアニア語",
     "description": "Language name."
   },
   "language_lv": {
     "message": "ラトビア語",
+    "description": "Language name."
+  },
+  "language_nb": {
+    "message": "ノルウェー語",
     "description": "Language name."
   },
   "language_nl": {
@@ -221,6 +233,14 @@
   },
   "language_sv": {
     "message": "スウェーデン語",
+    "description": "Language name."
+  },
+  "language_tr": {
+    "message": "トルコ語",
+    "description": "Language name."
+  },
+  "language_uk": {
+    "message": "ウクライナ語",
     "description": "Language name."
   },
   "language_zh": {
