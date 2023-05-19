@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 
-// Copyright 2021 Susumu OTA
+// Copyright 2023 Susumu OTA
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const source = document.querySelector('#source-dummydiv');
-const target = document.querySelector('#target-dummydiv');
+const source = document.querySelector('d-textarea[data-testid="translator-source-input"]');
+const target = document.querySelector('d-textarea[data-testid="translator-target-input"]');
 
-if (!(source && target)) throw new Error('Could not find #source-dummydiv or #target-dummydiv.');
+if (!(source && target)) throw new Error('Could not find translator-source-input or translator-target-input.');
 
 /**
  * Monitor source/target textarea.
@@ -25,15 +25,18 @@ if (!(source && target)) throw new Error('Could not find #source-dummydiv or #ta
  * See https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
  */
 const observer = new MutationObserver(() => {
-  if (!(source.textContent?.trim() && target.textContent?.trim())) return;
+  const pToString = (p: HTMLParagraphElement) => p.textContent?.trim() ?? '';
+  const sourceText = Array.from(source.querySelectorAll('p')).map(pToString).join('\n').trim();
+  const targetText = Array.from(target.querySelectorAll('p')).map(pToString).join('\n').trim();
+  if (!(sourceText && targetText)) return;
   // send message to translation.tsx
   chrome.runtime.sendMessage({
     message: 'setTranslation',
-    source: source.textContent.trim(),
-    translation: target.textContent.trim(),
+    source: sourceText,
+    translation: targetText,
   }, (response: { message: string }) => {
     console.debug(chrome.runtime.lastError?.message ?? `deepl.ts: got message: ${response.message}`);
   });
 });
 
-observer.observe(target, { childList: true });
+observer.observe(target, { childList: true, subtree: true });
