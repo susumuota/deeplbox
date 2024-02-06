@@ -63,7 +63,7 @@ const DEFAULT_CONFIG: ConfigType = {
   //
   // https://www.deepl.com/docs-api/translating-text/
   sourceLang: 'auto', // 'en',
-  targetLang: 'auto', // 'ja',
+  targetLang: 'ja', // 'de',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
 
   // create/update tab/window methods parameters
