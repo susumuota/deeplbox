@@ -1,6 +1,6 @@
 // -*- coding: utf-8 -*-
 
-// Copyright 2021 Susumu OTA
+// Copyright 2024 Susumu OTA
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -87,10 +87,18 @@ const insertNewlines = (text: string) => {
 };
 
 const ESCAPE_PATTERN = /([/|\\])/g;
+const CITATION_PATTERN = /([.,])((\[\d+\])+)/g; // Wikipedia citation
 /** Open DeepL tab. */
 const openDeepLTab = async (sourceText: string) => {
   const config = await getConfig();
-  const inserted = config.isSplit ? insertNewlines(sourceText) : sourceText;
+  // this is just an ad-hoc fix for Wikipedia citation style
+  // original: "word.[1][2][3]"
+  // fix:      "word[1][2][3]."
+  // original style fails to translate properly by DeepL
+  // TODO: test whether this fix brings side effects
+  const fixed = sourceText.replaceAll(CITATION_PATTERN, '$2$1');
+  if (sourceText !== fixed) console.debug('openDeepLTab: fix citation:', [sourceText, fixed]);
+  const inserted = config.isSplit ? insertNewlines(fixed) : fixed;
   const truncated = config.maxSourceText && config.maxSourceText > 0
     ? inserted.substring(0, config.maxSourceText) : inserted;
   // slash, pipe and backslash need to be escaped by backslash
@@ -150,8 +158,8 @@ const getSelectionByInjection = async (tabId: number) => new Promise<string>((re
   }, (results) => {
     if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
     if (!results) return reject(new Error('background.ts: Empty results (injection)'));
-    const hit = results.find((r) => r.result.trim());
-    if (hit) return resolve(hit.result.trim());
+    const hit = results.find((r) => r.result?.trim());
+    if (hit && hit.result) return resolve(hit.result.trim());
     return reject(new Error('background.ts: Could not get any selection text (injection)'));
   });
 });
