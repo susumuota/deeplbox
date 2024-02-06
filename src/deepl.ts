@@ -19,15 +19,16 @@ const target = document.querySelector('d-textarea[data-testid="translator-target
 
 if (!(source && target)) throw new Error('Could not find translator-source-input or translator-target-input.');
 
+const getText = (elm: Element) => Array.from(elm.querySelectorAll('p')).map((p) => p.textContent?.trim() ?? '').join('\n').trim();
+
 /**
  * Monitor source/target textarea.
  * When its content is changed, send `setTranslation` message to `translation.tsx`.
  * See https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
  */
 const observer = new MutationObserver(() => {
-  const pToString = (p: HTMLParagraphElement) => p.textContent?.trim() ?? '';
-  const sourceText = Array.from(source.querySelectorAll('p')).map(pToString).join('\n').trim();
-  const targetText = Array.from(target.querySelectorAll('p')).map(pToString).join('\n').trim();
+  const sourceText = getText(source);
+  const targetText = getText(target);
   if (!(sourceText && targetText)) return;
   // send message to translation.tsx
   chrome.runtime.sendMessage({
