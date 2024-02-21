@@ -21,6 +21,9 @@ if (!(source && target)) throw new Error('Could not find translator-source-input
 
 const getText = (elm: Element) => Array.from(elm.querySelectorAll('p')).map((p) => p.textContent?.trim() ?? '').join('\n').trim();
 
+let lastSourceText = '';
+let lastTargetText = '';
+
 /**
  * Monitor source/target textarea.
  * When its content is changed, send `setTranslation` message to `translation.tsx`.
@@ -30,6 +33,10 @@ const observer = new MutationObserver(() => {
   const sourceText = getText(source);
   const targetText = getText(target);
   if (!(sourceText && targetText)) return;
+  // sometimes the same text is set twice, so we need to check
+  if (sourceText === lastSourceText && targetText === lastTargetText) return;
+  lastSourceText = sourceText;
+  lastTargetText = targetText;
   // send message to translation.tsx
   chrome.runtime.sendMessage({
     message: 'setTranslation',
