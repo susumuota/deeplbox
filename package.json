@@ -1,6 +1,6 @@
 {
   "name": "deeplbox",
-  "version": "3.7.8",
+  "version": "3.7.9",
   "description": "A Google Chrome extension to open DeepL translator page and send selected text by keyboard shortcut or context menu.",
   "private": true,
   "scripts": {
