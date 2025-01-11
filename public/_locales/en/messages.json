@@ -111,8 +111,8 @@
     "message": "Translating...done!",
     "description": "Success snackbar alert text."
   },
-  "language_auto": {
-    "message": "Detect language",
+  "language_ar": {
+    "message": "Arabic",
     "description": "Language name."
   },
   "language_bg": {
@@ -135,16 +135,16 @@
     "message": "Greek",
     "description": "Language name."
   },
+  "language_en": {
+    "message": "English",
+    "description": "Language name."
+  },
   "language_en_gb": {
     "message": "English (British)",
     "description": "Language name."
   },
   "language_en_us": {
     "message": "English (American)",
-    "description": "Language name."
-  },
-  "language_en": {
-    "message": "English",
     "description": "Language name."
   },
   "language_es": {
@@ -203,7 +203,7 @@
     "message": "Polish",
     "description": "Language name."
   },
-  "language_pt_pt": {
+  "language_pt": {
     "message": "Portuguese",
     "description": "Language name."
   },
@@ -211,7 +211,7 @@
     "message": "Portuguese (Brazilian)",
     "description": "Language name."
   },
-  "language_pt": {
+  "language_pt_pt": {
     "message": "Portuguese",
     "description": "Language name."
   },
@@ -245,6 +245,14 @@
   },
   "language_zh": {
     "message": "Chinese",
+    "description": "Language name."
+  },
+  "language_zh_hans": {
+    "message": "Chinese (simplified)",
+    "description": "Language name."
+  },
+  "language_zh_hant": {
+    "message": "Chinese (traditional)",
     "description": "Language name."
   }
 }

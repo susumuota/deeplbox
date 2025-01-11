@@ -111,8 +111,8 @@
     "message": "翻訳完了!",
     "description": "Success snackbar alert text."
   },
-  "language_auto": {
-    "message": "言語を自動検出",
+  "language_ar": {
+    "message": "アラビア語",
     "description": "Language name."
   },
   "language_bg": {
@@ -135,16 +135,16 @@
     "message": "ギリシャ語",
     "description": "Language name."
   },
+  "language_en": {
+    "message": "英語",
+    "description": "Language name."
+  },
   "language_en_gb": {
     "message": "英語 (イギリス)",
     "description": "Language name."
   },
   "language_en_us": {
     "message": "英語 (アメリカ)",
-    "description": "Language name."
-  },
-  "language_en": {
-    "message": "英語",
     "description": "Language name."
   },
   "language_es": {
@@ -192,7 +192,7 @@
     "description": "Language name."
   },
   "language_nb": {
-    "message": "ノルウェー語",
+    "message": "ノルウェー語（ブークモール）",
     "description": "Language name."
   },
   "language_nl": {
@@ -203,7 +203,7 @@
     "message": "ポーランド語",
     "description": "Language name."
   },
-  "language_pt_pt": {
+  "language_pt": {
     "message": "ポルトガル語",
     "description": "Language name."
   },
@@ -211,7 +211,7 @@
     "message": "ポルトガル語 (ブラジル)",
     "description": "Language name."
   },
-  "language_pt": {
+  "language_pt_pt": {
     "message": "ポルトガル語",
     "description": "Language name."
   },
@@ -245,6 +245,14 @@
   },
   "language_zh": {
     "message": "中国語",
+    "description": "Language name."
+  },
+  "language_zh_hans": {
+    "message": "中国語（簡体字）",
+    "description": "Language name."
+  },
+  "language_zh_hant": {
+    "message": "中国語（繁体字）",
     "description": "Language name."
   }
 }

@@ -176,8 +176,8 @@ window.addEventListener('load', async () => {
   const root = createRoot(container!);
   root.render(
     <App
-      initialSourceLang={config.sourceLang ?? 'auto'}
-      initialTargetLang={config.targetLang ?? 'auto'}
+      initialSourceLang={config.sourceLang ?? 'en'}
+      initialTargetLang={config.targetLang ?? 'ja'}
       initialIsSplit={config.isSplit ?? false}
     />,
   );

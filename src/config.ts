@@ -62,7 +62,7 @@ const DEFAULT_CONFIG: ConfigType = {
   // DeepL settings
   //
   // https://www.deepl.com/docs-api/translating-text/
-  sourceLang: 'auto', // 'en',
+  sourceLang: 'en',
   targetLang: 'ja', // 'de',
   urlBase: 'https://www.deepl.com/translator', // or https://www.deepl.com/ja/translator
 
@@ -158,80 +158,82 @@ export const clearConfig = () => chrome.storage.local.clear();
 
 /**
  * DeepL's source language list.
- * See https://www.deepl.com/docs-api/translating-text/
+ * See https://developers.deepl.com/docs/resources/supported-languages#source-languages
  */
 export const SOURCE_LANG_LIST = [
-  'auto',
+  'ar',
   'bg',
-  'zh',
   'cs',
   'da',
-  'nl',
+  'de',
+  'el',
   'en',
+  'es',
   'et',
   'fi',
   'fr',
-  'de',
-  'el',
   'hu',
   'id',
   'it',
   'ja',
   'ko',
-  'lv',
   'lt',
+  'lv',
   'nb',
+  'nl',
   'pl',
   'pt',
   'ro',
   'ru',
   'sk',
   'sl',
-  'es',
   'sv',
   'tr',
   'uk',
+  'zh',
 ];
 
 /**
  * DeepL's target language list.
- * See https://www.deepl.com/docs-api/translating-text/
+ * See https://developers.deepl.com/docs/resources/supported-languages#target-languages
  */
 export const TARGET_LANG_LIST = [
-  'auto',
+  'ar',
   'bg',
-  'zh',
   'cs',
   'da',
-  'nl',
-  'en-us',
-  'en-gb',
+  'de',
+  'el',
   // 'en', // not recommended
+  'en-gb',
+  'en-us',
+  'es',
   'et',
   'fi',
   'fr',
-  'de',
-  'el',
   'hu',
   'id',
   'it',
   'ja',
   'ko',
-  'lv',
   'lt',
+  'lv',
   'nb',
+  'nl',
   'pl',
-  'pt-pt',
-  'pt-br',
   // 'pt', // not recommended
+  'pt-br',
+  'pt-pt',
   'ro',
   'ru',
   'sk',
   'sl',
-  'es',
   'sv',
   'tr',
   'uk',
+  // 'zh', // not recommended
+  'zh-hans',
+  'zh-hant',
 ];
 
 const EXCLUDE_PATTERN = /^(a|an|the|by|in|on|at|to|of|as|for|via|over|with|without|from|into|upon|under|between|through|or|and|not|[(-]?[\d.]+[),]?|[*∗])$/;
