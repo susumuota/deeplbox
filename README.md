@@ -80,6 +80,7 @@ You can change source/translation language and split on punctuation option by ex
 
 - Support keyboard shortcut for local PDF files.
 - Detect paragraphs in PDF document (is there any convenient way?).
+- Rewrite with Jotai instead of Recoil and upgrade to React 19.
 
 ## Source code
 
