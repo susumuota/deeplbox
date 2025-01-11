@@ -661,7 +661,7 @@ function App() {
   }, [handleMessage]);
 
   // eslint-disable-next-line max-len
-  const refObjects = useMemo(() => filteredItems.map(() => createRef<HTMLDivElement>()), [filteredItems]);
+  const refObjects = useMemo(() => filteredItems.map(() => createRef<HTMLDivElement>() as RefObject<HTMLDivElement>), [filteredItems]);
 
   useEffect(() => {
     if (isNeedScroll && isAutoScroll) {
